@@ -9,12 +9,14 @@ control centralities change.
 
 %}
 
+tic
+
 %% Parameters
 % How many random resamples to do of each fraction
-n_perm = 1e1;
+n_perm = 1e2;
 
 % What fraction of nodes to retain
-e_f = [0.2 0.6 0.8 0.9 1];
+e_f = [0.2 0.4 0.6 0.8 1];
 n_f = length(e_f);
 
 if isempty(A) == 1
@@ -28,6 +30,8 @@ end
 
 %% Get true control centrality
 c_c = control_centrality(A);
+fprintf('There are %d synchronizing and %d desynchronizing nodes.\n',...
+    sum(c_c<0),sum(c_c>0));
 
 %% Resample network and get control centralities
 % all_c_c is nch x n_f x n_perm size matrix
@@ -39,8 +43,6 @@ rho = zeros(n_f,n_perm);
 
 %% Loop over each fraction and get various stats
 for f = 1:n_f
-    
-    fprintf('Getting stats on fraction %d of %d.\n',f,n_f);
     c_c_f = squeeze(all_c_c(:,f,:));
     
     for i_p = 1:n_perm
@@ -99,6 +101,6 @@ ylabel('Simple matching coefficient');
 title({'Simple matching coefficient between original CC',...
     'and updated CC as a function of fraction of original network included'});
 
-
+toc
 
 end
