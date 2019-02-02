@@ -1,5 +1,22 @@
 function network_stats(A)
 
+%{
+
+This function takes an adjacency matrix A, calculates the control
+centrality of each node, and then randomly resamples the network, retaining
+specified fractions of electrodes, and then gets statistics on how the
+control centralities change.
+
+%}
+
+%% Parameters
+% How many random resamples to do of each fraction
+n_perm = 1e1;
+
+% What fraction of nodes to retain
+e_f = [0.2 0.6 0.8 0.9 1];
+n_f = length(e_f);
+
 if isempty(A) == 1
     fprintf('A empty, using fake data.\n');
     [A,~] = makeFakeA(80,0.1);
@@ -7,10 +24,7 @@ if isempty(A) == 1
         sum(sum(A==1))/size(A,1)^2*100);
 end
 
-%% Parameters
-n_perm = 1e1;
-e_f = [0.2 0.6 0.8 0.9 1];
-n_f = length(e_f);
+
 
 %% Get true control centrality
 c_c = control_centrality(A);
