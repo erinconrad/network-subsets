@@ -4,10 +4,13 @@ function out_chs = pickConChs(locs,n,plotStuff)
 The goal of this function is to select a random group of n more or less
 contiguous electrodes. It picks a random channel, and then sorts all
 channels based on their distance from this channel, and then it selects the
-closest n of them. The result is always not perfectly contiguous, but it's
-pretty good.
+closest n of them. It also adds some random jitter to the distances so that
+it gets random groups of electrodes.
 
 %}
+
+%% Parameters
+jitter = 30; % 0-10 nearly contiguous; 100+ very discontiguous
 
 chs = 1:size(locs,1);
 
@@ -21,6 +24,10 @@ ch = randi(length(chs));
 
 % Get distances to other chs
 dist = vecnorm(locs-repmat(locs(ch,:),length(chs),1),2,2);
+
+% Random jitter to lie about distances
+x = randi([-1,1],length(dist),1)*jitter;
+dist = dist + x;
 
 % Re-sort channels by distances to ch
 [~,I] = sort(dist);
