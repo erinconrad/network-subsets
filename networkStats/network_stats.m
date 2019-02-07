@@ -1,4 +1,4 @@
-function network_stats(A)
+function network_stats(pt,whichPt,A)
 
 %{
 
@@ -7,26 +7,41 @@ centrality of each node, and then randomly resamples the network, retaining
 specified fractions of electrodes, and then gets statistics on how the
 control centralities change.
 
+
+Stuff to add:
+- try a series of adjacency matrices, try to replicate the main finding of
+the VCR paper with subsampling
+- get other network metrics 
+    - node strength
+    - betweenness centrality
+    - edge strength
+
 %}
 
 tic
 
 %% Parameters
+
 % How many random resamples to do of each fraction
 n_perm = 1e2;
+
+% Remove a contiguous chunk of electrodes?
+contig = 0;
 
 % What fraction of nodes to retain
 e_f = [0.2 0.4 0.6 0.8 1];
 n_f = length(e_f);
 
+
+%% Get locs
+locs = pt(whichPt).electrodeData.locs;
+
 if isempty(A) == 1
     fprintf('A empty, using fake data.\n');
-    [A,~] = makeFakeA(80,0.1);
+    [A,~] = makeFakeA(size(locs,1),0.1);
     fprintf('%1.1f%% of possible links are connected.\n',...
         sum(sum(A==1))/size(A,1)^2*100);
 end
-
-
 
 %% Get true control centrality
 c_c = control_centrality(A);
@@ -35,7 +50,7 @@ fprintf('There are %d synchronizing and %d desynchronizing nodes.\n',...
 
 %% Resample network and get control centralities
 % all_c_c is nch x n_f x n_perm size matrix
-all_c_c = resampleNetwork(A,n_perm,e_f);
+all_c_c = resampleNetwork(A,n_perm,e_f,contig,locs);
 
 %% Initialize SMC and rho arrays
 SMC = zeros(n_f,n_perm);

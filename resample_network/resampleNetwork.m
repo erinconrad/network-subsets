@@ -1,4 +1,4 @@
-function all_c_c = resampleNetwork(A,n_perm,e_f)
+function all_c_c = resampleNetwork(A,n_perm,e_f,contig,locs)
 
 % True number of electrodes
 nch = size(A,1);
@@ -20,7 +20,13 @@ for f = 1:n_f
     for i_p = 1:n_perm
         
         % Take e_n electrodes and just remove them
-        which_elecs = randperm(nch,e_n(f));
+        
+        if contig == 0
+            which_elecs = randperm(nch,e_n(f));
+        elseif contig == 1
+            which_elecs = pickConChs(locs,e_n(f),0);
+        end
+        
         A_temp = A;
         ch_ids = 1:nch;
         A_temp(which_elecs,:) = [];
