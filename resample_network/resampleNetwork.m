@@ -1,4 +1,5 @@
-function all_c_c = resampleNetwork(A,n_perm,e_f,contig,locs)
+function [all_c_c,all_ns,all_bc] = ...
+    resampleNetwork(A,n_perm,e_f,contig,locs)
 
 % True number of electrodes
 nch = size(A,1);
@@ -11,15 +12,15 @@ n_f = length(e_f);
 
 % Initialize cell array for each channel of the control centralities for
 % each fraction and permutation
-all_c_c = zeros(nch,n_f,n_perm);
+all_c_c = nan(nch,n_f,n_perm);
 
 % Initialize cell array for each channel of the node strengths for each
 % fraction and permutation
-all_ns = zeros(nch,n_f,n_perm);
+all_ns = nan(nch,n_f,n_perm);
 
 % Initialize cell array for each channel of the betweenness centralities
 % for each fraction and permutation
-all_bc = zeros(nch,n_f,n_perm);
+all_bc = nan(nch,n_f,n_perm);
 
 % Loop through fractions
 for f = 1:n_f
@@ -48,7 +49,7 @@ for f = 1:n_f
         ns = node_strength(A_temp);
         
         % Get betweenness centrality
-        bc = betweenness_centrality(A_temp);
+        bc = betweenness_centrality(A_temp,1);
         
         % MAKE SURE THAT I INDEXED THE CH ID CORRECTLY
         for i = 1:length(ch_ids)
