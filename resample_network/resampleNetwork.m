@@ -13,6 +13,14 @@ n_f = length(e_f);
 % each fraction and permutation
 all_c_c = zeros(nch,n_f,n_perm);
 
+% Initialize cell array for each channel of the node strengths for each
+% fraction and permutation
+all_ns = zeros(nch,n_f,n_perm);
+
+% Initialize cell array for each channel of the betweenness centralities
+% for each fraction and permutation
+all_bc = zeros(nch,n_f,n_perm);
+
 % Loop through fractions
 for f = 1:n_f
     
@@ -36,9 +44,17 @@ for f = 1:n_f
         % Get control centrality
         c_c = control_centrality(A_temp);
         
+        % Get node strength
+        ns = node_strength(A_temp);
+        
+        % Get betweenness centrality
+        bc = betweenness_centrality(A_temp);
+        
         % MAKE SURE THAT I INDEXED THE CH ID CORRECTLY
         for i = 1:length(ch_ids)
             all_c_c(ch_ids(i),f,i_p) = c_c(i);
+            all_ns(ch_ids(i),f,i_p) = ns(i);
+            all_bc(ch_ids(i),f,i_p) = bc(i);
         end
         
         % fill in removed channels with nans

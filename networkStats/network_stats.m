@@ -12,7 +12,8 @@ Stuff to add:
 - try a series of adjacency matrices, try to replicate the main finding of
 the VCR paper with subsampling
 - get other network metrics 
-    - node strength
+    - node strength - I believe if you have adjacency matrix A, the node
+    strength of i is sum(A(i,:))
     - betweenness centrality
     - edge strength
 
