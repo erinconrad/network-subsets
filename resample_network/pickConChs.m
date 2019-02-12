@@ -10,7 +10,7 @@ it gets random groups of electrodes.
 %}
 
 %% Parameters
-jitter = 30; % 0-10 nearly contiguous; 100+ very discontiguous
+jitter = 100; % 0-10 nearly contiguous; 100+ very discontiguous
 
 chs = 1:size(locs,1);
 

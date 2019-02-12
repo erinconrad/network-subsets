@@ -13,9 +13,30 @@ Stuff to add:
 the VCR paper with subsampling
 - get other network metrics 
     - node strength - I believe if you have adjacency matrix A, the node
-    strength of i is sum(A(i,:))
-    - betweenness centrality
-    - edge strength
+    strength of i is sum(A(i,:)) --> could do SRC
+    - betweenness centrality  --> could do SRC
+    - path length
+    (https://www.sciencedirect.com/science/article/pii/S1388245715012584)
+    - clustering coefficient
+    (https://www.sciencedirect.com/science/article/pii/S1388245715012584)
+    - node heterogeneity
+    - epileptor model - The Virtual Brain
+    - overall synchronizability
+    - global efficiency
+
+- take number N of resected electrodes and randomly move them around so
+still N contiguous electrodes and recalculate the control centrality of
+the "resected region"
+
+- which adjacency matrices to use?
+    - 5 seconds before
+    - right at seizure onset
+    - 10 seconds after
+- aim3/results/patientID/aim3/multiband - minutes long, nchxnchxTxfband
+- multiple freq bands
+    - start with high gamma
+
+- brain connectivity toolbox
 
 %}
 
@@ -35,7 +56,11 @@ n_f = length(e_f);
 
 
 %% Get locs
-locs = pt(whichPt).electrodeData.locs;
+if isempty(pt) == 0
+    locs = pt(whichPt).electrodeData.locs;
+else
+    locs = [];
+end
 
 if isempty(A) == 1
     fprintf('A empty, using fake data.\n');
@@ -60,10 +85,16 @@ ns = node_strength(A);
 [all_c_c,all_ns,all_bc] = resampleNetwork(A,n_perm,e_f,contig,locs);
 
 %% Initialize SMC and rho arrays
+
+% Control centrality stuff
 SMC_cc = zeros(n_f,n_perm);
 rho_cc = zeros(n_f,n_perm);
 true_cc_most_sync = zeros(n_f,n_perm);
+
+% Betweenness centrality stuff
 rho_bc = zeros(n_f,n_perm);
+
+% Node strength centrality stuff
 rho_ns = zeros(n_f,n_perm);
 
 %% Loop over each fraction and get various stats
@@ -97,6 +128,8 @@ for f = 1:n_f
 
         
         %% Do stats on node strength and betweenness centrality
+        % For these, they are always non-negative and so SMC doesn't make
+        % sense
         [rho_ns(f,i_p),~] = doStats(ns,ns_f_p);
         [rho_bc(f,i_p),~] = doStats(bc,bc_f_p);
             
@@ -126,7 +159,9 @@ rho_std_bc = nanstd(rho_bc,0,2);
 
 resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
 
-%% Plot rho and SMC mean and std for each fraction
+%% Plots
+
+% Control centrality
 figure
 set(gcf,'Position',[50 389 1400 409]);
 subplot(1,3,1)
@@ -151,6 +186,7 @@ title({'Percent of time a desynchronizing node is',...
     'labeled as the most synchronizing'});
 
 
+% Node strength
 figure
 set(gcf,'Position',[50 389 500 409]);
 errorbar(e_f,rho_mean_ns,rho_std_ns,'linewidth',2);
@@ -159,7 +195,7 @@ ylabel('Spearman rank coefficient');
 title({'Spearman rank coefficient between original node strength',...
     'and updated node strength as a function of fraction of original network included'});
 
-
+% Betweenness centrality
 figure
 set(gcf,'Position',[50 389 500 409]);
 errorbar(e_f,rho_mean_bc,rho_std_bc,'linewidth',2);

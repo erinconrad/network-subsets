@@ -30,9 +30,9 @@ for f = 1:n_f
         
         % Take e_n electrodes and just remove them
         
-        if contig == 0
+        if contig == 0 % random electrodes
             which_elecs = randperm(nch,e_n(f));
-        elseif contig == 1
+        elseif contig == 1 % random electrodes close to each other
             which_elecs = pickConChs(locs,e_n(f),0);
         end
         
@@ -58,10 +58,6 @@ for f = 1:n_f
             all_bc(ch_ids(i),f,i_p) = bc(i);
         end
         
-        % fill in removed channels with nans
-        for i = 1:length(which_elecs)
-            all_c_c(which_elecs(i),f,i_p) = nan;
-        end
         
     end
     
