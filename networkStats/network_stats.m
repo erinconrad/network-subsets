@@ -68,6 +68,8 @@ which_sec = 0; % 0 means start time of the seizure, -10 is 10 seconds before
 %% Load stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+p1 = genpath(scriptFolder);
+addpath(p1);
 
 % Add brain connectivity toolbox
 addpath([bctFolder]);
