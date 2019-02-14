@@ -80,6 +80,9 @@ for whichPt = whichPts
 
     % Make result folder
     name = pt(whichPt).name;
+    
+    fprintf('Doing %s\n',name);
+    
     outFolder = [resultsFolder,'basic_metrics/',name,'/'];
     if exist(outFolder,'dir') == 0
         mkdir(outFolder);
