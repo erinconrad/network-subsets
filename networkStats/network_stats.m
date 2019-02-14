@@ -91,7 +91,7 @@ for whichPt = whichPts
     end
 
     if skip_done == 1
-        if exist([outFolder,'eff_',contig_text,'.eps'],'file') == 1
+        if exist([outFolder,'eff_',contig_text,'.eps'],'file') ~=0
             continue
         end
             
