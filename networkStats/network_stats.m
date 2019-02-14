@@ -44,6 +44,8 @@ tic
 
 %% Parameters
 
+skip_done = 1;
+
 % How many random resamples to do of each fraction
 n_perm = 1e2;
 
@@ -88,7 +90,12 @@ for whichPt = whichPts
         mkdir(outFolder);
     end
 
-
+    if skip_done == 1
+        if exist([outFolder,'eff_',contig_text,'.eps'],'file') == 1
+            continue
+        end
+            
+    end
     %{
     if isempty(A) == 1
         fprintf('A empty, using fake data.\n');
