@@ -20,7 +20,7 @@ for whichPt = whichPts
     outputFolder = [baseFolder,name,'/'];
     
     % Current adjacency folder
-    adj_pt_folder = [adjFolder,name,'aim3/'];
+    adj_pt_folder = [adjFolder,name,'/aim3/'];
     
     if exist(adj_pt_folder,'dir') == 0
         continue
