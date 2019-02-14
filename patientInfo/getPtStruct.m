@@ -26,6 +26,7 @@ for i = 1:length(ptnames)
     pt(i).clinical.ageSurgery = info.AgeSurgery;
     pt(i).clinical.sex = info.Sex;
     pt(i).clinical.seizureOnset = info.SeizureOnset;
+    pt(i).ignore_electrodes = cellfun(@char,info.IGNORE_ELECTRODES,'UniformOutput',false);
     if isfield(info,'GridCoverageOfResection') == 1
         pt(i).clinical.gridcovresection = info.GridCoverageOfResection;
     end
@@ -102,7 +103,7 @@ for i = 1:length(ptnames)
     
 end
 
-%% Loop through patients, run times
+%% Get channel names
 for i = 1:length(pt)
     fprintf('Doing patient %s\n',pt(i).name);
     dataName =  pt(i).ieeg_name;
@@ -115,6 +116,48 @@ for i = 1:length(pt)
         continue
     end
     
+    fileID = fopen([electrodeFolder,electrodeFile]);
+
+    out=textscan(fileID, '%s', 'whitespace',',');
+    out = out{1};
+    nChans = length(out)/8;
+    
+    electrodeData.electrodes(nChans,1) = struct;
+    
+    for k = 1:nChans % this loops through the electrode file channels
+    
+       % fill up the electrode data in the struct such that the index
+       % is the same as the index of the channel in the gdf file
+       electrodeData.electrodes(k).x = str2double(out{(k-1)*8+2});
+       electrodeData.electrodes(k).y = str2double(out{(k-1)*8+3});
+       electrodeData.electrodes(k).z = str2double(out{(k-1)*8+4});
+       electrodeData.electrodes(k).xyz = [electrodeData.electrodes(k).x,...
+       electrodeData.electrodes(k).y,electrodeData.electrodes(k).z];
+       electrodeData.electrodes(k).name = out{(k-1)*8+5};
+       electrodeData.electrodes(k).type = out{(k-1)*8+6};
+       if ismember(electrodeData.electrodes(k).name,pt(i).ignore_electrodes) == 1
+           electrodeData.electrodes(k).ignore = 1;
+       else
+           electrodeData.electrodes(k).ignore = 0;
+       end
+    end
+
+    % make a dump of the locations of the correctly indexed channels
+    electrodeData.locs = zeros(length(electrodeData.electrodes),4);
+    electrodeData.names = cell(length(electrodeData.electrodes),2);
+    for k = 1:length(electrodeData.electrodes)
+        electrodeData.locs(k,1:3) = [electrodeData.electrodes(k).xyz];
+        electrodeData.locs(k,4) = electrodeData.electrodes(k).ignore;
+        electrodeData.names{k,1} = electrodeData.electrodes(k).name;
+        electrodeData.names{k,2} = electrodeData.electrodes(k).ignore;
+    end
+    
+    pt(i).electrodeData = electrodeData;
+    clear electrodeData
+    fclose(fileID);
+end
+    
+    %{
     %% Load EEG data info
     % calling this with 0 and 0 means I will just get basic info like sampling
     % rate and channel labels
@@ -194,9 +237,9 @@ for i = 1:length(pt)
         pt(i).newSOZChs = [pt(i).newSOZChs;chnums];
     end
      pt(i).newSOZChs = unique(pt(i).newSOZChs);
+    %}
     
     
-end
 
 save([dataFolder,'structs/',outputFile],'pt');
 

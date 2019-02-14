@@ -1,4 +1,4 @@
-function network_stats(pt,whichPt,A)
+function network_stats(whichPt)
 
 %{
 
@@ -54,20 +54,35 @@ contig = 0;
 e_f = [0.2 0.4 0.6 0.8 1];
 n_f = length(e_f);
 
+% Which freq?
+freq = 'high_gamma';
 
-%% Get locs
-if isempty(pt) == 0
-    locs = pt(whichPt).electrodeData.locs;
-else
-    locs = [];
-end
+% Which second
+which_sec = 1;
 
+%% Load stuff
+[electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
+pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+
+load([dataFolder,'structs/info.mat']);
+
+%{
 if isempty(A) == 1
     fprintf('A empty, using fake data.\n');
     [A,~] = makeFakeA(size(locs,1),0.1);
     fprintf('%1.1f%% of possible links are connected.\n',...
         sum(sum(A==1))/size(A,1)^2*100);
 end
+%}
+
+% Get locs and adjacency
+[adj,locs] = reconcileAdj(pt,whichPt);
+
+if strcmp(freq,'high_gamma') == 1
+    A_all = adj(4).data;
+end
+
+A = squeeze(A_all(which_sec,:,:));
 
 %% Get true control centrality
 c_c = control_centrality(A);
