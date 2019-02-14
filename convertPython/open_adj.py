@@ -3,6 +3,11 @@ def open_ad_f(file):
     import numpy as np
     # load the file
     data = np.load(file)
-    return data
+    keys = data.item().keys()
+    vals = [];
+    for k in keys:
+        vals.append(data.item()[k])
+    vals, b = zip(*vals)
+    return vals, keys
 
 

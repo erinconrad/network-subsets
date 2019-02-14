@@ -1,7 +1,10 @@
 function npzToMat(pt,whichPts)
 
+mod = py.importlib.import_module('open_adj');
+py.reload(mod);
+
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
-    pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+    pwfile,dataFolder,bctFolder,mainFolder,adjFolder] = resectFileLocs;
 baseFolder = [mainFolder,'/data/adjacencyMatrices/'];
 
 if isempty(whichPts) == 1
@@ -16,7 +19,10 @@ for whichPt = whichPts
     % Get folder
     outputFolder = [baseFolder,name,'/'];
     
-    if exist(outputFolder,'dir') == 0
+    % Current adjacency folder
+    adj_pt_folder = [adjFolder,name,'aim3/'];
+    
+    if exist(adj_pt_folder,'dir') == 0
         continue
     end
     
@@ -25,12 +31,12 @@ for whichPt = whichPts
     end
     
     % Find the file that ends in .npz
-    listing = dir([outputFolder,'*.npz']);
+    listing = dir([adj_pt_folder,'*1.multiband.npz']);
     fname = listing.name;
     
     % Unzip it
     if exist([outputFolder,'labels.npy'],'file') == 0
-        unzip([outputFolder,fname],outputFolder);
+        unzip([adj_pt_folder,fname],outputFolder);
     end
 
     % Now find all the .npy files
@@ -70,7 +76,27 @@ for whichPt = whichPts
     end
     
     %% Fix for the labels
+    new_file = [outputFolder,'labels.npy'];
+    label_data = py.open_adj.open_ad_f(new_file);
+    vals = cell(label_data{1});
+    vals = cell2mat(vals)';
+    keys = cell(label_data{2});
+    cellP = cell(1, numel(keys));
+    for n= 1:numel(keys)
+        strP = char(keys{n});
+        cellP(n) = {strP};
+    end
+    keys = char(cellP);
     
+    % Add to structure
+    adj(count+1).name = 'labels';
+    adj(count+1).data.labels = keys;
+    adj(count+1).data.nums = vals;
+    
+    % Save the structure
+    save([outputFolder,'adj.mat'],'adj');
+    
+
     % Add python module
     %{
     if count(py.sys.path,'') == 0
@@ -78,7 +104,8 @@ for whichPt = whichPts
     end
     %}
     
-    new_file = [outputFolder,'labels.npy'];
+    %{
+    
     label_data = char(py.str(py.open_adj.open_ad_f(new_file)));
     
     % Do regular expressions
@@ -99,6 +126,7 @@ for whichPt = whichPts
     
     % Save the structure
     save([outputFolder,'adj.mat'],'adj');
+    %}
     
 end
 
