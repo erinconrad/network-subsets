@@ -103,7 +103,7 @@ for whichPt = whichPts
     end
 
 
-    A = squeeze(A_all(size(A_all,1)/2+which_sec,:,:));
+    A = squeeze(ceil(A_all(size(A_all,1)/2)+which_sec,:,:));
 
     %% Get true control centrality
     c_c = control_centrality(A);
