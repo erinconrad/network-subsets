@@ -31,8 +31,9 @@ for whichPt = whichPts
     end
     
     % Find the file that ends in .npz
-    listing = dir([adj_pt_folder,'*1.multiband.npz']);
-    fname = listing.name;
+    listing = dir([adj_pt_folder,'/*multiband.npz']);
+    fname = listing(1).name;
+    which_multiband = fname(end-14); % will break if >=10
     
     % Unzip it
     if exist([outputFolder,'labels.npy'],'file') == 0
@@ -94,7 +95,7 @@ for whichPt = whichPts
     adj(count+1).data.nums = vals;
     
     % Save the structure
-    save([outputFolder,'adj.mat'],'adj');
+    save([outputFolder,'adj',which_multiband,'.mat'],'adj');
     
 
     % Add python module
