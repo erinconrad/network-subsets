@@ -1,4 +1,4 @@
-function [all_c_c,all_ns,all_bc] = ...
+function [all_c_c,all_ns,all_bc,all_sync,all_eff] = ...
     resampleNetwork(A,n_perm,e_f,contig,locs)
 
 % True number of electrodes
@@ -21,6 +21,12 @@ all_ns = nan(nch,n_f,n_perm);
 % Initialize cell array for each channel of the betweenness centralities
 % for each fraction and permutation
 all_bc = nan(nch,n_f,n_perm);
+
+% Initialize array for synhronizability for each fraction and permutation
+all_sync = nan(n_f,n_perm);
+
+% Initialize array for efficiency for each fraction and permutation
+all_eff = nan(n_f,n_perm);
 
 % Loop through fractions
 for f = 1:n_f
@@ -50,6 +56,12 @@ for f = 1:n_f
         
         % Get betweenness centrality
         bc = betweenness_centrality(A_temp,1);
+        
+        % get synchronizability
+        all_sync(f,i_p) = synchronizability(A_temp);
+        
+        % Get efficiency
+        all_eff(f,i_p) = efficiency_wei(A_temp, 0);
         
         % MAKE SURE THAT I INDEXED THE CH ID CORRECTLY
         for i = 1:length(ch_ids)

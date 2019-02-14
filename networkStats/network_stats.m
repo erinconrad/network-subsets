@@ -45,10 +45,15 @@ tic
 %% Parameters
 
 % How many random resamples to do of each fraction
-n_perm = 1e1;
+n_perm = 1e2;
 
 % Remove a contiguous chunk of electrodes?
-contig = 0;
+contig = 1;
+if contig == 1
+    contig_text = 'contiguous';
+else
+    contig_text = 'random';
+end
 
 % What fraction of nodes to retain
 e_f = [0.2 0.4 0.6 0.8 1];
@@ -58,13 +63,24 @@ n_f = length(e_f);
 freq = 'high_gamma';
 
 % Which second
-which_sec = 1;
+which_sec = 0; % 0 means start time of the seizure, -10 is 10 seconds before
 
 %% Load stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 
+% Add brain connectivity toolbox
+addpath([bctFolder]);
+
 load([dataFolder,'structs/info.mat']);
+
+% Make result folder
+name = pt(whichPt).name;
+outFolder = [resultsFolder,'basic_metrics/',name,'/'];
+if exist(outFolder,'dir') == 0
+    mkdir(outFolder);
+end
+    
 
 %{
 if isempty(A) == 1
@@ -82,12 +98,16 @@ if strcmp(freq,'high_gamma') == 1
     A_all = adj(4).data;
 end
 
-A = squeeze(A_all(which_sec,:,:));
+
+A = squeeze(A_all(size(A_all,1)/2+which_sec,:,:));
 
 %% Get true control centrality
 c_c = control_centrality(A);
 fprintf('There are %d synchronizing and %d desynchronizing nodes.\n',...
     sum(c_c<0),sum(c_c>0));
+
+%% Get true synchronizability
+sync = synchronizability(A);
 
 %% Get true betweenness centrality
 bc = betweenness_centrality(A,1);
@@ -95,9 +115,13 @@ bc = betweenness_centrality(A,1);
 %% Get true node strength
 ns = node_strength(A);
 
-%% Resample network and get control centralities
+%% Get true global efficiency
+eff = efficiency_wei(A, 0);
+
+%% Resample network and get new metrics
 % all_c_c is nch x n_f x n_perm size matrix
-[all_c_c,all_ns,all_bc] = resampleNetwork(A,n_perm,e_f,contig,locs);
+[all_c_c,all_ns,all_bc,all_sync,all_eff] = ...
+    resampleNetwork(A,n_perm,e_f,contig,locs);
 
 %% Initialize SMC and rho arrays
 
@@ -180,44 +204,84 @@ resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
 figure
 set(gcf,'Position',[50 389 1400 409]);
 subplot(1,3,1)
-errorbar(e_f,rho_mean_cc,rho_std_cc,'linewidth',2);
+errorbar(e_f,rho_mean_cc,rho_std_cc,'k','linewidth',2);
 xlabel('Fraction of original network included');
 ylabel('Spearman rank coefficient');
-title({'Spearman rank coefficient between original CC',...
-    'and updated CC as a function of fraction of original network included'});
+title(sprintf(['Spearman rank coefficient between original CC\n'...
+    'and updated CC as a function of fraction of original network included\n'...
+    'taking %s electrodes'],contig_text));
 
 subplot(1,3,2)
-errorbar(e_f,SMC_mean_cc,SMC_std_cc,'linewidth',2);
+errorbar(e_f,SMC_mean_cc,SMC_std_cc,'k','linewidth',2);
 xlabel('Fraction of original network included');
 ylabel('Simple matching coefficient');
-title({'Simple matching coefficient between original CC',...
-    'and updated CC as a function of fraction of original network included'});
+title(sprintf(['Simple matching coefficient between original CC\n'...
+    'and updated CC as a function of fraction of original network included\n'...
+    'taking %s electrodes'],contig_text));
 
 subplot(1,3,3)
-plot(e_f,resect_wrong*100,'linewidth',2);
+plot(e_f,resect_wrong*100,'k','linewidth',2);
 xlabel('Fraction of original network included');
 ylabel('% of permutations');
-title({'Percent of time a desynchronizing node is',...
-    'labeled as the most synchronizing'});
+title(sprintf(['Percent of time a desynchronizing node is\n'...
+    'labeled as the most synchronizing\n'...
+    'taking %s electrodes'],contig_text));
+print(gcf,[outFolder,'cc_',contig_text],'-depsc');
+close(gcf)
 
 
 % Node strength
 figure
 set(gcf,'Position',[50 389 500 409]);
-errorbar(e_f,rho_mean_ns,rho_std_ns,'linewidth',2);
+errorbar(e_f,rho_mean_ns,rho_std_ns,'k','linewidth',2);
 xlabel('Fraction of original network included');
 ylabel('Spearman rank coefficient');
-title({'Spearman rank coefficient between original node strength',...
-    'and updated node strength as a function of fraction of original network included'});
+title(sprintf(['Spearman rank coefficient between original node strength\n'...
+    'and updated node strength as a function of fraction of original network included\n'...
+    'taking %s electrodes'],contig_text));
+print(gcf,[outFolder,'ns_',contig_text],'-depsc');
+close(gcf)
 
 % Betweenness centrality
 figure
 set(gcf,'Position',[50 389 500 409]);
-errorbar(e_f,rho_mean_bc,rho_std_bc,'linewidth',2);
+errorbar(e_f,rho_mean_bc,rho_std_bc,'k','linewidth',2);
 xlabel('Fraction of original network included');
 ylabel('Spearman rank coefficient');
-title({'Spearman rank coefficient between original BC',...
-    'and updated BC as a function of fraction of original network included'});
+title(sprintf(['Spearman rank coefficient between original BC\n'...
+    'and updated BC as a function of fraction of original network included\n'...
+    'taking %s electrodes'],contig_text));
+print(gcf,[outFolder,'bc_',contig_text],'-depsc');
+close(gcf)
+
+% Synchronizability
+figure
+set(gcf,'Position',[50 389 500 409]);
+errorbar(e_f,mean(all_sync,2),std(all_sync,0,2),'k','linewidth',2);
+hold on
+plot(get(gca,'xlim'),[sync sync],'k--','linewidth',2);
+xlabel('Fraction of original network included');
+ylabel('Synchronizability');
+title(sprintf(['Synchronizability'...
+    ' as a function of fraction of original network included\n'...
+    'taking %s electrodes'],contig_text));
+print(gcf,[outFolder,'sync_',contig_text],'-depsc');
+close(gcf)
+
+% Efficiency
+figure
+set(gcf,'Position',[50 389 500 409]);
+errorbar(e_f,mean(all_eff,2),std(all_eff,0,2),'k','linewidth',2);
+hold on
+plot(get(gca,'xlim'),[eff eff],'k--','linewidth',2);
+xlabel('Fraction of original network included');
+ylabel('Global efficiency');
+title(sprintf(['Global efficiency'...
+    ' as a function of fraction of original network included\n'...
+    'taking %s electrodes'],contig_text));
+print(gcf,[outFolder,'eff_',contig_text],'-depsc');
+close(gcf)
+
 
 toc
 
