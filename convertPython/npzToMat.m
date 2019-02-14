@@ -84,6 +84,8 @@ for whichPt = whichPts
 
         end
         
+       
+        
         % add it to structure
         adj(count).name = varname;
         adj(count).data = data.Data.d;
@@ -101,12 +103,25 @@ for whichPt = whichPts
         strP = char(keys{n});
         cellP(n) = {strP};
     end
-    keys = char(cellP);
+    keys = (cellP);
+    
+     % Re-sort by number
+    [vals,I] = sort(vals);
+    keys = keys(I);
+    
+    %% Figure out if we are ignoring it
+    ignore = zeros(length(vals),1);
+    for i = 1:length(ignore)
+        if ismember(keys(i),pt(whichPt).ignore_electrodes) == 1
+            ignore(i) = 1;
+        end
+    end
     
     % Add to structure
     adj(count+1).name = 'labels';
     adj(count+1).data.labels = keys;
     adj(count+1).data.nums = vals;
+    adj(count+1).data.ignore = ignore;
     
     % Save the structure
     save([outputFolder,'adj',which_mb_out,'.mat'],'adj');
