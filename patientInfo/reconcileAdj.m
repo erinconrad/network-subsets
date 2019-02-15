@@ -40,7 +40,8 @@ for i = 1:size(locs,1)
     else
         % Confirm it's one that we are ignoring
         if locs(i,4) == 0
-            error('What\n');
+            fprintf('Warning! Could not find electrode %s in adjacency matrix structure for %s\n',...
+                names{i,1},name);
         end
     end
     
