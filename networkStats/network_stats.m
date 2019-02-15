@@ -1,4 +1,4 @@
-function network_stats(whichPts)
+function stats = network_stats(whichPts)
 
 %{
 
@@ -12,17 +12,12 @@ Stuff to add:
 - try a series of adjacency matrices, try to replicate the main finding of
 the VCR paper with subsampling
 - get other network metrics 
-    - node strength - I believe if you have adjacency matrix A, the node
-    strength of i is sum(A(i,:)) --> could do SRC
-    - betweenness centrality  --> could do SRC
     - path length
     (https://www.sciencedirect.com/science/article/pii/S1388245715012584)
     - clustering coefficient
     (https://www.sciencedirect.com/science/article/pii/S1388245715012584)
     - node heterogeneity
     - epileptor model - The Virtual Brain
-    - overall synchronizability
-    - global efficiency
 
 - take number N of resected electrodes and randomly move them around so
 still N contiguous electrodes and recalculate the control centrality of
@@ -50,9 +45,6 @@ skip_done = 1;
 % How many random resamples to do of each fraction
 n_perm = 1e2;
 
-% Remove a contiguous chunk of electrodes?
-contig = 0;
-
 % What fraction of nodes to retain
 e_f = [0.2 0.4 0.6 0.8 1];
 n_f = length(e_f);
@@ -60,8 +52,6 @@ n_f = length(e_f);
 % Which freq?
 freq = 'high_gamma';
 
-% Which second
-which_sec = 0; % 0 means start time of the seizure, -10 is 10 seconds before
 
 %% Load Stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
@@ -74,7 +64,9 @@ addpath([bctFolder]);
 
 load([dataFolder,'structs/info.mat']);
 
-%% Loop through patients
+%% Loop through patients, times, and whether contig or random electrodes
+for which_sec = [0 -5] % 0 means start time of the seizure, -5 is 5 seconds before
+for contig = [0 1]
 
 for whichPt = whichPts
 
@@ -92,6 +84,12 @@ for whichPt = whichPts
         contig_text = 'contiguous';
     else
         contig_text = 'random';
+    end
+    
+    if which_sec < 0
+        sec_text = sprintf('sec_neg%d',which_sec);
+    else
+        sec_text = sprintf('sec_%d',which_sec);
     end
     
     if skip_done == 1
@@ -215,10 +213,44 @@ for whichPt = whichPts
     % surgeon to resect a piece of brain that is thought to be desynchronizing
     % in the original network)
     resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
-
-    %% Plots
+    
+    
+    %% Fill up stats structure
+    stats(whichPt).name = name;
+    
+    % control centrality
+    stats(whichPt).cc.name = 'control centrality';
+    stats(whichPt).cc.(contig_text).(sec_text).SMC.mean = SMC_mean_cc;
+    stats(whichPt).cc.(contig_text).(sec_text).SMC.std = SMC_std_cc;
+    stats(whichPt).cc.(contig_text).(sec_text).rho.mean = rho_mean_cc;
+    stats(whichPt).cc.(contig_text).(sec_text).rho.std = rho_std_cc;
+    stats(whichPt).cc.(contig_text).(sec_text).resect_wrong = resect_wrong;
+    
+    % node strength
+    stats(whichPt).ns.name = 'node strength';
+    stats(whichPt).ns.(contig_text).(sec_text).rho.mean = rho_mean_ns;
+    stats(whichPt).ns.(contig_text).(sec_text).rho.std = rho_std_ns;
+    
+    % betweenness centrality
+    stats(whichPt).bc.name = 'betweenness centrality';
+    stats(whichPt).bc.(contig_text).(sec_text).rho.mean = rho_mean_bc;
+    stats(whichPt).bc.(contig_text).(sec_text).rho.std = rho_std_bc;
+    
+    % synchronizability
+    stats(whichPt).sync.name = 'synchronizability';
+    stats(whichPt).sync.(contig_text).(sec_text).mean = mean(all_sync,2);
+    stats(whichPt).sync.(contig_text).(sec_text).std = std(all_sync,0,2);
+    stats(whichPt).sync.(contig_text).(sec_text).true = sync;
+    
+    % efficiency
+    stats(whichPt).eff.name = 'global efficiency';
+    stats(whichPt).eff.(contig_text).(sec_text).mean = mean(all_eff,2);
+    stats(whichPt).eff.(contig_text).(sec_text).std = std(all_eff,0,2);
+    stats(whichPt).eff.(contig_text).(sec_text).true = eff;
     
 
+    %% Plots
+  
     % Control centrality
     figure
     set(gcf,'Position',[50 389 1400 409]);
@@ -228,7 +260,7 @@ for whichPt = whichPts
     ylabel('Spearman rank coefficient');
     title(sprintf(['Spearman rank coefficient between original CC\n'...
         'and updated CC as a function of fraction of original network included\n'...
-        'taking %s electrodes'],contig_text));
+        'taking %s electrodes, %s'],contig_text, sec_text));
 
     subplot(1,3,2)
     errorbar(e_f,SMC_mean_cc,SMC_std_cc,'k','linewidth',2);
@@ -236,7 +268,7 @@ for whichPt = whichPts
     ylabel('Simple matching coefficient');
     title(sprintf(['Simple matching coefficient between original CC\n'...
         'and updated CC as a function of fraction of original network included\n'...
-        'taking %s electrodes'],contig_text));
+        'taking %s electrodes, %s'],contig_text,sec_text));
 
     subplot(1,3,3)
     plot(e_f,resect_wrong*100,'k','linewidth',2);
@@ -244,8 +276,8 @@ for whichPt = whichPts
     ylabel('% of permutations');
     title(sprintf(['Percent of time a desynchronizing node is\n'...
         'labeled as the most synchronizing\n'...
-        'taking %s electrodes'],contig_text));
-    print(gcf,[outFolder,'cc_',contig_text],'-depsc');
+        'taking %s electrodes, %s'],contig_text,sec_text));
+    print(gcf,[outFolder,'cc_',contig_text,sec_text],'-depsc');
     close(gcf)
 
 
@@ -257,8 +289,8 @@ for whichPt = whichPts
     ylabel('Spearman rank coefficient');
     title(sprintf(['Spearman rank coefficient between original node strength\n'...
         'and updated node strength as a function of fraction of original network included\n'...
-        'taking %s electrodes'],contig_text));
-    print(gcf,[outFolder,'ns_',contig_text],'-depsc');
+        'taking %s electrodes, %s'],contig_text,sec_text));
+    print(gcf,[outFolder,'ns_',contig_text,sec_text],'-depsc');
     close(gcf)
 
     % Betweenness centrality
@@ -269,8 +301,8 @@ for whichPt = whichPts
     ylabel('Spearman rank coefficient');
     title(sprintf(['Spearman rank coefficient between original BC\n'...
         'and updated BC as a function of fraction of original network included\n'...
-        'taking %s electrodes'],contig_text));
-    print(gcf,[outFolder,'bc_',contig_text],'-depsc');
+        'taking %s electrodes, %s'],contig_text,sec_text));
+    print(gcf,[outFolder,'bc_',contig_text,sec_text],'-depsc');
     close(gcf)
 
     % Synchronizability
@@ -283,8 +315,8 @@ for whichPt = whichPts
     ylabel('Synchronizability');
     title(sprintf(['Synchronizability'...
         ' as a function of fraction of original network included\n'...
-        'taking %s electrodes'],contig_text));
-    print(gcf,[outFolder,'sync_',contig_text],'-depsc');
+        'taking %s electrodes, %s'],contig_text,sec_text));
+    print(gcf,[outFolder,'sync_',contig_text,sec_text],'-depsc');
     close(gcf)
 
     % Efficiency
@@ -297,13 +329,17 @@ for whichPt = whichPts
     ylabel('Global efficiency');
     title(sprintf(['Global efficiency'...
         ' as a function of fraction of original network included\n'...
-        'taking %s electrodes'],contig_text));
-    print(gcf,[outFolder,'eff_',contig_text],'-depsc');
+        'taking %s electrodes, %s'],contig_text,sec_text));
+    print(gcf,[outFolder,'eff_',contig_text,sec_text],'-depsc');
     close(gcf)
     
 end
 
+end
+end
 
+%% Save structure
+save([resultsFolder,'basic_metrics/stats.mat'],stats);
 toc
 
 end
