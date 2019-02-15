@@ -88,6 +88,12 @@ for whichPt = whichPts
         mkdir(outFolder);
     end
 
+    if contig == 1
+        contig_text = 'contiguous';
+    else
+        contig_text = 'random';
+    end
+    
     if skip_done == 1
         if exist([outFolder,'eff_',contig_text,'.eps'],'file') ~=0
             continue
@@ -212,11 +218,6 @@ for whichPt = whichPts
 
     %% Plots
     
-    if contig == 1
-        contig_text = 'contiguous';
-    else
-        contig_text = 'random';
-    end
 
     % Control centrality
     figure
