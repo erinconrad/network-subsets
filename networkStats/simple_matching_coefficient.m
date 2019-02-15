@@ -2,7 +2,7 @@ function SMC = simple_matching_coefficient(A,B)
 
 %{
 If A and B are binary arrays, then the SMC is the number of matching
-attributes divided by the number of attributes.
+attributes (same sign) divided by the number of attributes.
 
 %}
 

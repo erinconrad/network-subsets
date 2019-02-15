@@ -1,5 +1,6 @@
 function [rho,SMC] = doStats(orig,current)
-
+    
+    % If it's all nans
     if sum(isnan(current)) == length(current)
         rho = nan;
         SMC = nan;

@@ -13,13 +13,13 @@ L = D - A;
 %% Compute the eigenspectrum of L(t)
 e = eig(L);
 
-
 %% Calculate synchronizabilty s
 
 % Sort smallest to largest eigenvalue
 e = sort(e);
 
-% Compute synchronizability
+% Compute synchronizability: ratio of second smallest eigenvalue to largest
+% eigenvalue
 sync = abs(e(2)/e(end));
 
 

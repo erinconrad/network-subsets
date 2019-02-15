@@ -25,6 +25,7 @@ if method == 1
     bc = bc1;
 elseif method == 2
     bc = bc2;
+    error('Why are you using threshold method?\n');
 end
 
 %{

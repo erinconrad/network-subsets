@@ -44,18 +44,14 @@ tic
 
 %% Parameters
 
+% Skip patients if we have already done them
 skip_done = 1;
 
 % How many random resamples to do of each fraction
 n_perm = 1e2;
 
 % Remove a contiguous chunk of electrodes?
-contig = 1;
-if contig == 1
-    contig_text = 'contiguous';
-else
-    contig_text = 'random';
-end
+contig = 0;
 
 % What fraction of nodes to retain
 e_f = [0.2 0.4 0.6 0.8 1];
@@ -67,7 +63,7 @@ freq = 'high_gamma';
 % Which second
 which_sec = 0; % 0 means start time of the seizure, -10 is 10 seconds before
 
-%% Load stuff
+%% Load Stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 p1 = genpath(scriptFolder);
@@ -77,6 +73,8 @@ addpath(p1);
 addpath([bctFolder]);
 
 load([dataFolder,'structs/info.mat']);
+
+%% Loop through patients
 
 for whichPt = whichPts
 
@@ -112,7 +110,7 @@ for whichPt = whichPts
         A_all = adj(4).data;
     end
 
-
+    % Start with the middle and add which second
     A = squeeze(A_all(ceil(size(A_all,1)/2)+which_sec,:,:));
 
     %% Get true control centrality
@@ -137,7 +135,7 @@ for whichPt = whichPts
     [all_c_c,all_ns,all_bc,all_sync,all_eff] = ...
         resampleNetwork(A,n_perm,e_f,contig,locs);
 
-    %% Initialize SMC and rho arrays
+    %% Initialize SMC and rho arrays for node-level metrics
 
     % Control centrality stuff
     SMC_cc = zeros(n_f,n_perm);
@@ -155,7 +153,8 @@ for whichPt = whichPts
         c_c_f = squeeze(all_c_c(:,f,:));
         ns_f = squeeze(all_ns(:,f,:));
         bc_f = squeeze(all_bc(:,f,:));
-
+        
+        % Loop over each permutation
         for i_p = 1:n_perm
             c_c_f_p = squeeze(c_c_f(:,i_p));
             ns_f_p = squeeze(ns_f(:,i_p));
@@ -180,7 +179,7 @@ for whichPt = whichPts
             end
 
 
-            %% Do stats on node strength and betweenness centrality
+            %% Do Spearman rank on node strength and betweenness centrality
             % For these, they are always non-negative and so SMC doesn't make
             % sense
             [rho_ns(f,i_p),~] = doStats(ns,ns_f_p);
@@ -209,10 +208,15 @@ for whichPt = whichPts
     % desynchronizing in the original network (how often would we tell the
     % surgeon to resect a piece of brain that is thought to be desynchronizing
     % in the original network)
-
     resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
 
     %% Plots
+    
+    if contig == 1
+        contig_text = 'contiguous';
+    else
+        contig_text = 'random';
+    end
 
     % Control centrality
     figure
