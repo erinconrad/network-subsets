@@ -67,6 +67,8 @@ load([dataFolder,'structs/info.mat']);
 if merge == 1
     if exist([resultsFolder,'basic_metrics/stats.mat'],'file') ~= 0
         load([resultsFolder,'basic_metrics/stats.mat']);
+    else
+        stats = struct;
     end
 else
     stats = struct;
