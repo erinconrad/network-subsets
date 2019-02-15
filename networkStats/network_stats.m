@@ -104,7 +104,7 @@ for whichPt = whichPts
     
     % Continue if we've already done it
     if merge == 1
-        if length(struct) >= whichPt
+        if length(stats) >= whichPt
             if isfield(stats(whichPt),'eff') == 1
                 if isfield(stats(whichPt).eff,(contig_text)) == 1
                     if isfield(stats(whichPt).eff.(contig_text),(sec_text)) == 1
