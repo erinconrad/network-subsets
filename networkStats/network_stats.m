@@ -65,7 +65,9 @@ addpath([bctFolder]);
 load([dataFolder,'structs/info.mat']);
 
 if merge == 1
-    load([resultsFolder,'basic_metrics/stats.mat']);
+    if exist([resultsFolder,'basic_metrics/stats.mat'],'file') ~= 0
+        load([resultsFolder,'basic_metrics/stats.mat']);
+    end
 else
     stats = struct;
 end
