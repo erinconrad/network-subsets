@@ -339,7 +339,7 @@ end
 end
 
 %% Save structure
-save([resultsFolder,'basic_metrics/stats.mat'],stats);
+save([resultsFolder,'basic_metrics/stats.mat'],'stats');
 toc
 
 end
