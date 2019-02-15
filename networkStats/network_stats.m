@@ -39,8 +39,8 @@ tic
 
 %% Parameters
 
-% Skip patients if we have already done them
-skip_done = 1;
+% add to existing stats array?
+merge = 1;
 
 % How many random resamples to do of each fraction
 n_perm = 1e2;
@@ -63,6 +63,12 @@ addpath(p1);
 addpath([bctFolder]);
 
 load([dataFolder,'structs/info.mat']);
+
+if merge == 1
+    load([resultsFolder,'basic_metrics/stats.mat']);
+else
+    stats = struct;
+end
 
 %% Loop through patients, times, and whether contig or random electrodes
 for which_sec = [0 -5] % 0 means start time of the seizure, -5 is 5 seconds before
@@ -87,16 +93,26 @@ for whichPt = whichPts
     end
     
     if which_sec < 0
-        sec_text = sprintf('sec_neg%d',which_sec);
+        sec_text = sprintf('sec_neg%d',abs(which_sec));
     else
-        sec_text = sprintf('sec_%d',which_sec);
+        sec_text = sprintf('sec_%d',abs(which_sec));
     end
     
-    if skip_done == 1
-        if exist([outFolder,'eff_',contig_text,'.eps'],'file') ~=0
-            continue
+    % Continue if we've already done it
+    if merge == 1
+        if length(struct) >= whichPt
+            if isfield(stats(whichPt),'eff') == 1
+                if isfield(stats(whichPt).eff,(contig_text)) == 1
+                    if isfield(stats(whichPt).eff.(contig_text),(sec_text)) == 1
+                        if isfield(stats(whichPt).eff.(contig_text).(sec_text),'true') == 1
+                            if isempty(stats(whichPt).eff.(contig_text).(sec_text).true) == 0
+                                continue
+                            end
+                        end
+                    end
+                end
+            end 
         end
-            
     end
     %{
     if isempty(A) == 1
