@@ -268,6 +268,8 @@ for whichPt = whichPts
     stats(whichPt).eff.(contig_text).(sec_text).std = std(all_eff,0,2);
     stats(whichPt).eff.(contig_text).(sec_text).true = eff;
     
+    %% Save structure
+    save([resultsFolder,'basic_metrics/stats.mat'],'stats');
 
     %% Plots
   
@@ -358,8 +360,7 @@ end
 end
 end
 
-%% Save structure
-save([resultsFolder,'basic_metrics/stats.mat'],'stats');
+
 toc
 
 end
