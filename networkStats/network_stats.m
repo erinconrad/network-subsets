@@ -39,6 +39,8 @@ tic
 
 %% Parameters
 
+doPlots = 1;
+
 % add to existing stats array?
 merge = 1;
 
@@ -110,6 +112,7 @@ for whichPt = whichPts
                     if isfield(stats(whichPt).eff.(contig_text),(sec_text)) == 1
                         if isfield(stats(whichPt).eff.(contig_text).(sec_text),'true') == 1
                             if isempty(stats(whichPt).eff.(contig_text).(sec_text).true) == 0
+                                fprintf('Did %s, skipping\n',name);
                                 continue
                             end
                         end
@@ -215,16 +218,19 @@ for whichPt = whichPts
     end
 
     %% Get mean and SD for SMC and rho for each fraction
+    % This uses Fisher's transformation for the Spearman rank coefficients
+    % but nothing special for SMC
+    
     SMC_mean_cc = nanmean(SMC_cc,2);
     SMC_std_cc = nanstd(SMC_cc,0,2);
 
-    rho_mean_cc = nanmean(rho_cc,2);
+    rho_mean_cc = average_rho(rho_cc,2);
     rho_std_cc = nanstd(rho_cc,0,2);
 
-    rho_mean_ns = nanmean(rho_ns,2);
+    rho_mean_ns = average_rho(rho_ns,2);
     rho_std_ns = nanstd(rho_ns,0,2);
 
-    rho_mean_bc = nanmean(rho_bc,2);
+    rho_mean_bc = average_rho(rho_bc,2);
     rho_std_bc = nanstd(rho_bc,0,2);
 
     %% How often would we resect the wrong piece of brain?
@@ -273,87 +279,89 @@ for whichPt = whichPts
 
     %% Plots
   
-    % Control centrality
-    figure
-    set(gcf,'Position',[50 389 1400 409]);
-    subplot(1,3,1)
-    errorbar(e_f,rho_mean_cc,rho_std_cc,'k','linewidth',2);
-    xlabel('Fraction of original network included');
-    ylabel('Spearman rank coefficient');
-    title(sprintf(['Spearman rank coefficient between original CC\n'...
-        'and updated CC as a function of fraction of original network included\n'...
-        'taking %s electrodes, %s'],contig_text, sec_text));
+    if doPlots == 1
+        % Control centrality
+        figure
+        set(gcf,'Position',[50 389 1400 409]);
+        subplot(1,3,1)
+        errorbar(e_f,rho_mean_cc,rho_std_cc,'k','linewidth',2);
+        xlabel('Fraction of original network included');
+        ylabel('Spearman rank coefficient');
+        title(sprintf(['Spearman rank coefficient between original CC\n'...
+            'and updated CC as a function of fraction of original network included\n'...
+            'taking %s electrodes, %s'],contig_text, sec_text));
 
-    subplot(1,3,2)
-    errorbar(e_f,SMC_mean_cc,SMC_std_cc,'k','linewidth',2);
-    xlabel('Fraction of original network included');
-    ylabel('Simple matching coefficient');
-    title(sprintf(['Simple matching coefficient between original CC\n'...
-        'and updated CC as a function of fraction of original network included\n'...
-        'taking %s electrodes, %s'],contig_text,sec_text));
+        subplot(1,3,2)
+        errorbar(e_f,SMC_mean_cc,SMC_std_cc,'k','linewidth',2);
+        xlabel('Fraction of original network included');
+        ylabel('Simple matching coefficient');
+        title(sprintf(['Simple matching coefficient between original CC\n'...
+            'and updated CC as a function of fraction of original network included\n'...
+            'taking %s electrodes, %s'],contig_text,sec_text));
 
-    subplot(1,3,3)
-    plot(e_f,resect_wrong*100,'k','linewidth',2);
-    xlabel('Fraction of original network included');
-    ylabel('% of permutations');
-    title(sprintf(['Percent of time a desynchronizing node is\n'...
-        'labeled as the most synchronizing\n'...
-        'taking %s electrodes, %s'],contig_text,sec_text));
-    print(gcf,[outFolder,'cc_',contig_text,sec_text],'-depsc');
-    close(gcf)
+        subplot(1,3,3)
+        plot(e_f,resect_wrong*100,'k','linewidth',2);
+        xlabel('Fraction of original network included');
+        ylabel('% of permutations');
+        title(sprintf(['Percent of time a desynchronizing node is\n'...
+            'labeled as the most synchronizing\n'...
+            'taking %s electrodes, %s'],contig_text,sec_text));
+        print(gcf,[outFolder,'cc_',contig_text,sec_text],'-depsc');
+        close(gcf)
 
 
-    % Node strength
-    figure
-    set(gcf,'Position',[50 389 500 409]);
-    errorbar(e_f,rho_mean_ns,rho_std_ns,'k','linewidth',2);
-    xlabel('Fraction of original network included');
-    ylabel('Spearman rank coefficient');
-    title(sprintf(['Spearman rank coefficient between original node strength\n'...
-        'and updated node strength as a function of fraction of original network included\n'...
-        'taking %s electrodes, %s'],contig_text,sec_text));
-    print(gcf,[outFolder,'ns_',contig_text,sec_text],'-depsc');
-    close(gcf)
+        % Node strength
+        figure
+        set(gcf,'Position',[50 389 500 409]);
+        errorbar(e_f,rho_mean_ns,rho_std_ns,'k','linewidth',2);
+        xlabel('Fraction of original network included');
+        ylabel('Spearman rank coefficient');
+        title(sprintf(['Spearman rank coefficient between original node strength\n'...
+            'and updated node strength as a function of fraction of original network included\n'...
+            'taking %s electrodes, %s'],contig_text,sec_text));
+        print(gcf,[outFolder,'ns_',contig_text,sec_text],'-depsc');
+        close(gcf)
 
-    % Betweenness centrality
-    figure
-    set(gcf,'Position',[50 389 500 409]);
-    errorbar(e_f,rho_mean_bc,rho_std_bc,'k','linewidth',2);
-    xlabel('Fraction of original network included');
-    ylabel('Spearman rank coefficient');
-    title(sprintf(['Spearman rank coefficient between original BC\n'...
-        'and updated BC as a function of fraction of original network included\n'...
-        'taking %s electrodes, %s'],contig_text,sec_text));
-    print(gcf,[outFolder,'bc_',contig_text,sec_text],'-depsc');
-    close(gcf)
+        % Betweenness centrality
+        figure
+        set(gcf,'Position',[50 389 500 409]);
+        errorbar(e_f,rho_mean_bc,rho_std_bc,'k','linewidth',2);
+        xlabel('Fraction of original network included');
+        ylabel('Spearman rank coefficient');
+        title(sprintf(['Spearman rank coefficient between original BC\n'...
+            'and updated BC as a function of fraction of original network included\n'...
+            'taking %s electrodes, %s'],contig_text,sec_text));
+        print(gcf,[outFolder,'bc_',contig_text,sec_text],'-depsc');
+        close(gcf)
 
-    % Synchronizability
-    figure
-    set(gcf,'Position',[50 389 500 409]);
-    errorbar(e_f,mean(all_sync,2),std(all_sync,0,2),'k','linewidth',2);
-    hold on
-    plot(get(gca,'xlim'),[sync sync],'k--','linewidth',2);
-    xlabel('Fraction of original network included');
-    ylabel('Synchronizability');
-    title(sprintf(['Synchronizability'...
-        ' as a function of fraction of original network included\n'...
-        'taking %s electrodes, %s'],contig_text,sec_text));
-    print(gcf,[outFolder,'sync_',contig_text,sec_text],'-depsc');
-    close(gcf)
+        % Synchronizability
+        figure
+        set(gcf,'Position',[50 389 500 409]);
+        errorbar(e_f,mean(all_sync,2),std(all_sync,0,2),'k','linewidth',2);
+        hold on
+        plot(get(gca,'xlim'),[sync sync],'k--','linewidth',2);
+        xlabel('Fraction of original network included');
+        ylabel('Synchronizability');
+        title(sprintf(['Synchronizability'...
+            ' as a function of fraction of original network included\n'...
+            'taking %s electrodes, %s'],contig_text,sec_text));
+        print(gcf,[outFolder,'sync_',contig_text,sec_text],'-depsc');
+        close(gcf)
 
-    % Efficiency
-    figure
-    set(gcf,'Position',[50 389 500 409]);
-    errorbar(e_f,mean(all_eff,2),std(all_eff,0,2),'k','linewidth',2);
-    hold on
-    plot(get(gca,'xlim'),[eff eff],'k--','linewidth',2);
-    xlabel('Fraction of original network included');
-    ylabel('Global efficiency');
-    title(sprintf(['Global efficiency'...
-        ' as a function of fraction of original network included\n'...
-        'taking %s electrodes, %s'],contig_text,sec_text));
-    print(gcf,[outFolder,'eff_',contig_text,sec_text],'-depsc');
-    close(gcf)
+        % Efficiency
+        figure
+        set(gcf,'Position',[50 389 500 409]);
+        errorbar(e_f,mean(all_eff,2),std(all_eff,0,2),'k','linewidth',2);
+        hold on
+        plot(get(gca,'xlim'),[eff eff],'k--','linewidth',2);
+        xlabel('Fraction of original network included');
+        ylabel('Global efficiency');
+        title(sprintf(['Global efficiency'...
+            ' as a function of fraction of original network included\n'...
+            'taking %s electrodes, %s'],contig_text,sec_text));
+        print(gcf,[outFolder,'eff_',contig_text,sec_text],'-depsc');
+        close(gcf)
+    end
     
 end
 
