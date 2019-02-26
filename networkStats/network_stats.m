@@ -302,11 +302,13 @@ for whichPt = whichPts
 
         save([resultsFolder,'basic_metrics/stats.mat'],'stats');
     elseif do_soz_analysis == 1
+        rel_sync = (all_sync-sync)/sync;
+        rel_eff = (all_eff-eff)/eff;
         soz(whichPt).(contig_text).(sec_text).rho_cc = rho_cc;
         soz(whichPt).(contig_text).(sec_text).rho_bc = rho_bc;
         soz(whichPt).(contig_text).(sec_text).rho_ns = rho_ns;
-        soz(whichPt).(contig_text).(sec_text).sync = all_sync;
-        soz(whichPt).(contig_text).(sec_text).eff = all_eff;
+        soz(whichPt).(contig_text).(sec_text).sync = rel_sync;
+        soz(whichPt).(contig_text).(sec_text).eff = rel_eff;
         soz(whichPt).(contig_text).(sec_text).dist_soz = dist_soz;
         soz(whichPt).(contig_text).(sec_text).dist_resec = dist_resec;
         soz(whichPt).(contig_text).(sec_text).overlap_soz = overlap_soz;
@@ -327,11 +329,9 @@ for whichPt = whichPts
             set(gcf,'Position',[92 126 1349 672]);
             % Distance from SOZ, global metrics
             subplot(2,2,1)
-            scatter(dist_soz(i,:),all_sync(i,:),100,'filled','b');
+            scatter(dist_soz(i,:),rel_sync(i,:),100,'filled','b');
             hold on
-            plot(get(gca,'xlim'),[sync sync],'b','linewidth',2);
-            scatter(dist_soz(i,:),all_eff(i,:),100,'filled','r');
-            plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
+            scatter(dist_soz(i,:),rel_eff(i,:),100,'filled','r');
          %   legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency',...
          %       'location','northeastoutside');
             title('Global metrics as a function of distance from SOZ');
@@ -353,11 +353,9 @@ for whichPt = whichPts
 
             % Overlap with SOZ, global metrics
             subplot(2,2,3)
-            scatter(overlap_soz(i,:)*100,all_sync(i,:),100,'filled','b');
+            scatter(overlap_soz(i,:)*100,rel_sync(i,:),100,'filled','b');
             hold on
-            plot(get(gca,'xlim'),[sync sync],'b','linewidth',2);
-            scatter(overlap_soz(i,:)*100,all_eff(i,:),100,'filled','r');
-            plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
+            scatter(overlap_soz(i,:)*100,rel_eff(i,:),100,'filled','r');
             %legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency');
             title('Global metrics as a function of overlap with SOZ');
             xlabel('% of electrodes removed that were in SOZ');
@@ -383,10 +381,9 @@ for whichPt = whichPts
             set(gcf,'Position',[92 126 1349 672]);
             % Distance from resec, global metrics
             subplot(2,2,1)
-            scatter(dist_resec(i,:),all_sync(i,:),100,'filled','b');
+            scatter(dist_resec(i,:),rel_sync(i,:),100,'filled','b');
             hold on
-            plot(get(gca,'xlim'),[sync sync],'b','linewidth',2);
-            scatter(dist_resec(i,:),all_eff(i,:),100,'filled','r');
+            scatter(dist_resec(i,:),rel_eff(i,:),100,'filled','r');
             plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
            % legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency',...
            %     'location','northeastoutside');
@@ -410,11 +407,9 @@ for whichPt = whichPts
 
             % Overlap with resec, global metrics
             subplot(2,2,3)
-            scatter(overlap_resec(i,:)*100,all_sync(i,:),100,'filled','b');
+            scatter(overlap_resec(i,:)*100,rel_sync(i,:),100,'filled','b');
             hold on
-            plot(get(gca,'xlim'),[sync sync],'b','linewidth',2);
-            scatter(overlap_resec(i,:)*100,all_eff(i,:),100,'filled','r');
-            plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
+            scatter(overlap_resec(i,:)*100,rel_eff(i,:),100,'filled','r');
            % legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency');
             title('Global metrics');
             xlabel('% of electrodes removed that were in resected region');
