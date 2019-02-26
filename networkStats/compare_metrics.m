@@ -32,7 +32,7 @@ for i = 1:length(stats)
     name_nums = [name_nums;stats(i).name(num_idx_s:end)];
     
     %% Look at contiguous and -5 seconds
-    contig_text = 'contiguous';
+    contig_text = 'random';
     sec_text = 'sec_neg5';
     
     
@@ -94,7 +94,7 @@ eff_std_all_rel = eff_std_all./std(eff_mean_all,0,2);
 
 [p,~,stats0] = signrank(sync_std_80,eff_std_80);
 fprintf(['Average std of metric when 80%% of network retained is\n'...
-    '%1.2f for synchronizability and %1.2f for global efficiency.\n'...
+    '%1.2e for synchronizability and %1.2e for global efficiency.\n'...
     'Wilcoxon signed rank: p = %1.2e and sign rank = %1.1f\n\n'],...
     mean(sync_std_80), mean(eff_std_80),p,stats0.signedrank);
 

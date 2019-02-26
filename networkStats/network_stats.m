@@ -1,4 +1,4 @@
-function stats = network_stats(whichPts)
+function network_stats(whichPts)
 
 %{
 
@@ -39,6 +39,9 @@ tic
 
 %% Parameters
 
+% 1 if doing SOZ analysis, 0 if doing main analysis
+do_soz_analysis = 1;
+
 doPlots = 1;
 
 % add to existing stats array?
@@ -48,7 +51,11 @@ merge = 1;
 n_perm = 1e2;
 
 % What fraction of nodes to retain
-e_f = [0.2 0.4 0.6 0.8 1];
+if do_soz_analysis == 1
+    e_f = 0.8;
+else
+    e_f = [0.2 0.4 0.6 0.8 1];
+end
 n_f = length(e_f);
 
 % Which freq?
@@ -67,18 +74,31 @@ addpath([bctFolder]);
 load([dataFolder,'structs/info.mat']);
 
 if merge == 1
-    if exist([resultsFolder,'basic_metrics/stats.mat'],'file') ~= 0
-        load([resultsFolder,'basic_metrics/stats.mat']);
+    if do_soz_analysis == 1
+        if exist([resultsFolder,'basic_metrics/soz.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/soz.mat']);
+        else
+            soz = struct;
+        end
+    else
+        if exist([resultsFolder,'basic_metrics/stats.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/stats.mat']);
+        else
+            stats = struct;
+        end
+    end
+else
+    if do_soz_analysis == 1
+        soz = struct;
     else
         stats = struct;
     end
-else
-    stats = struct;
 end
 
+
 %% Loop through patients, times, and whether contig or random electrodes
-for which_sec = [0 -5] % 0 means start time of the seizure, -5 is 5 seconds before
-for contig = [0 1]
+for which_sec = [-5 0] % 0 means start time of the seizure, -5 is 5 seconds before
+for contig = [1]
 
 for whichPt = whichPts
 
@@ -106,6 +126,9 @@ for whichPt = whichPts
     
     % Continue if we've already done it
     if merge == 1
+        if do_soz_analysis == 1
+            stats = soz;
+        end
         if length(stats) >= whichPt
             if isfield(stats(whichPt),'eff') == 1
                 if isfield(stats(whichPt).eff,(contig_text)) == 1
@@ -113,7 +136,7 @@ for whichPt = whichPts
                         if isfield(stats(whichPt).eff.(contig_text).(sec_text),'true') == 1
                             if isempty(stats(whichPt).eff.(contig_text).(sec_text).true) == 0
                                 fprintf('Did %s, skipping\n',name);
-                                continue
+                              %  continue
                             end
                         end
                     end
@@ -131,7 +154,7 @@ for whichPt = whichPts
     %}
 
     % Get locs and adjacency
-    [adj,locs] = reconcileAdj(pt,whichPt);
+    [adj,~] = reconcileAdj(pt,whichPt);
 
     if strcmp(freq,'high_gamma') == 1
         A_all = adj(4).data;
@@ -159,8 +182,9 @@ for whichPt = whichPts
 
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
-    [all_c_c,all_ns,all_bc,all_sync,all_eff] = ...
-        resampleNetwork(A,n_perm,e_f,contig,locs);
+    [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
+        overlap_resec,dist_resec] = ...
+        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
 
     %% Initialize SMC and rho arrays for node-level metrics
 
@@ -242,44 +266,178 @@ for whichPt = whichPts
     
     
     %% Fill up stats structure
-    stats(whichPt).name = name;
+    if do_soz_analysis == 0
     
-    % control centrality
-    stats(whichPt).cc.name = 'control centrality';
-    stats(whichPt).cc.(contig_text).(sec_text).SMC.mean = SMC_mean_cc;
-    stats(whichPt).cc.(contig_text).(sec_text).SMC.std = SMC_std_cc;
-    stats(whichPt).cc.(contig_text).(sec_text).rho.mean = rho_mean_cc;
-    stats(whichPt).cc.(contig_text).(sec_text).rho.std = rho_std_cc;
-    stats(whichPt).cc.(contig_text).(sec_text).resect_wrong = resect_wrong;
-    
-    % node strength
-    stats(whichPt).ns.name = 'node strength';
-    stats(whichPt).ns.(contig_text).(sec_text).rho.mean = rho_mean_ns;
-    stats(whichPt).ns.(contig_text).(sec_text).rho.std = rho_std_ns;
-    
-    % betweenness centrality
-    stats(whichPt).bc.name = 'betweenness centrality';
-    stats(whichPt).bc.(contig_text).(sec_text).rho.mean = rho_mean_bc;
-    stats(whichPt).bc.(contig_text).(sec_text).rho.std = rho_std_bc;
-    
-    % synchronizability
-    stats(whichPt).sync.name = 'synchronizability';
-    stats(whichPt).sync.(contig_text).(sec_text).mean = mean(all_sync,2);
-    stats(whichPt).sync.(contig_text).(sec_text).std = std(all_sync,0,2);
-    stats(whichPt).sync.(contig_text).(sec_text).true = sync;
-    
-    % efficiency
-    stats(whichPt).eff.name = 'global efficiency';
-    stats(whichPt).eff.(contig_text).(sec_text).mean = mean(all_eff,2);
-    stats(whichPt).eff.(contig_text).(sec_text).std = std(all_eff,0,2);
-    stats(whichPt).eff.(contig_text).(sec_text).true = eff;
-    
-    %% Save structure
-    save([resultsFolder,'basic_metrics/stats.mat'],'stats');
+        stats(whichPt).name = name;
+
+        % control centrality
+        stats(whichPt).cc.name = 'control centrality';
+        stats(whichPt).cc.(contig_text).(sec_text).SMC.mean = SMC_mean_cc;
+        stats(whichPt).cc.(contig_text).(sec_text).SMC.std = SMC_std_cc;
+        stats(whichPt).cc.(contig_text).(sec_text).rho.mean = rho_mean_cc;
+        stats(whichPt).cc.(contig_text).(sec_text).rho.std = rho_std_cc;
+        stats(whichPt).cc.(contig_text).(sec_text).resect_wrong = resect_wrong;
+
+        % node strength
+        stats(whichPt).ns.name = 'node strength';
+        stats(whichPt).ns.(contig_text).(sec_text).rho.mean = rho_mean_ns;
+        stats(whichPt).ns.(contig_text).(sec_text).rho.std = rho_std_ns;
+
+        % betweenness centrality
+        stats(whichPt).bc.name = 'betweenness centrality';
+        stats(whichPt).bc.(contig_text).(sec_text).rho.mean = rho_mean_bc;
+        stats(whichPt).bc.(contig_text).(sec_text).rho.std = rho_std_bc;
+
+        % synchronizability
+        stats(whichPt).sync.name = 'synchronizability';
+        stats(whichPt).sync.(contig_text).(sec_text).mean = mean(all_sync,2);
+        stats(whichPt).sync.(contig_text).(sec_text).std = std(all_sync,0,2);
+        stats(whichPt).sync.(contig_text).(sec_text).true = sync;
+
+        % efficiency
+        stats(whichPt).eff.name = 'global efficiency';
+        stats(whichPt).eff.(contig_text).(sec_text).mean = mean(all_eff,2);
+        stats(whichPt).eff.(contig_text).(sec_text).std = std(all_eff,0,2);
+        stats(whichPt).eff.(contig_text).(sec_text).true = eff;
+
+        save([resultsFolder,'basic_metrics/stats.mat'],'stats');
+    elseif do_soz_analysis == 1
+        soz(whichPt).(contig_text).(sec_text).rho_cc = rho_cc;
+        soz(whichPt).(contig_text).(sec_text).rho_bc = rho_bc;
+        soz(whichPt).(contig_text).(sec_text).rho_ns = rho_ns;
+        soz(whichPt).(contig_text).(sec_text).sync = all_sync;
+        soz(whichPt).(contig_text).(sec_text).eff = all_eff;
+        soz(whichPt).(contig_text).(sec_text).dist_soz = dist_soz;
+        soz(whichPt).(contig_text).(sec_text).dist_resec = dist_resec;
+        soz(whichPt).(contig_text).(sec_text).overlap_soz = overlap_soz;
+        soz(whichPt).(contig_text).(sec_text).overlap_resec = overlap_resec;
+        
+        save([resultsFolder,'basic_metrics/soz.mat'],'soz');
+    end
 
     %% Plots
   
     if doPlots == 1
+        
+        if do_soz_analysis == 1
+        
+        for i = 1:n_f
+            %% Plot metrics as a function of relation to SOZ
+            figure
+            set(gcf,'Position',[92 126 1349 672]);
+            % Distance from SOZ, global metrics
+            subplot(2,2,1)
+            scatter(dist_soz(i,:),all_sync(i,:),100,'filled','b');
+            hold on
+            plot(get(gca,'xlim'),[sync sync],'b','linewidth',2);
+            scatter(dist_soz(i,:),all_eff(i,:),100,'filled','r');
+            plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
+         %   legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency',...
+         %       'location','northeastoutside');
+            title('Global metrics as a function of distance from SOZ');
+            xlabel('Distance from SOZ');
+            ylabel('Metric');
+            set(gca,'fontsize',20);
+
+            % Distance from SOZ, nodal metrics
+            subplot(2,2,2)
+            scatter(dist_soz(i,:),rho_cc(i,:),100,'filled','b');
+            hold on
+            scatter(dist_soz(i,:),rho_bc(i,:),100,'filled','r');
+            scatter(dist_soz(i,:),rho_ns(i,:),100,'filled','g');
+            %legend('Control centrality','Betweenness centrality','Node strength','location','northeastoutside');
+            title('Correlation of nodal metrics');
+            xlabel('Distance from SOZ');
+            ylabel('Correlation of metric');
+            set(gca,'fontsize',20);
+
+            % Overlap with SOZ, global metrics
+            subplot(2,2,3)
+            scatter(overlap_soz(i,:)*100,all_sync(i,:),100,'filled','b');
+            hold on
+            plot(get(gca,'xlim'),[sync sync],'b','linewidth',2);
+            scatter(overlap_soz(i,:)*100,all_eff(i,:),100,'filled','r');
+            plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
+            %legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency');
+            title('Global metrics as a function of overlap with SOZ');
+            xlabel('% of electrodes removed that were in SOZ');
+            ylabel('Metric');
+            set(gca,'fontsize',20);
+
+            % Overlap with SOZ, nodal metrics
+            subplot(2,2,4)
+            scatter(overlap_soz(i,:)*100,rho_cc(i,:),100,'filled','b');
+            hold on
+            scatter(overlap_soz(i,:)*100,rho_bc(i,:),100,'filled','r');
+            scatter(overlap_soz(i,:)*100,rho_ns(i,:),100,'filled','g');
+            %legend('Control centrality','Betweenness centrality','Node strength');
+            title('Correlation of nodal metrics');
+            xlabel('% of electrodes removed that were in SOZ');
+            ylabel('Correlation of metric');
+            set(gca,'fontsize',20);
+            print(gcf,[outFolder,'soz_global_',contig_text,sec_text],'-depsc');
+            close(gcf)
+
+            %% Plot metrics as a function of relation to resection
+            figure
+            set(gcf,'Position',[92 126 1349 672]);
+            % Distance from resec, global metrics
+            subplot(2,2,1)
+            scatter(dist_resec(i,:),all_sync(i,:),100,'filled','b');
+            hold on
+            plot(get(gca,'xlim'),[sync sync],'b','linewidth',2);
+            scatter(dist_resec(i,:),all_eff(i,:),100,'filled','r');
+            plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
+           % legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency',...
+           %     'location','northeastoutside');
+            title('Global metrics');
+            xlabel('Distance from resected electrodes');
+            ylabel('Metric');
+            set(gca,'fontsize',20);
+
+            % Distance from resec, nodal metrics
+            subplot(2,2,2)
+            scatter(dist_resec(i,:),rho_cc(i,:),100,'filled','b');
+            hold on
+            scatter(dist_resec(i,:),rho_bc(i,:),100,'filled','r');
+            scatter(dist_resec(i,:),rho_ns(i,:),100,'filled','g');
+           % legend('Control centrality','Betweenness centrality','Node strength',...
+           %     'location','northeastoutside');
+            title('Correlation of nodal metrics');
+            xlabel('Distance from resected electrodes');
+            ylabel('Correlation of metric');
+            set(gca,'fontsize',20);
+
+            % Overlap with resec, global metrics
+            subplot(2,2,3)
+            scatter(overlap_resec(i,:)*100,all_sync(i,:),100,'filled','b');
+            hold on
+            plot(get(gca,'xlim'),[sync sync],'b','linewidth',2);
+            scatter(overlap_resec(i,:)*100,all_eff(i,:),100,'filled','r');
+            plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
+           % legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency');
+            title('Global metrics');
+            xlabel('% of electrodes removed that were in resected region');
+            ylabel('Metric');
+            set(gca,'fontsize',20);
+
+            % Overlap with resec, nodal metrics
+            subplot(2,2,4)
+            scatter(overlap_resec(i,:)*100,rho_cc(i,:),100,'filled','b');
+            hold on
+            scatter(overlap_resec(i,:)*100,rho_bc(i,:),100,'filled','r');
+            scatter(overlap_resec(i,:)*100,rho_ns(i,:),100,'filled','g');
+           % legend('Control centrality','Betweenness centrality','Node strength');
+            title('Correlation of nodal metrics');
+            xlabel('% of electrodes removed that were in resected region');
+            ylabel('Correlation');
+            set(gca,'fontsize',20);
+            print(gcf,[outFolder,'soz_nodal_',contig_text,sec_text],'-depsc');
+            close(gcf)
+        
+        end
+        else
+        
         % Control centrality
         figure
         set(gcf,'Position',[50 389 1400 409]);
@@ -361,6 +519,7 @@ for whichPt = whichPts
             'taking %s electrodes, %s'],contig_text,sec_text));
         print(gcf,[outFolder,'eff_',contig_text,sec_text],'-depsc');
         close(gcf)
+        end
     end
     
 end

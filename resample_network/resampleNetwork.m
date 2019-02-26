@@ -1,5 +1,6 @@
-function [all_c_c,all_ns,all_bc,all_sync,all_eff] = ...
-    resampleNetwork(A,n_perm,e_f,contig,locs)
+function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
+    overlap_resec,dist_resec] = ...
+    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
 
 %{
 This function resamples the network by taking a fraction of nodes and then
@@ -9,6 +10,21 @@ recalculates various network metrics
     
 %% Get basic numbers
 
+doPlot = 0; % Plot overlap of electrodes?
+
+% Get electrode locs
+locs = pt(whichPt).electrodeData.locs(:,1:3);
+
+% Get soz electroes
+soz = pt(whichPt).soz.nums;
+
+% Get resected electrodes
+if isempty(pt(whichPt).resec) == 0
+    resec = pt(whichPt).resec.nums;
+else
+    resec = [];
+end
+
 % True number of electrodes
 nch = size(A,1);
 
@@ -17,6 +33,27 @@ nch = size(A,1);
 % What fractions of electrodes to take = e_f
 e_n = nch-ceil(e_f*nch);
 n_f = length(e_f);
+
+%% Remove from locs the electrodes that are not in the adjacency matrix
+% These are electrodes that are in the location file but for which there is
+% no EEG tracing
+remove = [];
+for i = 1:length(pt(whichPt).electrodeData.electrodes)
+    e_name = pt(whichPt).electrodeData.electrodes(i).name;
+    found_it = 0;
+    for j = 1:length(adj(7).data.labels)
+        if strcmp(e_name,adj(7).data.labels{j}) == 1 && adj(7).data.ignore(j) == 0
+            found_it = 1;
+            break
+        end
+    end
+    if found_it == 0
+        fprintf('Did not find %s in adjacency matrix.\n',e_name);
+        remove = [remove;i];
+    end
+end
+locs(remove,:) = [];
+
 
 %% Initialize matrices of resampled metrics
 
@@ -38,6 +75,15 @@ all_sync = nan(n_f,n_perm);
 % Initialize array for efficiency for each fraction and permutation
 all_eff = nan(n_f,n_perm);
 
+% Get arrays representing overlap and distance between removed channels and soz
+overlap_soz = nan(n_f,n_perm);
+dist_soz = nan(n_f,n_perm);
+
+% Get arrays representing overlap and distance between removed channels and
+% resected channels
+overlap_resec = nan(n_f,n_perm);
+dist_resec = nan(n_f,n_perm);
+
 %%  Loop through fractions
 for f = 1:n_f
     
@@ -51,6 +97,18 @@ for f = 1:n_f
         elseif contig == 1 % random electrodes close to each other
             which_elecs = pickConChs(locs,e_n(f),0);
         end
+        
+        %% Compare electrodes to SOZ and resection zone
+        [overlap_soz_t,dist_soz_t] = compare_elecs(which_elecs,soz,locs,doPlot);
+        if isempty(resec) == 0
+            [overlap_resec_t,dist_resec_t] = compare_elecs(which_elecs,resec,locs,doPlot);
+        else
+            overlap_resec_t = nan; dist_resec_t = nan;
+        end
+        overlap_soz(f,i_p) = overlap_soz_t;
+        dist_soz(f,i_p) = dist_soz_t;
+        overlap_resec(f,i_p) = overlap_resec_t;
+        dist_resec(f,i_p) = dist_resec_t;
         
         % Remove the electrodes from the new adjacency matrix
         A_temp = A;
