@@ -375,7 +375,7 @@ for whichPt = whichPts
             xlabel('% of electrodes removed that were in SOZ');
             ylabel('Correlation of metric');
             set(gca,'fontsize',20);
-            print(gcf,[outFolder,'soz_global_',contig_text,sec_text],'-depsc');
+            print(gcf,[outFolder,'soz_',contig_text,sec_text],'-depsc');
             close(gcf)
 
             %% Plot metrics as a function of relation to resection
@@ -432,7 +432,7 @@ for whichPt = whichPts
             xlabel('% of electrodes removed that were in resected region');
             ylabel('Correlation');
             set(gca,'fontsize',20);
-            print(gcf,[outFolder,'soz_nodal_',contig_text,sec_text],'-depsc');
+            print(gcf,[outFolder,'resec_',contig_text,sec_text],'-depsc');
             close(gcf)
         
         end
