@@ -40,7 +40,7 @@ tic
 %% Parameters
 
 % 1 if doing SOZ analysis, 0 if doing main analysis
-do_soz_analysis = 1;
+do_soz_analysis = 0;
 
 doPlots = 1;
 
@@ -98,7 +98,7 @@ end
 
 %% Loop through patients, times, and whether contig or random electrodes
 for which_sec = [-5 0] % 0 means start time of the seizure, -5 is 5 seconds before
-for contig = [1]
+for contig = [1 0]
 
 for whichPt = whichPts
 
@@ -384,7 +384,6 @@ for whichPt = whichPts
             scatter(dist_resec(i,:),rel_sync(i,:),100,'filled','b');
             hold on
             scatter(dist_resec(i,:),rel_eff(i,:),100,'filled','r');
-            plot(get(gca,'xlim'),[eff eff],'r','linewidth',2);
            % legend('Synchronizability','True synchronizability','Global efficiency','True global efficiency',...
            %     'location','northeastoutside');
             title('Global metrics');
