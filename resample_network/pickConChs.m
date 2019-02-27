@@ -1,4 +1,4 @@
-function out_chs = pickConChs(locs,n,plotStuff)
+function out_chs = pickConChs(locs,n,plotStuff,jitter)
 
 %{
 The goal of this function is to select a random group of n more or less
@@ -10,7 +10,7 @@ it gets random groups of electrodes.
 %}
 
 %% Parameters
-jitter = 20; % 0-10 nearly contiguous; 100+ very discontiguous
+% jitter: 0-10 nearly contiguous; 100+ very discontiguous
 
 chs = 1:size(locs,1);
 

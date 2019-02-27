@@ -94,7 +94,7 @@ for f = 1:n_f
         if contig == 0 % random electrodes
             which_elecs = randperm(nch,e_n(f));
         elseif contig == 1 % random electrodes close to each other
-            which_elecs = pickConChs(locs(~ismember(1:size(locs,1),remove),:),e_n(f),0);
+            which_elecs = pickConChs(locs(~ismember(1:size(locs,1),remove),:),e_n(f),0,20);
         end
         
         %% Compare electrodes to SOZ and resection zone

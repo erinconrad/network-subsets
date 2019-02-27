@@ -32,7 +32,7 @@ for i = 1:length(stats)
     name_nums = [name_nums;stats(i).name(num_idx_s:end)];
     
     %% Look at contiguous and -5 seconds
-    contig_text = 'random';
+    contig_text = 'contiguous';
     sec_text = 'sec_neg5';
     
     
@@ -202,7 +202,7 @@ print([outFolder,sprintf('node_%s_%s',contig_text,sec_text)],'-depsc')
 % How often do we resect wrong brain?
 figure
 set(gcf,'Position',[1 432 1440 366]);
-scatter(1:length(names),resect_wrong,100,'filled')
+scatter(1:length(names),resect_wrong*100,100,'filled')
 xticks(1:length(names))
 xticklabels(name_nums)
 title(sprintf(['%% of time a desynchronizing node is labeled the most synchronizing\n'...

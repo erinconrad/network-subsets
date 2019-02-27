@@ -167,6 +167,13 @@ for whichPt = whichPts
     c_c = control_centrality(A);
     fprintf('There are %d synchronizing and %d desynchronizing nodes.\n',...
         sum(c_c<0),sum(c_c>0));
+    
+    % Get identity of node with lowest control centrality
+    [~,min_cc_true] = min(c_c);
+    
+    % Get location of node with lowest control centrality
+    locs = pt(whichPt).electrodeData.locs(:,1:3); % all electrode locations
+    min_cc_true_loc = locs(min_cc_true_loc,:);
 
     %% Get true synchronizability
     sync = synchronizability(A);
@@ -192,6 +199,7 @@ for whichPt = whichPts
     SMC_cc = zeros(n_f,n_perm);
     rho_cc = zeros(n_f,n_perm);
     true_cc_most_sync = zeros(n_f,n_perm);
+    dist_cc = zeros(n_f,n_perm);
 
     % Betweenness centrality stuff
     rho_bc = zeros(n_f,n_perm);
@@ -226,6 +234,12 @@ for whichPt = whichPts
 
                 % Fill up SMC and rho arrays
                 true_cc_most_sync(f,i_p) = c_c(ch_most_sync);
+                
+                % Get distances between lowest control centrality electrode
+                % in resampled network and original network
+                [~,min_cc_resample] = min(c_c_f_p);
+                min_cc_resample_loc = locs(min_cc_resample,:);
+                dist_cc(f,i_p) = sqrt(sum((min_cc_true_loc-min_cc_resample_loc).^2));
 
             end
 
@@ -265,6 +279,10 @@ for whichPt = whichPts
     resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
     
     
+    %% Distance from truest min cc to min cc in resampled network
+    cc_dist_mean = nanmean(dist_cc,2);
+    cc_dist_std = nanstd(dist_cc,2);
+    
     %% Fill up stats structure
     if do_soz_analysis == 0
     
@@ -277,6 +295,12 @@ for whichPt = whichPts
         stats(whichPt).cc.(contig_text).(sec_text).rho.mean = rho_mean_cc;
         stats(whichPt).cc.(contig_text).(sec_text).rho.std = rho_std_cc;
         stats(whichPt).cc.(contig_text).(sec_text).resect_wrong = resect_wrong;
+        
+        % Mean and STD of distance between true min cc and min cc in
+        % resampled network
+        stats(whichPt).cc.(contig_text).(sec_text).dist.mean = cc_dist_mean;
+        stats(whichPt).cc.(contig_text).(sec_text).dist.std = cc_dist_std;
+        
 
         % node strength
         stats(whichPt).ns.name = 'node strength';
