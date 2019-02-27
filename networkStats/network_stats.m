@@ -281,7 +281,7 @@ for whichPt = whichPts
     
     %% Distance from truest min cc to min cc in resampled network
     cc_dist_mean = nanmean(dist_cc,2);
-    cc_dist_std = nanstd(dist_cc,2);
+    cc_dist_std = nanstd(dist_cc,0,2);
     
     %% Fill up stats structure
     if do_soz_analysis == 0
