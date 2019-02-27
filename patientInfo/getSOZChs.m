@@ -3,6 +3,9 @@ function pt = getSOZChs(pt)
 
 for i = 1:length(pt)
     
+    if isempty(pt(i).new_elecs) == 1
+        continue
+    end
     
     %% Get names
     soz_names = {};
@@ -24,7 +27,7 @@ for i = 1:length(pt)
     %% Double check that they line up
     for j = 1:length(pt(i).soz.nums)
         which_num = pt(i).soz.nums(j);
-        if strcmp(pt(i).electrodeData.electrodes(which_num).name,pt(i).soz.names{j}) == 0
+        if strcmp(pt(i).new_elecs.electrodes(which_num).name,pt(i).soz.names{j}) == 0
             error('Electrode names and nums do not line up for %s\n',...
                 pt(i).name);
         end

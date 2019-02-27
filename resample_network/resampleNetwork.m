@@ -13,7 +13,7 @@ recalculates various network metrics
 doPlot = 0; % Plot overlap of electrodes?
 
 % Get electrode locs
-locs = pt(whichPt).electrodeData.locs(:,1:3);
+locs = pt(whichPt).new_elecs.locs;
 
 % Get soz electroes
 soz = pt(whichPt).soz.nums;
@@ -37,9 +37,11 @@ n_f = length(e_f);
 %% Remove from locs the electrodes that are not in the adjacency matrix
 % These are electrodes that are in the location file but for which there is
 % no EEG tracing
+
+% THIS SHOULDN'T HAPPEN ANYMORE!
 remove = [];
-for i = 1:length(pt(whichPt).electrodeData.electrodes)
-    e_name = pt(whichPt).electrodeData.electrodes(i).name;
+for i = 1:length(pt(whichPt).new_elecs.electrodes)
+    e_name = pt(whichPt).new_elecs.electrodes(i).name;
     found_it = 0;
     for j = 1:length(adj(7).data.labels)
         if strcmp(e_name,adj(7).data.labels{j}) == 1 && adj(7).data.ignore(j) == 0
@@ -48,7 +50,7 @@ for i = 1:length(pt(whichPt).electrodeData.electrodes)
         end
     end
     if found_it == 0
-        fprintf('Did not find %s in adjacency matrix.\n',e_name);
+        error('Did not find %s in adjacency matrix.\n',e_name);
         remove = [remove;i];
     end
 end
@@ -94,7 +96,7 @@ for f = 1:n_f
         if contig == 0 % random electrodes
             which_elecs = randperm(nch,e_n(f));
         elseif contig == 1 % random electrodes close to each other
-            which_elecs = pickConChs(locs(~ismember(1:size(locs,1),remove),:),e_n(f),0,20);
+            which_elecs = pickConChs(locs,e_n(f),0,20);
         end
         
         %% Compare electrodes to SOZ and resection zone

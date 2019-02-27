@@ -1,5 +1,11 @@
 function getPtStruct
 
+%{
+This was a one-time use function for generating the patient struct. If
+using this, it will be important to run redefineElecs afterward to match
+the electrode order up with the adjacency matrix
+%}
+
 %% Parameters
 outputFile = 'info.mat';
 

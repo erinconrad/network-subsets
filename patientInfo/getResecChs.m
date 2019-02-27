@@ -6,6 +6,11 @@ function pt = getResecChs(pt)
 resecFolder = [electrodeFolder,'resectedElecs/for_erin/'];
 
 for whichPt = 1:length(pt)
+    
+    if isempty(pt(whichPt).new_elecs) == 1
+        continue
+    end
+    
     name = pt(whichPt).name;
     
     % Find appropriate file in resected folder
@@ -33,10 +38,10 @@ for whichPt = 1:length(pt)
         found_it = 0;
         
         % Find the corresponding electrode number in my electrode field
-        for j = 1:length(pt(whichPt).electrodeData.electrodes)
+        for j = 1:length(pt(whichPt).new_elecs.electrodes)
             
             
-            if strcmp(elec_label,pt(whichPt).electrodeData.electrodes(j).name) == 1
+            if strcmp(elec_label,pt(whichPt).new_elecs.electrodes(j).name) == 1
                 % Add the electrode number to my array
                 new_elecs = [new_elecs;j];
                 found_it = 1;
@@ -61,7 +66,7 @@ for whichPt = 1:length(pt)
     %% Confirm that they line up
     for j = 1:length(pt(whichPt).resec.nums)
         which_num = pt(whichPt).resec.nums(j);
-        if strcmp(pt(whichPt).electrodeData.electrodes(which_num).name,pt(whichPt).resec.names{j}) == 0
+        if strcmp(pt(whichPt).new_elecs.electrodes(which_num).name,pt(whichPt).resec.names{j}) == 0
             error('Electrode names and nums do not line up for %s\n',...
                 pt(whichPt).name);
         end

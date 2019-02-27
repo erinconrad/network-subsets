@@ -4,8 +4,8 @@ discard = [];
 
 for i = 1:length(names)
     foundit = 0;
-    for j = 1:length(pt(whichPt).electrodeData.electrodes)
-        if strcmp(names{i},pt(whichPt).electrodeData.electrodes(j).name) == 1
+    for j = 1:length(pt(whichPt).new_elecs.electrodes)
+        if strcmp(names{i},pt(whichPt).new_elecs.electrodes(j).name) == 1
             nums = [nums;j];
             foundit = 1;
             break

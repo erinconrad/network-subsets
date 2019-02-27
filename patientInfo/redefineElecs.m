@@ -1,5 +1,11 @@
 function pt = redefineElecs
 
+%{
+This was designed to be a one-time use function to realign the electrodes
+to match those in the adjacency matrix
+
+%}
+
 %% Load Stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;

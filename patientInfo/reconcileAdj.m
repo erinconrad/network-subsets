@@ -23,8 +23,8 @@ elecs = adj(7).data;
 out_names = elecs.labels(elecs.ignore == 0)';
 
 %% Get locs
-locs = pt(whichPt).electrodeData.locs;
-names = pt(whichPt).electrodeData.names;
+locs = pt(whichPt).new_elecs.locs;
+names = pt(whichPt).new_elecs.names;
 out_locs = [];
 
 % Get the locations of the electrodes matching the names of the unignored
