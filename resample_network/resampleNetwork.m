@@ -139,7 +139,7 @@ for f = 1:n_f
         
         % new regional control centrality
         num_resec = length(pt(whichPt).resec.nums);
-        [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,0);
+        [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,1);
         [~,min_cc_regional_true] = min(cc_regional);
         elecs_regional_min = elecs_regional(min_cc_regional_true,:);
         temp_centroid_min = mean(locs(elecs_regional_min,:));

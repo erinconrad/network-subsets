@@ -179,7 +179,7 @@ for whichPt = whichPts
     % Get number of resected electrodes
     num_resec = length(pt(whichPt).resec.nums);
     
-    [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,0);
+    [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,1);
     
     % Get identity of region with lowest regional control centrality
     [~,min_cc_regional_true] = min(cc_regional);
