@@ -124,7 +124,7 @@ for whichPt = 1:length(pt)
         end
         
     end
-    close(fileID)
+    fclose(fileID)
     
     pt(whichPt).new_elecs = base;
 end
