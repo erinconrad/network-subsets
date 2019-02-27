@@ -173,7 +173,7 @@ for whichPt = whichPts
     
     % Get location of node with lowest control centrality
     locs = pt(whichPt).new_elecs.locs; % all electrode locations
-    min_cc_true_loc = locs(min_cc_true_loc,:);
+    min_cc_true_loc = locs(min_cc_true,:);
 
     %% Get true synchronizability
     sync = synchronizability(A);
