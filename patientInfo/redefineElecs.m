@@ -11,7 +11,7 @@ load([dataFolder,'structs/info.mat']);
 
 
 
-for whichPt = 1:length(pt)
+for whichPt = 1:33
     
     name = pt(whichPt).name;
     
