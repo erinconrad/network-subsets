@@ -111,7 +111,7 @@ for whichPt = 1:length(pt)
             for j = 1:length(elecs.labels)
                 if strcmp(elecs.labels{j},temp_name) == 1
                     found_in_adj = 1;
-                    if ignore(j) == 0
+                    if elecs.ignore(j) == 0
                         error('Electrode %s not ignored!\n',temp_name);
                     end
                     break
@@ -124,6 +124,7 @@ for whichPt = 1:length(pt)
         end
         
     end
+    close(fid)
     
     pt(whichPt).new_elecs = base;
 end
