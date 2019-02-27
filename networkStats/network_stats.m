@@ -40,7 +40,7 @@ tic
 %% Parameters
 
 % 1 if doing SOZ analysis, 0 if doing main analysis
-do_soz_analysis = 0;
+do_soz_analysis = 1;
 
 doPlots = 1;
 
