@@ -138,12 +138,16 @@ for f = 1:n_f
         all_eff(f,i_p) = efficiency_wei(A_temp, 0);
         
         % new regional control centrality
-        num_resec = length(pt(whichPt).resec.nums);
-        [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,1);
-        [~,min_cc_regional_true] = min(cc_regional);
-        elecs_regional_min = elecs_regional(min_cc_regional_true,:);
-        temp_centroid_min = mean(locs(elecs_regional_min,:));
-        dist_true_min_cc_reg(f,i_p) = vecnorm(temp_centroid_min-centroid_min,2);
+        if isempty(pt(whichPt).resec) == 0
+            num_resec = length(pt(whichPt).resec.nums);
+            [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,1);
+            [~,min_cc_regional_true] = min(cc_regional);
+            elecs_regional_min = elecs_regional(min_cc_regional_true,:);
+            temp_centroid_min = mean(locs(elecs_regional_min,:));
+            dist_true_min_cc_reg(f,i_p) = vecnorm(temp_centroid_min-centroid_min,2);
+        else
+            dist_true_min_cc_reg(f,i_p) = nan;
+        end
         
         
         % Populate the node-specific metrics

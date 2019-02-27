@@ -177,16 +177,22 @@ for whichPt = whichPts
     
     %% Get regional control centrality
     % Get number of resected electrodes
-    num_resec = length(pt(whichPt).resec.nums);
-    
-    [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,1);
-    
-    % Get identity of region with lowest regional control centrality
-    [~,min_cc_regional_true] = min(cc_regional);
-    
-    % Get location of region with lowest cc
-    elecs_regional_min = elecs_regional(min_cc_regional_true,:);
-    centroid_min = mean(locs(elecs_regional_min,:));
+    if isempty(pt(whichPt).resec) == 0
+        num_resec = length(pt(whichPt).resec.nums);
+
+        [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,1);
+
+        % Get identity of region with lowest regional control centrality
+        [~,min_cc_regional_true] = min(cc_regional);
+
+        % Get location of region with lowest cc
+        elecs_regional_min = elecs_regional(min_cc_regional_true,:);
+        centroid_min = mean(locs(elecs_regional_min,:));
+    else
+        centroid_min = nan;
+        elecs_regional_min = nan;
+        
+    end
 
     %% Get true synchronizability
     sync = synchronizability(A);
