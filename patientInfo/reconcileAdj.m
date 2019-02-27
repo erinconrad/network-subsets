@@ -33,16 +33,11 @@ for i = 1:size(locs,1)
     if ismember(names{i,1},out_names) == 1
         out_locs = [out_locs;locs(i,1:3)];
         
-        % Confirm that it's one we're not ignoring
-        if locs(i,4) == 1
-            error('What\n');
-        end
     else
-        % Confirm it's one that we are ignoring
-        if locs(i,4) == 0
-            fprintf('Warning! Could not find electrode %s in adjacency matrix structure for %s\n',...
-                names{i,1},name);
-        end
+        
+        error('Warning! Could not find electrode %s in adjacency matrix structure for %s\n',...
+            names{i,1},name);
+        
     end
     
 end
