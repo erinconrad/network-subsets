@@ -40,7 +40,7 @@ tic
 %% Parameters
 
 % 1 if doing SOZ analysis, 0 if doing main analysis
-do_soz_analysis = 1;
+do_soz_analysis = 0;
 
 doPlots = 1;
 
@@ -174,6 +174,19 @@ for whichPt = whichPts
     % Get location of node with lowest control centrality
     locs = pt(whichPt).new_elecs.locs; % all electrode locations
     min_cc_true_loc = locs(min_cc_true,:);
+    
+    %% Get regional control centrality
+    % Get number of resected electrodes
+    num_resec = length(pt(whichPt).resec.nums);
+    
+    [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,0);
+    
+    % Get identity of region with lowest regional control centrality
+    [~,min_cc_regional_true] = min(cc_regional);
+    
+    % Get location of region with lowest cc
+    elecs_regional_min = elecs_regional(min_cc_regional_true,:);
+    centroid_min = mean(locs(elecs_regional_min,:));
 
     %% Get true synchronizability
     sync = synchronizability(A);
@@ -190,8 +203,8 @@ for whichPt = whichPts
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
     [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
-        overlap_resec,dist_resec] = ...
-        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
+        overlap_resec,dist_resec,dist_true_min_cc_reg] = ...
+        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,centroid_min);
 
     %% Initialize SMC and rho arrays for node-level metrics
 
@@ -279,9 +292,14 @@ for whichPt = whichPts
     resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
     
     
-    %% Distance from truest min cc to min cc in resampled network
+    %% Distance from true min cc to min cc in resampled network
     cc_dist_mean = nanmean(dist_cc,2);
     cc_dist_std = nanstd(dist_cc,0,2);
+    
+    %% Distance from true min cc region to min cc region in resampled network
+    cc_region_dist_mean = nanmean(dist_true_min_cc_reg,2);
+    cc_region_dist_std = nanstd(dist_true_min_cc_reg,0,2);
+    
     
     %% Fill up stats structure
     if do_soz_analysis == 0
@@ -301,6 +319,10 @@ for whichPt = whichPts
         stats(whichPt).cc.(contig_text).(sec_text).dist.mean = cc_dist_mean;
         stats(whichPt).cc.(contig_text).(sec_text).dist.std = cc_dist_std;
         
+        % Regional cc
+        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.min_elecs = elecs_regional_min;
+        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.dist_mean = cc_region_dist_mean;
+        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.dist_std = cc_region_dist_std;
 
         % node strength
         stats(whichPt).ns.name = 'node strength';
