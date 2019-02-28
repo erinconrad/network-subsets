@@ -1,6 +1,6 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
-    overlap_resec,dist_resec,dist_true_min_cc_reg] = ...
-    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,centroid_min)
+    overlap_resec,dist_resec,temp_centroid_min] = ...
+    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
 
 %{
 This function resamples the network by taking a fraction of nodes and then
@@ -85,9 +85,9 @@ dist_soz = nan(n_f,n_perm);
 overlap_resec = nan(n_f,n_perm);
 dist_resec = nan(n_f,n_perm);
 
-% Initialize array representing distance between centroid of minimum
+% Initialize array representing centroid of minimum
 % control centrality region
-dist_true_min_cc_reg =nan(n_f,n_perm);
+temp_centroid_min =nan(n_f,n_perm,3);
 
 %%  Loop through fractions
 for f = 1:n_f
@@ -144,10 +144,10 @@ for f = 1:n_f
                 (A_temp,num_resec,locs(ch_ids,:),1);
             [~,min_cc_regional_true] = min(cc_regional);
             elecs_regional_min = elecs_regional(min_cc_regional_true,:);
-            temp_centroid_min = mean(locs(elecs_regional_min,:));
-            dist_true_min_cc_reg(f,i_p) = vecnorm(temp_centroid_min-centroid_min,2);
+            temp_centroid_min(f,i_p,:) = mean(locs(elecs_regional_min,:));
+            
         else
-            dist_true_min_cc_reg(f,i_p) = nan;
+            temp_centroid_min(f,i_p,:) = [nan nan nan];
         end
         
         

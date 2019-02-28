@@ -204,8 +204,8 @@ for whichPt = whichPts
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
     [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
-        overlap_resec,dist_resec,dist_true_min_cc_reg] = ...
-        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,centroid_min);
+        overlap_resec,dist_resec,temp_centroid_min] = ...
+        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
 
     %% Initialize SMC and rho arrays for node-level metrics
 
@@ -213,7 +213,7 @@ for whichPt = whichPts
     SMC_cc = zeros(n_f,n_perm);
     rho_cc = zeros(n_f,n_perm);
     true_cc_most_sync = zeros(n_f,n_perm);
-    dist_cc = zeros(n_f,n_perm);
+    min_cc_resample_loc = zeros(n_f,n_perm,3);
 
     % Betweenness centrality stuff
     rho_bc = zeros(n_f,n_perm);
@@ -248,8 +248,8 @@ for whichPt = whichPts
                 
                 % Get distances between lowest control centrality electrode
                 % in resampled network and original network
-                min_cc_resample_loc = locs(ch_most_sync,:);
-                dist_cc(f,i_p) = sqrt(sum((min_cc_true_loc-min_cc_resample_loc).^2));
+                min_cc_resample_loc(f,i_p,:) = locs(ch_most_sync,:);
+              
 
                 % Fill up SMC and rho arrays
                 true_cc_most_sync(f,i_p) = c_c(ch_most_sync);
@@ -293,12 +293,12 @@ for whichPt = whichPts
     
     
     %% Distance from true min cc to min cc in resampled network
-    cc_dist_mean = nanmean(dist_cc,2);
-    cc_dist_std = nanstd(dist_cc,0,2);
+    cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
+    cc_res_std = squeeze(nanstd(min_cc_resample_loc,0,2));
     
     %% Distance from true min cc region to min cc region in resampled network
-    cc_region_dist_mean = nanmean(dist_true_min_cc_reg,2);
-    cc_region_dist_std = nanstd(dist_true_min_cc_reg,0,2);
+    cc_region_res_mean = squeeze(nanmean(temp_centroid_min,2));
+    cc_region_res_std = squeeze(nanstd(temp_centroid_min,0,2));
     
     
     %% Fill up stats structure
@@ -314,16 +314,15 @@ for whichPt = whichPts
         stats(whichPt).cc.(contig_text).(sec_text).rho.std = rho_std_cc;
         stats(whichPt).cc.(contig_text).(sec_text).resect_wrong = resect_wrong;
         
-        % Mean and STD of distance between true min cc and min cc in
-        % resampled network
-        stats(whichPt).cc.(contig_text).(sec_text).min.dist_mean = cc_dist_mean;
-        stats(whichPt).cc.(contig_text).(sec_text).min.dist_std = cc_dist_std;
-        stats(whichPt).cc.(contig_text).(sec_text).min.min_elec = min_cc_true;
+        % Mean and STD of resampled min cc
+        stats(whichPt).cc.(contig_text).(sec_text).min_cc.res_mean = cc_res_mean;
+        stats(whichPt).cc.(contig_text).(sec_text).min_cc.res_std = cc_res_std;
+        stats(whichPt).cc.(contig_text).(sec_text).min_cc.true = min_cc_true;
         
         % Regional cc
-        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.min_elecs = elecs_regional_min;
-        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.dist_mean = cc_region_dist_mean;
-        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.dist_std = cc_region_dist_std;
+        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
+        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.dist_mean = cc_region_res_mean;
+        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.dist_std = cc_region_res_std;
 
         % node strength
         stats(whichPt).ns.name = 'node strength';
