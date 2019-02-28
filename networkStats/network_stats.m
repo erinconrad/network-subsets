@@ -136,7 +136,7 @@ for whichPt = whichPts
                         if isfield(stats(whichPt).eff.(contig_text).(sec_text),'true') == 1
                             if isempty(stats(whichPt).eff.(contig_text).(sec_text).true) == 0
                                 fprintf('Did %s, skipping\n',name);
-                               % continue
+                                continue
                             end
                         end
                     end

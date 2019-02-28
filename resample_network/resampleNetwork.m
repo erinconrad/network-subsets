@@ -138,9 +138,10 @@ for f = 1:n_f
         all_eff(f,i_p) = efficiency_wei(A_temp, 0);
         
         % new regional control centrality
-        if isempty(pt(whichPt).resec) == 0
+        if isempty(pt(whichPt).resec) == 0 && e_f(f) == 0.8
             num_resec = length(pt(whichPt).resec.nums);
-            [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,1);
+            [cc_regional,elecs_regional] = regional_control_centrality...
+                (A_temp,num_resec,locs(ch_ids,:),1);
             [~,min_cc_regional_true] = min(cc_regional);
             elecs_regional_min = elecs_regional(min_cc_regional_true,:);
             temp_centroid_min = mean(locs(elecs_regional_min,:));
