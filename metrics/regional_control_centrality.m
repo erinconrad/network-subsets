@@ -36,8 +36,15 @@ that Monte Carlo approach and say that has the lowest control centrality.
 sync = synchronizability(A);
 
 if contig == 0
-    error('I don''t know how to do this\n');
+    
     % I could do Monte Carlo approach here.
+    nboot = 1e5;
+    for ip = 1:nboot
+        
+        
+        
+    end
+    
     
 elseif contig == 1
     % number of total channels

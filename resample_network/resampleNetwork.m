@@ -39,7 +39,6 @@ n_f = length(e_f);
 % no EEG tracing
 
 % THIS SHOULDN'T HAPPEN ANYMORE!
-remove = [];
 for i = 1:length(pt(whichPt).new_elecs.electrodes)
     e_name = pt(whichPt).new_elecs.electrodes(i).name;
     found_it = 0;
@@ -51,7 +50,6 @@ for i = 1:length(pt(whichPt).new_elecs.electrodes)
     end
     if found_it == 0
         error('Did not find %s in adjacency matrix.\n',e_name);
-        remove = [remove;i];
     end
 end
 
@@ -144,8 +142,21 @@ for f = 1:n_f
                 (A_temp,num_resec,locs(ch_ids,:),1);
             [~,min_cc_regional_true] = min(cc_regional);
             elecs_regional_min = elecs_regional(min_cc_regional_true,:);
-            temp_centroid_min(f,i_p,:) = mean(locs(elecs_regional_min,:));
+            temp_centroid_min(f,i_p,:) = mean(locs(ch_ids(elecs_regional_min),:));
             
+            if 1 == 0
+                % Plot the new min cc region and the electrodes we're
+                % ignoring
+                figure
+                scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k')
+                hold on
+                scatter3(locs(ch_ids(elecs_regional_min),1),...
+                    locs(ch_ids(elecs_regional_min),2),...
+                    locs(ch_ids(elecs_regional_min),3),100,'b','filled')
+                scatter3(locs(which_elecs,1),locs(which_elecs,2),locs(which_elecs,3),40,'k','filled')
+                pause
+                close(gcf)
+            end
         else
             temp_centroid_min(f,i_p,:) = [nan nan nan];
         end

@@ -2,10 +2,10 @@ function network_stats(whichPts)
 
 %{
 
-This function takes an adjacency matrix A, calculates the control
-centrality of each node, and then randomly resamples the network, retaining
+This function takes an adjacency matrix A, calculates global and nodal
+network measures, and then randomly resamples the network, retaining
 specified fractions of electrodes, and then gets statistics on how the
-control centralities change.
+network measures change.
 
 
 Stuff to add:
@@ -166,27 +166,27 @@ for whichPt = whichPts
     % Get identity of node with lowest control centrality
     [~,min_cc_true] = min(c_c);
     
-    % Get location of node with lowest control centrality
+    % Get locations
     locs = pt(whichPt).new_elecs.locs; % all electrode locations
-    min_cc_true_loc = locs(min_cc_true,:);
     
     %% Get regional control centrality
-    % Get number of resected electrodes
+    
     if isempty(pt(whichPt).resec) == 0
+        
+        % Get number of resected electrodes
         num_resec = length(pt(whichPt).resec.nums);
 
+        % Get regional control centralities
         [cc_regional,elecs_regional] = regional_control_centrality(A,num_resec,locs,1);
 
         % Get identity of region with lowest regional control centrality
         [~,min_cc_regional_true] = min(cc_regional);
 
-        % Get location of region with lowest cc
+        % Get electrodes in region with lowest cc
         elecs_regional_min = elecs_regional(min_cc_regional_true,:);
-        centroid_min = mean(locs(elecs_regional_min,:),1);
     else
-        centroid_min = nan;
+        % Not doing it if we don't have resection data
         elecs_regional_min = nan;
-        
     end
 
     %% Get true synchronizability
@@ -249,7 +249,6 @@ for whichPt = whichPts
                 % Get distances between lowest control centrality electrode
                 % in resampled network and original network
                 min_cc_resample_loc(f,i_p,:) = locs(ch_most_sync,:);
-              
 
                 % Fill up SMC and rho arrays
                 true_cc_most_sync(f,i_p) = c_c(ch_most_sync);
@@ -292,11 +291,11 @@ for whichPt = whichPts
     resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
     
     
-    %% Distance from true min cc to min cc in resampled network
+    %% Mean and std of location of lowest cc in resampled network
     cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
     cc_res_std = squeeze(nanstd(min_cc_resample_loc,0,2));
     
-    %% Distance from true min cc region to min cc region in resampled network
+    %% Mean and std of location of centroid of lowest cc region in resampled network
     cc_region_res_mean = squeeze(nanmean(temp_centroid_min,2));
     cc_region_res_std = squeeze(nanstd(temp_centroid_min,0,2));
     
@@ -321,8 +320,8 @@ for whichPt = whichPts
         
         % Regional cc
         stats(whichPt).cc.(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
-        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.dist_mean = cc_region_res_mean;
-        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.dist_std = cc_region_res_std;
+        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.res_mean = cc_region_res_mean;
+        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.res_std = cc_region_res_std;
 
         % node strength
         stats(whichPt).ns.name = 'node strength';
