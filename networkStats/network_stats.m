@@ -9,8 +9,6 @@ control centralities change.
 
 
 Stuff to add:
-- try a series of adjacency matrices, try to replicate the main finding of
-the VCR paper with subsampling
 - get other network metrics 
     - path length
     (https://www.sciencedirect.com/science/article/pii/S1388245715012584)
@@ -44,7 +42,7 @@ do_soz_analysis = 0;
 
 doPlots = 1;
 
-% add to existing stats array?
+% add to existing stats array? Or re-write with new stats array?
 merge = 1;
 
 % How many random resamples to do of each fraction
@@ -73,6 +71,7 @@ addpath([bctFolder]);
 
 load([dataFolder,'structs/info.mat']);
 
+%% Load the output structure to add more info to it
 if merge == 1
     if do_soz_analysis == 1
         if exist([resultsFolder,'basic_metrics/soz.mat'],'file') ~= 0
@@ -98,8 +97,9 @@ end
 
 %% Loop through patients, times, and whether contig or random electrodes
 for which_sec = [-5 0] % 0 means start time of the seizure, -5 is 5 seconds before
-for contig = [1 0]
+for contig = [1 0] %1 means semi-contiguous set of electrodes, 0 means random electrodes
 
+% Loop through patients
 for whichPt = whichPts
 
     % Make result folder
@@ -136,7 +136,7 @@ for whichPt = whichPts
                         if isfield(stats(whichPt).eff.(contig_text).(sec_text),'true') == 1
                             if isempty(stats(whichPt).eff.(contig_text).(sec_text).true) == 0
                                 fprintf('Did %s, skipping\n',name);
-                              %  continue
+                               % continue
                             end
                         end
                     end
@@ -144,20 +144,15 @@ for whichPt = whichPts
             end 
         end
     end
-    %{
-    if isempty(A) == 1
-        fprintf('A empty, using fake data.\n');
-        [A,~] = makeFakeA(size(locs,1),0.1);
-        fprintf('%1.1f%% of possible links are connected.\n',...
-            sum(sum(A==1))/size(A,1)^2*100);
-    end
-    %}
 
-    % Get locs and adjacency
+    % Get adjacency matrix
     [adj,~] = reconcileAdj(pt,whichPt);
 
     if strcmp(freq,'high_gamma') == 1
         A_all = adj(4).data;
+        if contains(adj(4).name,'highgamma') == 0
+            error('This isn''t gamma!'\n');
+        end
     end
 
     % Start with the middle and add which second
@@ -187,7 +182,7 @@ for whichPt = whichPts
 
         % Get location of region with lowest cc
         elecs_regional_min = elecs_regional(min_cc_regional_true,:);
-        centroid_min = mean(locs(elecs_regional_min,:));
+        centroid_min = mean(locs(elecs_regional_min,:),1);
     else
         centroid_min = nan;
         elecs_regional_min = nan;
@@ -250,16 +245,15 @@ for whichPt = whichPts
                 % Get the identity of the most synchronizing node (the one we would
                 % tell the surgeons to resect)
                 [~,ch_most_sync] = min(c_c_f_p);
+                
+                % Get distances between lowest control centrality electrode
+                % in resampled network and original network
+                min_cc_resample_loc = locs(ch_most_sync,:);
+                dist_cc(f,i_p) = sqrt(sum((min_cc_true_loc-min_cc_resample_loc).^2));
 
                 % Fill up SMC and rho arrays
                 true_cc_most_sync(f,i_p) = c_c(ch_most_sync);
                 
-                % Get distances between lowest control centrality electrode
-                % in resampled network and original network
-                [~,min_cc_resample] = min(c_c_f_p);
-                min_cc_resample_loc = locs(min_cc_resample,:);
-                dist_cc(f,i_p) = sqrt(sum((min_cc_true_loc-min_cc_resample_loc).^2));
-
             end
 
 
@@ -322,8 +316,9 @@ for whichPt = whichPts
         
         % Mean and STD of distance between true min cc and min cc in
         % resampled network
-        stats(whichPt).cc.(contig_text).(sec_text).dist.mean = cc_dist_mean;
-        stats(whichPt).cc.(contig_text).(sec_text).dist.std = cc_dist_std;
+        stats(whichPt).cc.(contig_text).(sec_text).min.dist_mean = cc_dist_mean;
+        stats(whichPt).cc.(contig_text).(sec_text).min.dist_std = cc_dist_std;
+        stats(whichPt).cc.(contig_text).(sec_text).min.min_elec = min_cc_true;
         
         % Regional cc
         stats(whichPt).cc.(contig_text).(sec_text).regional_cc.min_elecs = elecs_regional_min;

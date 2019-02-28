@@ -46,7 +46,7 @@ elseif contig == 1
     
     % initialize arrays
     elecs = nan(nchs,n);
-    cc = nan(nchs);
+    cc = nan(nchs,1);
     
     for i = 1:nchs
         

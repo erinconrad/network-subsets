@@ -23,6 +23,8 @@ ns_rho_all = [];
 bc_rho_all = [];
 sync_mean_all = [];
 eff_mean_all = [];
+std_diff_cc = [];
+std_diff_cc_regional = [];
 
 for i = 1:length(stats)
     
@@ -74,8 +76,13 @@ for i = 1:length(stats)
     % How often do we resect wrong brain if keep 80% electrodes
     resect_wrong = [resect_wrong;stats(i).cc.(contig_text).(sec_text).resect_wrong(4)];
     
-   
+    % What is the standard deviation of the distance between true min cc
+    % and min cc in resampled network
+    std_diff_cc = [std_diff_cc;stats(i).cc.(contig_text).(sec_text).dist.std(4)];
     
+    % What is the standard deviation of the distance between true min cc
+    % regional and min cc regional in resampled network
+    std_diff_cc_regional = [std_diff_cc;stats(i).cc.(contig_text).(sec_text).regional_cc.dist_std(4)];
 end
 
 %% Do statistics to see if one is better than others

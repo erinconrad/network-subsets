@@ -8,6 +8,8 @@ def open_ad_f(file):
     for k in keys:
         vals.append(data.item()[k])
     vals, b = zip(*vals)
+    keys = zip(*sorted(zip(vals,keys)))[1]
+    vals = sorted(vals)
     return vals, keys
 
 
