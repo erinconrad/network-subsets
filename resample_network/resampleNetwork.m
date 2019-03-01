@@ -3,7 +3,7 @@ function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
 
 %{
-This function resamples the network by taking a fraction of nodes and then
+This function resamples the network by removing a fraction of nodes and then
 recalculates various network metrics    
 %}
     

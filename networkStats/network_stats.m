@@ -31,6 +31,7 @@ the "resected region"
 
 - brain connectivity toolbox
 
+
 %}
 
 tic
@@ -267,91 +268,93 @@ for whichPt = whichPts
 
     end
 
-    %% Get mean and SD for SMC and rho for each fraction
-    % This uses Fisher's transformation for the Spearman rank coefficients
-    % but nothing special for SMC
-    
-    SMC_mean_cc = nanmean(SMC_cc,2);
-    SMC_std_cc = nanstd(SMC_cc,0,2);
+    %% Agreement measures, which I will include in both analyses
+    % Global measures of agreement: relative difference
+    rel_sync = (all_sync-sync)/sync;
+    rel_eff = (all_eff-eff)/eff;
 
+    % Nodal measures: "average" the SRCs. To average the SRCs, I
+    % apply a Fisher's transformation, average the z values, and then back
+    % transform to get an average rho.
     rho_mean_cc = average_rho(rho_cc,2);
-    rho_std_cc = nanstd(rho_cc,0,2);
-
     rho_mean_ns = average_rho(rho_ns,2);
-    rho_std_ns = nanstd(rho_ns,0,2);
-
     rho_mean_bc = average_rho(rho_bc,2);
-    rho_std_bc = nanstd(rho_bc,0,2);
-
-    %% How often would we resect the wrong piece of brain?
-    % For each f, get the % of times most synchronizing node is actually
-    % desynchronizing in the original network (how often would we tell the
-    % surgeon to resect a piece of brain that is thought to be desynchronizing
-    % in the original network)
-    resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
+     
+    %% Fill up stats structures
     
-    
-    %% Mean and std of location of lowest cc in resampled network
-    cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
-    cc_res_std = squeeze(nanstd(min_cc_resample_loc,0,2));
-    
-    %% Mean and std of location of centroid of lowest cc region in resampled network
-    cc_region_res_mean = squeeze(nanmean(temp_centroid_min,2));
-    cc_region_res_std = squeeze(nanstd(temp_centroid_min,0,2));
-    
-    
-    %% Fill up stats structure
     if do_soz_analysis == 0
     
+        %% Doing the main analysis (not dependence on distance from SOZ/resection zone)
+        % For this, we need measures of variability AND agreement
+       
+        %% Nodal measure of variability
+        % Nodal measure: relative std (std across permuations divided by
+        % std across electrodes)
+        cc_rel_std = rel_std_nodal(all_c_c,c_c);
+        ns_rel_std = rel_std_nodal(all_ns,ns);
+        bc_rel_std = rel_std_nodal(all_bc,bc);
+        
+        % Global measures: we will do relative std (std across
+        % permutations divided by std across patients). And so we will
+        % record the standard deviation for now.
+        
+        % How often would we resect the wrong piece of brain?
+        resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
+        
+        % Mean and std of location of lowest cc in resampled network
+        cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
+        cc_res_std = squeeze(nanstd(min_cc_resample_loc,0,2));
+
+        % Mean and std of location of centroid of lowest cc region in resampled network
+        cc_region_res_mean = squeeze(nanmean(temp_centroid_min,2));
+        cc_region_res_std = squeeze(nanstd(temp_centroid_min,0,2));
+        
         stats(whichPt).name = name;
 
         % control centrality
-        stats(whichPt).cc.name = 'control centrality';
-        stats(whichPt).cc.(contig_text).(sec_text).SMC.mean = SMC_mean_cc;
-        stats(whichPt).cc.(contig_text).(sec_text).SMC.std = SMC_std_cc;
-        stats(whichPt).cc.(contig_text).(sec_text).rho.mean = rho_mean_cc;
-        stats(whichPt).cc.(contig_text).(sec_text).rho.std = rho_std_cc;
-        stats(whichPt).cc.(contig_text).(sec_text).resect_wrong = resect_wrong;
+        stats(whichPt).(contig_text).(sec_text).cc.true = c_c;
+        stats(whichPt).(contig_text).(sec_text).cc.rel_std = cc_rel_std;
+        stats(whichPt).(contig_text).(sec_text).cc.resect_wrong = resect_wrong;
+        stats(whichPt).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
         
         % Mean and STD of resampled min cc
-        stats(whichPt).cc.(contig_text).(sec_text).min_cc.res_mean = cc_res_mean;
-        stats(whichPt).cc.(contig_text).(sec_text).min_cc.res_std = cc_res_std;
-        stats(whichPt).cc.(contig_text).(sec_text).min_cc.true = min_cc_true;
+        stats(whichPt).(contig_text).(sec_text).min_cc.res_mean = cc_res_mean;
+        stats(whichPt).(contig_text).(sec_text).min_cc.res_std = cc_res_std;
+        stats(whichPt).(contig_text).(sec_text).min_cc.true = min_cc_true;
         
         % Regional cc
-        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
-        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.res_mean = cc_region_res_mean;
-        stats(whichPt).cc.(contig_text).(sec_text).regional_cc.res_std = cc_region_res_std;
+        stats(whichPt).(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
+        stats(whichPt).(contig_text).(sec_text).regional_cc.res_mean = cc_region_res_mean;
+        stats(whichPt).(contig_text).(sec_text).regional_cc.res_std = cc_region_res_std;
 
         % node strength
-        stats(whichPt).ns.name = 'node strength';
-        stats(whichPt).ns.(contig_text).(sec_text).rho.mean = rho_mean_ns;
-        stats(whichPt).ns.(contig_text).(sec_text).rho.std = rho_std_ns;
+        stats(whichPt).(contig_text).(sec_text).ns.rel_std = ns_rel_std;
+        stats(whichPt).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
 
         % betweenness centrality
-        stats(whichPt).bc.name = 'betweenness centrality';
-        stats(whichPt).bc.(contig_text).(sec_text).rho.mean = rho_mean_bc;
-        stats(whichPt).bc.(contig_text).(sec_text).rho.std = rho_std_bc;
+        stats(whichPt).(contig_text).(sec_text).bc.rel_std = bc_rel_std;
+        stats(whichPt).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
 
         % synchronizability
-        stats(whichPt).sync.name = 'synchronizability';
-        stats(whichPt).sync.(contig_text).(sec_text).mean = mean(all_sync,2);
-        stats(whichPt).sync.(contig_text).(sec_text).std = std(all_sync,0,2);
-        stats(whichPt).sync.(contig_text).(sec_text).true = sync;
+        stats(whichPt).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
+        stats(whichPt).(contig_text).(sec_text).sync.true = sync;
+        stats(whichPt).(contig_text).(sec_text).sync.rel_diff = rel_sync;
+        
 
         % efficiency
-        stats(whichPt).eff.name = 'global efficiency';
-        stats(whichPt).eff.(contig_text).(sec_text).mean = mean(all_eff,2);
-        stats(whichPt).eff.(contig_text).(sec_text).std = std(all_eff,0,2);
-        stats(whichPt).eff.(contig_text).(sec_text).true = eff;
+        stats(whichPt).(contig_text).(sec_text).eff.std = std(all_eff,0,2);
+        stats(whichPt).(contig_text).(sec_text).eff.true = eff;
+        stats(whichPt).(contig_text).(sec_text).eff.rel_diff = rel_eff;
 
         save([resultsFolder,'basic_metrics/stats.mat'],'stats');
     elseif do_soz_analysis == 1
-        rel_sync = (all_sync-sync)/sync;
-        rel_eff = (all_eff-eff)/eff;
-        soz(whichPt).(contig_text).(sec_text).rho_cc = rho_cc;
-        soz(whichPt).(contig_text).(sec_text).rho_bc = rho_bc;
-        soz(whichPt).(contig_text).(sec_text).rho_ns = rho_ns;
+        %% Do the analysis of dependence of agreement on distance from important things
+        
+        
+        
+        soz(whichPt).(contig_text).(sec_text).rho_cc = rho_mean_cc;
+        soz(whichPt).(contig_text).(sec_text).rho_bc = rho_mean_bc;
+        soz(whichPt).(contig_text).(sec_text).rho_ns = rho_mean_ns;
         soz(whichPt).(contig_text).(sec_text).sync = rel_sync;
         soz(whichPt).(contig_text).(sec_text).eff = rel_eff;
         soz(whichPt).(contig_text).(sec_text).dist_soz = dist_soz;
@@ -477,87 +480,36 @@ for whichPt = whichPts
         end
         else
         
-        % Control centrality
+        %% Plot variability metrics as a function network retained
         figure
-        set(gcf,'Position',[50 389 1400 409]);
-        subplot(1,3,1)
-        errorbar(e_f,rho_mean_cc,rho_std_cc,'k','linewidth',2);
-        xlabel('Fraction of original network included');
-        ylabel('Spearman rank coefficient');
-        title(sprintf(['Spearman rank coefficient between original CC\n'...
-            'and updated CC as a function of fraction of original network included\n'...
-            'taking %s electrodes, %s'],contig_text, sec_text));
-
-        subplot(1,3,2)
-        errorbar(e_f,SMC_mean_cc,SMC_std_cc,'k','linewidth',2);
-        xlabel('Fraction of original network included');
-        ylabel('Simple matching coefficient');
-        title(sprintf(['Simple matching coefficient between original CC\n'...
-            'and updated CC as a function of fraction of original network included\n'...
-            'taking %s electrodes, %s'],contig_text,sec_text));
-
-        subplot(1,3,3)
-        plot(e_f,resect_wrong*100,'k','linewidth',2);
-        xlabel('Fraction of original network included');
-        ylabel('% of permutations');
-        title(sprintf(['Percent of time a desynchronizing node is\n'...
-            'labeled as the most synchronizing\n'...
-            'taking %s electrodes, %s'],contig_text,sec_text));
-        print(gcf,[outFolder,'cc_',contig_text,sec_text],'-depsc');
-        close(gcf)
-
-
-        % Node strength
-        figure
-        set(gcf,'Position',[50 389 500 409]);
-        errorbar(e_f,rho_mean_ns,rho_std_ns,'k','linewidth',2);
-        xlabel('Fraction of original network included');
-        ylabel('Spearman rank coefficient');
-        title(sprintf(['Spearman rank coefficient between original node strength\n'...
-            'and updated node strength as a function of fraction of original network included\n'...
-            'taking %s electrodes, %s'],contig_text,sec_text));
-        print(gcf,[outFolder,'ns_',contig_text,sec_text],'-depsc');
-        close(gcf)
-
-        % Betweenness centrality
-        figure
-        set(gcf,'Position',[50 389 500 409]);
-        errorbar(e_f,rho_mean_bc,rho_std_bc,'k','linewidth',2);
-        xlabel('Fraction of original network included');
-        ylabel('Spearman rank coefficient');
-        title(sprintf(['Spearman rank coefficient between original BC\n'...
-            'and updated BC as a function of fraction of original network included\n'...
-            'taking %s electrodes, %s'],contig_text,sec_text));
-        print(gcf,[outFolder,'bc_',contig_text,sec_text],'-depsc');
-        close(gcf)
-
-        % Synchronizability
-        figure
-        set(gcf,'Position',[50 389 500 409]);
-        errorbar(e_f,mean(all_sync,2),std(all_sync,0,2),'k','linewidth',2);
+        set(gcf,'Position',[50 133 1211 665]);
+        subplot(1,2,1)
+        scatter(e_f,cc_rel_std,100,'filled');
         hold on
-        plot(get(gca,'xlim'),[sync sync],'k--','linewidth',2);
-        xlabel('Fraction of original network included');
-        ylabel('Synchronizability');
-        title(sprintf(['Synchronizability'...
-            ' as a function of fraction of original network included\n'...
-            'taking %s electrodes, %s'],contig_text,sec_text));
-        print(gcf,[outFolder,'sync_',contig_text,sec_text],'-depsc');
-        close(gcf)
-
-        % Efficiency
-        figure
-        set(gcf,'Position',[50 389 500 409]);
-        errorbar(e_f,mean(all_eff,2),std(all_eff,0,2),'k','linewidth',2);
+        scatter(e_f,bc_rel_std,100,'filled');
+        scatter(e_f,ns_rel_std,100,'filled');
+        ylabel('Relative std of metric')
+        xlabel('Fraction of nodes retained')
+        title('Metric variability by subsample size');
+        legend('Control centrality','Betweenness centrality','Node strength')
+        set(gca,'fontsize',20);
+        
+        subplot(1,2,2)
+        scatter(e_f,rho_mean_cc,100,'filled');
         hold on
-        plot(get(gca,'xlim'),[eff eff],'k--','linewidth',2);
-        xlabel('Fraction of original network included');
-        ylabel('Global efficiency');
-        title(sprintf(['Global efficiency'...
-            ' as a function of fraction of original network included\n'...
-            'taking %s electrodes, %s'],contig_text,sec_text));
-        print(gcf,[outFolder,'eff_',contig_text,sec_text],'-depsc');
+        scatter(e_f,rho_mean_bc,100,'filled');
+        scatter(e_f,rho_mean_ns,100,'filled');
+        ylabel('Spearman rank correlation of metric with original')
+        xlabel('Fraction of nodes retained')
+        title('Average metric agreement by subsample size');
+        legend('Control centrality','Betweenness centrality','Node strength',...
+            'Location','southeast')
+        set(gca,'fontsize',20);
+        
+        
+        print(gcf,[outFolder,'nodal_metrics_',contig_text,sec_text],'-depsc');
         close(gcf)
+     
         end
     end
     
@@ -568,5 +520,18 @@ end
 
 
 toc
+
+end
+
+function rel_std = rel_std_nodal(perm_metric,true_metric)
+    
+    % The average across electrodes of the std across permutations
+    std_across_perm = nanmean(squeeze(nanstd(perm_metric,0,3)),1);
+        
+    % Std across electrodes of the true cc
+    std_across_ch = nanstd(true_metric,0,1);
+
+    % Relative std
+    rel_std = std_across_perm./std_across_ch;
 
 end

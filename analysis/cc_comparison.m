@@ -1,7 +1,7 @@
 function cc_comparison(stats,pt)
 
 %% Look at contiguous and -5 seconds
-contig_text = 'contiguous';
+contig_text = 'random';
 sec_text = 'sec_neg5';
 
 std_diff_cc = [];
@@ -36,7 +36,7 @@ for i = 1:length(stats)
     
     % What is the standard deviation of min cc region centroid in the
     % resampled network
-    temp_std_diff_cc_regional = stats(i).cc.(contig_text).(sec_text).regional_cc.dist_std(4,:);
+    temp_std_diff_cc_regional = stats(i).cc.(contig_text).(sec_text).regional_cc.res_std(4,:);
     std_diff_cc_regional = [std_diff_cc;temp_std_diff_cc_regional];
     
     

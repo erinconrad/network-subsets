@@ -37,12 +37,75 @@ sync = synchronizability(A);
 
 if contig == 0
     
-    % I could do Monte Carlo approach here.
-    nboot = 1e5;
-    for ip = 1:nboot
+    
+    % I could do Monte Carlo approach here. Warning! If I do 1e4, I get a
+    % different set of "min cc electrodes" each time. 
+    nboot = 1e4;
+    
+    cc = nan(nboot,1);
+    elecs = nan(nboot,n);
+    
+    for ib = 1:nboot
+        if mod(ib,1e3) == 0
+            fprintf('%d\n',ib);
+        end
+        nchs = size(locs,1);
+        chs = 1:nchs;
+        %% Build random set of "contiguous" electrodes
+        % We will start with a random electrode and add its nearest
+        % electrode. Then we will pick a random one of those 2 and add its
+        % nearest. Then we will pick a random one of those 3 and add its
+        % nearest, etc.
         
+        % Get first electrode
+        set = randi(nchs);
         
+        while 1
+            % pick a random electrode in the set
+            curr_elec = set(randi(length(set)));
+            
+            % Get distances to other chs
+            dist = vecnorm(locs-repmat(locs(curr_elec,:),nchs,1),2,2);
+            [~,I] = sort(dist);
+            chs_sorted = chs(I);
+
+            % loop through these and add the first one that is not already
+            % in the set to the set
+            for i = 1:length(chs_sorted)
+                if ismember(chs_sorted(i),set) == 0
+                    set = [set;chs_sorted(i)];
+                    break
+                end
+            end
+           
+            % break if reached size
+            if length(set) == n
+                break
+            end
+        end
         
+        if 1 == 0
+            % plot the set
+            figure
+            scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
+            hold on
+            scatter3(locs(set,1),locs(set,2),locs(set,3),100,'r','filled');
+            pause
+            close(gcf)
+        end
+            
+        % Remove the channels
+        A_temp = A;
+        A_temp(set,:) = [];
+        A_temp(:,set) = [];
+        
+        % Recalculate the synchronizability
+        sync_temp = synchronizability(A_temp);
+        
+        % Calculate control centrality
+        cc(ib) = (sync_temp - sync)/sync;
+        
+        elecs(ib,:) = set';
     end
     
     
@@ -67,6 +130,16 @@ elseif contig == 1
         % Take the first n-1 channels
         region = chs_sorted(1:n);
         elecs(i,:) = region;
+        
+        if 1 == 0
+            % plot the set
+            figure
+            scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
+            hold on
+            scatter3(locs(region',1),locs(region',2),locs(region',3),100,'r','filled');
+            pause
+            close(gcf)
+        end
         
         % Remove the channels
         A_temp = A;
