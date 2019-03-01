@@ -5,26 +5,22 @@ function compare_metrics(stats)
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'basic_metrics/'];
 
+doPlots = 1;
+
 %% Initialize arrays
-names = {};
+nodal_metrics = {'cc','ns','bc'};
+global_metrics = {'sync','eff'};
+ef = [20 40 60 80 100];
+
+np = length(stats);
+
+names ={};
 name_nums = {};
-sync_std_80 = [];
-eff_std_80 = [];
-sync_mean_80 = [];
-eff_mean_80 = [];
-cc_rho_80 = [];
-ns_rho_80 = [];
-bc_rho_80 = [];
-resect_wrong = [];
-sync_std_all = [];
-eff_std_all = [];
-cc_rho_all = [];
-ns_rho_all = [];
-bc_rho_all = [];
-sync_mean_all = [];
-eff_mean_all = [];
-std_diff_cc = [];
-std_diff_cc_regional = [];
+ag_nodal = zeros(np,length(nodal_metrics),length(ef));
+var_nodal = zeros(np,length(nodal_metrics),length(ef));
+ag_global = zeros(np,length(global_metrics),length(ef));
+std_global = zeros(np,length(global_metrics),length(ef));
+true_global = zeros(np,length(global_metrics));
 
 for i = 1:length(stats)
     
@@ -34,194 +30,174 @@ for i = 1:length(stats)
     name_nums = [name_nums;stats(i).name(num_idx_s:end)];
     
     %% Look at contiguous and -5 seconds
-    contig_text = 'contiguous';
+    contig_text = 'random';
     sec_text = 'sec_neg5';
     
+    base = stats(i).(contig_text).(sec_text);
     
-    %% For global metrics, get std at 80%
+    %% Get agreement and variability for metrics by resection size
+    for j = 1:length(nodal_metrics)
+        var_nodal(i,j,:) = base.(nodal_metrics{j}).rel_std;
+        ag_nodal(i,j,:) = base.(nodal_metrics{j}).rho_mean';
+    end
     
-    % synchronizability
-    sync_std_80_temp = stats(i).sync.(contig_text).(sec_text).std(4);
-    sync_std_80 = [sync_std_80;sync_std_80_temp];
-    sync_std_all = [sync_std_all,stats(i).sync.(contig_text).(sec_text).std];
-    
-    % global efficiency
-    eff_std_80_temp = stats(i).eff.(contig_text).(sec_text).std(4);
-    eff_std_80 = [eff_std_80;eff_std_80_temp];
-    eff_std_all = [eff_std_all,stats(i).eff.(contig_text).(sec_text).std];
-    
-    sync_mean_80 = [sync_mean_80;stats(i).sync.(contig_text).(sec_text).mean(4)];
-    eff_mean_80 = [eff_mean_80;stats(i).eff.(contig_text).(sec_text).mean(4)];
-    sync_mean_all = [sync_mean_all,stats(i).sync.(contig_text).(sec_text).mean];
-    eff_mean_all = [eff_mean_all,stats(i).eff.(contig_text).(sec_text).mean];
-    
-    
-    %% For node metrics, get rho at 80%
-    
-    % control centrality
-    cc_rho_80_temp = stats(i).cc.(contig_text).(sec_text).rho.mean(4);
-    cc_rho_80 = [cc_rho_80;cc_rho_80_temp];
-    cc_rho_all = [cc_rho_all,stats(i).cc.(contig_text).(sec_text).rho.mean];
-    
-    % node strength
-    ns_rho_80_temp = stats(i).ns.(contig_text).(sec_text).rho.mean(4);
-    ns_rho_80 = [ns_rho_80;ns_rho_80_temp];
-    ns_rho_all = [ns_rho_all,stats(i).ns.(contig_text).(sec_text).rho.mean];
-    
-    % betweenness centrality
-    bc_rho_80_temp = stats(i).bc.(contig_text).(sec_text).rho.mean(4);
-    bc_rho_80 = [bc_rho_80;bc_rho_80_temp];
-    bc_rho_all = [bc_rho_all,stats(i).bc.(contig_text).(sec_text).rho.mean];
-    
-    % How often do we resect wrong brain if keep 80% electrodes
-    resect_wrong = [resect_wrong;stats(i).cc.(contig_text).(sec_text).resect_wrong(4)];
-    
-    % What is the standard deviation of the distance between true min cc
-    % and min cc in resampled network
-    std_diff_cc = [std_diff_cc;stats(i).cc.(contig_text).(sec_text).dist.std(4)];
-    
-    % What is the standard deviation of the distance between true min cc
-    % regional and min cc regional in resampled network
-    std_diff_cc_regional = [std_diff_cc;stats(i).cc.(contig_text).(sec_text).regional_cc.dist_std(4)];
+    %% Get agreement and variability for global metrics by resection size
+    for j = 1:length(global_metrics)
+        std_global(i,j,:) = base.(global_metrics{j}).std';
+        ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff,2);
+        true_global(i,j,:) = base.(global_metrics{j}).true;
+    end
+   
 end
 
-%% Do statistics to see if one is better than others
+%% Get var_global (relative std by dividing by std across patients)
+var_global = std_global./std(true_global,0,1);
 
-%% Global metrics: I can use a Wilcoxon signed-rank test since just 2
-% I don't know if it's fair to compare standard deviations of these 2
-% different measures
+%% Average over patients
+avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
+avg_var_nodal = squeeze(mean(var_nodal,1));
+avg_ag_global = squeeze(mean(ag_global,1));
+avg_var_global = squeeze(mean(var_global,1));
 
-% First, make std relative to std among patients
-std_patients_sync = std(sync_mean_80);
-std_patients_eff = std(eff_mean_80);
-sync_std_rel = sync_std_80/std_patients_sync;
-eff_std_rel = eff_std_80/std_patients_eff;
-sync_std_all_rel = sync_std_all./std(sync_mean_all,0,2);
-eff_std_all_rel = eff_std_all./std(eff_mean_all,0,2);
+%% Individual patient, 80% retained
+var_nodal_80 = var_nodal(:,:,4);
+var_global_80 = var_global(:,:,4);
 
-[p,~,stats0] = signrank(sync_std_80,eff_std_80);
-fprintf(['Average std of metric when 80%% of network retained is\n'...
-    '%1.2e for synchronizability and %1.2e for global efficiency.\n'...
-    'Wilcoxon signed rank: p = %1.2e and sign rank = %1.1f\n\n'],...
-    mean(sync_std_80), mean(eff_std_80),p,stats0.signedrank);
+%% Calculate statistics for variability
 
-[p,~,stats0] = signrank(sync_std_rel,eff_std_rel);
-fprintf(['Average relative std of metric when 80%% of network retained is\n'...
-    '%1.2f for synchronizability and %1.2f for global efficiency.\n'...
-    'Wilcoxon signed rank: p = %1.2e and sign rank = %1.1f\n\n'],...
-    mean(sync_std_rel), mean(eff_std_rel),p,stats0.signedrank);
+% Compare variability when 80% retained for global metrics
+[p,~,stats] = signrank(var_global_80(:,1),var_global_80(:,2));
+fprintf('Sign rank test for global metrics: p = %1.2e, sign-rank = %d\n',...
+    p, stats.signedrank);
 
-%{
-[p,~,stats0] = signrank(sync_mean_80,eff_mean_80);
-fprintf(['Average mean of metric when 80%% of network retained is\n'...
-    '%1.2f for synchronizability and %1.2f for global efficiency.\n'...
-    'Wilcoxon signed rank: p = %1.2e and sign rank = %1.1f\n\n'],...
-    mean(sync_mean_80), mean(eff_mean_80),p,stats0.signedrank);
-    %}
+% Compare variability when 80% retained for nodal metrics
+[p,tbl] = friedman(var_nodal_80,1,'off');
+fprintf('Friedman test for global metrics: p = %1.1e, chi-squared = %1.1f\n',...
+    p, tbl{2,5});
 
-%% Node metrics: 3, so need Friedman test
-[p,tbl] = friedman([cc_rho_80,ns_rho_80,bc_rho_80],1,'off');
-[p_cc_ns,~,stats0] = signrank(ns_rho_80,cc_rho_80);
-[p_cc_bc,~,stats1] = signrank(bc_rho_80,cc_rho_80);
-[p_ns_bc,~,stats2] = signrank(ns_rho_80,bc_rho_80);
-fprintf(['Average rho when 80%% of network retained is\n'...
-    '%1.2f for control centrality, %1.2f for node strength\n,'...
-    'and %1.2f for betweenness centrality.\n'...
-    'Friedman test: p = %1.2e and Q = %1.2f\n\n'...
-    'CC-NS signed-rank test: p = %1.2e and sign rank = %1.1f\n'...
-    'CC-BC signed-rank test: p = %1.2e and sign rank = %1.1f\n'...
-    'NS-BC signed-rank test: p = %1.2e and sign rank = %1.1f\n\n'],...
-    mean(cc_rho_80), mean(ns_rho_80), mean(bc_rho_80),...
-    p,tbl{2,5},p_cc_ns,stats0.signedrank,p_cc_bc,stats1.signedrank,p_ns_bc,stats2.signedrank);
+[p,~,stats] = signrank(var_nodal_80(:,1),var_nodal_80(:,2));
+fprintf('Sign rank test for cc vs ns: p = %1.2e, sign-rank = %d\n',...
+    p, stats.signedrank);
 
-%% All plots, average across patients
+[p,~,stats] = signrank(var_nodal_80(:,1),var_nodal_80(:,3));
+fprintf('Sign rank test for cc vs bc: p = %1.2e, sign-rank = %d\n',...
+    p, stats.signedrank);
 
-% Global
-figure
-set(gcf,'Position',[1 432 800 366]);
-plot(1:size(sync_std_all_rel,1),mean(sync_std_all_rel,2),'LineWidth',2)
-hold on
-plot(1:size(eff_std_all_rel,1),mean(eff_std_all_rel,2),'LineWidth',2)
-legend({'Synchronizability','Global efficiency'},'location','southeast')
-xticks(1:size(sync_std_all_rel,1))
-ylabel('Standard deviation')
-xlabel('Percent of network retained');
-xticklabels({'20%','40%','60%','80%','100%'})
-title(sprintf(['Relative standard deviation of metric, averaged across all patients\n'...
-    '%s, %s'],contig_text,sec_text),'Interpreter','none');
-set(gca,'fontsize',15)
-print([outFolder,sprintf('global_allperc_%s_%s',contig_text,sec_text)],'-depsc')
+[p,~,stats] = signrank(var_nodal_80(:,2),var_nodal_80(:,3));
+fprintf('Sign rank test for ns vs bc: p = %1.2e, sign-rank = %d\n',...
+    p, stats.signedrank);
 
-% Nodal
-figure
-set(gcf,'Position',[1 432 800 366]);
-plot(1:size(cc_rho_all,1),mean(cc_rho_all,2),'LineWidth',2)
-hold on
-plot(1:size(ns_rho_all,1),mean(ns_rho_all,2),'LineWidth',2)
-plot(1:size(bc_rho_all,1),mean(bc_rho_all,2),'LineWidth',2)
-legend({'Control centrality','Node strength','Betweenness centrality'},'location','southeast')
-xticks(1:size(sync_std_all_rel,1))
-xticklabels({'20%','40%','60%','80%','100%'})
-xlabel('Percent of network retained');
-ylabel('Spearman rank coefficient')
-title(sprintf(['Spearman rank coefficient across electrodes between original metric\n'...
-    'and metric, averaged across all patients\n%s, %s'],contig_text,sec_text),...
-    'Interpreter','none');
-set(gca,'fontsize',15)
-print([outFolder,sprintf('nodal_allperc_%s_%s',contig_text,sec_text)],'-depsc')
+%% Plot averages across patients
+if doPlots == 1
 
-%% 80% plots
-% Global metrics
-figure
-set(gcf,'Position',[1 432 1440 366]);
-scatter(1:length(names),sync_std_rel,100,'filled')
-hold on
-scatter(1:length(names),eff_std_rel,100,'filled')
-legend({'Synchronizability','Global efficiency'},'location','southeast')
-xticks(1:length(names))
-xticklabels(name_nums)
-title(sprintf(['Relative standard deviation of metric when 80%% of electrodes retained\n'...
-    '%s, %s'],contig_text,sec_text),'Interpreter','none');
-xlabel('Which patient')
-ylabel('Standard deviation')
-set(gca,'fontsize',15)
-print([outFolder,sprintf('global_%s_%s',contig_text,sec_text)],'-depsc')
+    % Nodal metrics
+    figure
+    set(gcf,'Position',[174 207 1136 582])
+    [ha, pos] = tight_subplot(2, 2, [0.07 0.1], [0.1 0.06],[0.11 0.02]);
+    % Average agreement
+    axes(ha(1))
+    for j = 1:size(avg_ag_nodal,1)
+         scatter(ef,avg_ag_nodal(j,:),200,'filled');
+         hold on
+    end
+    legend('Control centrality','Node strength','Betweenness centrality',...
+        'location','southeast');
+    %xlabel('Percent nodes retained');
+    ylabel({'Spearman rank correlation',...
+        'with original'})
+    title('Average agreement by subsample size');
+    set(gca,'Fontsize',20);
+
+    % Variability
+    axes(ha(2))
+    for j = 1:size(avg_ag_nodal,1)
+         scatter(ef,avg_var_nodal(j,:),200,'filled');
+         hold on
+    end
+    legend('Control centrality','Node strength','Betweenness centrality',...
+        'location','northeast');
+    %xlabel('Percent nodes retained');
+    ylabel({'Relative standard deviation'})
+    title('Variability by subsample size');
+    set(gca,'Fontsize',20);
 
 
-% Node metrics
-figure
-set(gcf,'Position',[1 432 1440 366]);
-scatter(1:length(names),cc_rho_80,100,'filled')
-hold on
-scatter(1:length(names),ns_rho_80,100,'filled')
-scatter(1:length(names),bc_rho_80,100,'filled')
-legend({'Control centrality','Node strength','Betweenness centrality'},'location','southeast')
-xticks(1:length(names))
-xticklabels(name_nums)
-title(sprintf(['Spearman rank coefficient across electrodes between original metric\n'...
-    'and metric when 80%% of electrodes retained\n%s, %s'],contig_text,sec_text),...
-    'Interpreter','none');
-xlabel('Which patient')
-ylabel('Spearman rank coefficient')
-set(gca,'fontsize',15)
-print([outFolder,sprintf('node_%s_%s',contig_text,sec_text)],'-depsc')
-
-% How often do we resect wrong brain?
-figure
-set(gcf,'Position',[1 432 1440 366]);
-scatter(1:length(names),resect_wrong*100,100,'filled')
-xticks(1:length(names))
-xticklabels(name_nums)
-title(sprintf(['%% of time a desynchronizing node is labeled the most synchronizing\n'...
-    'when 80%% of electrodes retained\n%s, %s'],contig_text,sec_text),...
-    'Interpreter','none');
-xlabel('Which patient')
-ylabel('% of time')
-set(gca,'fontsize',15)
-print([outFolder,sprintf('resect_wrong_%s_%s',contig_text,sec_text)],'-depsc')
+    % Global metrics
+    % Average agreement
+    axes(ha(3))
+    for j = 1:size(avg_ag_global,1)
+         scatter(ef,avg_ag_global(j,:),200,'filled');
+         hold on
+    end
+    legend('Synchronizability','Global efficiency',...
+        'location','southeast');
+    xlabel('Percent nodes retained');
+    ylabel({'Relative difference',...
+        'from original'})
+    %title('Average agreement by subsample size');
+    set(gca,'Fontsize',20);
 
 
+    % Variability
+    axes(ha(4))
+    for j = 1:size(avg_ag_global,1)
+         scatter(ef,avg_var_global(j,:),200,'filled');
+         hold on
+    end
+    legend('Synchronizability','Global efficiency',...
+        'location','northeast');
+    xlabel('Percent nodes retained');
+    ylabel({'Relative standard deviation'})
+    %title('Variability by subsample size');
+    set(gca,'Fontsize',20);
+    pause
+    print(gcf,[outFolder,'avg_metrics_',contig_text,sec_text],'-depsc');
+    close(gcf)
 
+    %% Plot 80% for all patients
+
+    figure
+    set(gcf,'Position',[31 173 1400 632]);
+    [ha, pos] = tight_subplot(2, 1, [0.1 0.15], [0.1 0.07],[0.06 0.02]);
+    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250];
+
+    % Nodal metrics
+    axes(ha(1))
+    for i = 1:size(var_nodal_80,1)
+        for j = 1:size(var_nodal_80,2)
+            scatter(i,var_nodal_80(i,j),200,cols(j,:),'filled');
+            hold on
+        end
+    end
+    legend('Control centrality','Node strength','Betweenness centrality');
+    xticks(1:length(names))
+    %xlabel('Which patient')
+    ylabel('Relative standard deviation')
+    set(gca,'fontsize',20)
+    title('Variability of metric when 20% of network removed');
+    %xticklabels(name_nums)
+
+
+    % Global metrics
+    axes(ha(2))
+    for i = 1:size(var_global_80,1)
+        for j = 1:size(var_global_80,2)
+            scatter(i,var_global_80(i,j),200,cols(j,:),'filled');
+            hold on
+        end
+    end
+    legend('Synchronizability','Global efficiency');
+    xticks(1:length(names))
+    xlabel('Which patient')
+    ylabel('Relative standard deviation')
+    set(gca,'fontsize',20)
+    pause
+    print(gcf,[outFolder,'all_pat_80_',contig_text,sec_text],'-depsc');
+    close(gcf)
+
+end
+
+%xticklabels(name_nums)
 
 
 end
