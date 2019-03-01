@@ -10,13 +10,14 @@ metrics = {'rho_cc','rho_bc','rho_ns','eff','sync'};
 dists = {'dist_soz','dist_resec','overlap_soz','overlap_resec'};
     
 
-for metric = 1:length(metrics)
+for dist = 1:length(dists)
     figure
     set(gcf,'Position',[8 138 1239 667]);
+    [ha, pos] = tight_subplot(2, 2, [0.07 0.1], [0.1 0.06],[0.11 0.02]);
     count = 0;
-    for dist = 1:length(dists)
+    for metric = 1:length(metrics)
         count = count + 1;
-        subplot(2,2,count);
+        axes(ha(count))
         
         z = [];
         measure_all = [];

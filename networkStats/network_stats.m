@@ -352,9 +352,9 @@ for whichPt = whichPts
         
         
         
-        soz(whichPt).(contig_text).(sec_text).rho_cc = rho_mean_cc;
-        soz(whichPt).(contig_text).(sec_text).rho_bc = rho_mean_bc;
-        soz(whichPt).(contig_text).(sec_text).rho_ns = rho_mean_ns;
+        soz(whichPt).(contig_text).(sec_text).rho_cc = rho_cc;
+        soz(whichPt).(contig_text).(sec_text).rho_bc = rho_bc;
+        soz(whichPt).(contig_text).(sec_text).rho_ns = rho_ns;
         soz(whichPt).(contig_text).(sec_text).sync = rel_sync;
         soz(whichPt).(contig_text).(sec_text).eff = rel_eff;
         soz(whichPt).(contig_text).(sec_text).dist_soz = dist_soz;
