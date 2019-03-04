@@ -39,7 +39,7 @@ tic
 %% Parameters
 
 % 1 if doing SOZ analysis, 0 if doing main analysis
-do_soz_analysis = 1;
+do_soz_analysis = 0;
 
 doPlots = 1;
 
@@ -247,8 +247,7 @@ for whichPt = whichPts
                 % tell the surgeons to resect)
                 [~,ch_most_sync] = min(c_c_f_p);
                 
-                % Get distances between lowest control centrality electrode
-                % in resampled network and original network
+                % Get loc of most synchronizing node
                 min_cc_resample_loc(f,i_p,:) = locs(ch_most_sync,:);
 
                 % Fill up SMC and rho arrays
@@ -304,12 +303,36 @@ for whichPt = whichPts
         % Mean and std of location of lowest cc in resampled network
         cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
         cc_res_std = squeeze(nanstd(min_cc_resample_loc,0,2));
+        cc_res_95_pct = squeeze(prctile(min_cc_resample_loc,[2.5 97.5],2));
+        cc_res_90_pct = squeeze(prctile(min_cc_resample_loc,[5 95],2));
+        cc_res_80_pct = squeeze(prctile(min_cc_resample_loc,[10 90],2));
+        cc_res_70_pct = squeeze(prctile(min_cc_resample_loc,[15 85],2));
 
         % Mean and std of location of centroid of lowest cc region in resampled network
         cc_region_res_mean = squeeze(nanmean(temp_centroid_min,2));
         cc_region_res_std = squeeze(nanstd(temp_centroid_min,0,2));
+        cc_region_res_95_pct = squeeze(prctile(temp_centroid_min,[2.5 97.5],2));
+        cc_region_res_90_pct = squeeze(prctile(temp_centroid_min,[5 95],2));
+        cc_region_res_80_pct = squeeze(prctile(temp_centroid_min,[10 90],2));
+        cc_region_res_70_pct = squeeze(prctile(temp_centroid_min,[15 85],2));
         
         stats(whichPt).name = name;
+        
+        %% plot the locations
+        if 1==0
+            perc_95 = diff(squeeze(cc_res_95_pct(4,:,:)),1);
+            
+            figure
+            scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
+            hold on
+            scatter3(locs(min_cc_true,1),locs(min_cc_true,2),locs(min_cc_true,3),100,'r');
+            hold on
+            [x,y,z] = ellipsoid(cc_res_mean(4,1),cc_res_mean(4,3),cc_res_mean(4,3),...
+        perc_95(1)/2,perc_95(2)/2,perc_95(3)/2,30);
+            C(:,:,1) = ones(30); C(:,:,2) = zeros(30); C(:,:,3) = zeros(30);
+            p_r = surf(x,y,z,C,'EdgeColor','none');
+                alpha(p_r,0.2);
+        end
 
         % control centrality
         stats(whichPt).(contig_text).(sec_text).cc.true = c_c;
@@ -321,11 +344,21 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).min_cc.res_mean = cc_res_mean;
         stats(whichPt).(contig_text).(sec_text).min_cc.res_std = cc_res_std;
         stats(whichPt).(contig_text).(sec_text).min_cc.true = min_cc_true;
+        stats(whichPt).(contig_text).(sec_text).min_cc.pct_95 = cc_res_95_pct;
+        stats(whichPt).(contig_text).(sec_text).min_cc.pct_90 = cc_res_90_pct;
+        stats(whichPt).(contig_text).(sec_text).min_cc.pct_80 = cc_res_80_pct;
+        stats(whichPt).(contig_text).(sec_text).min_cc.pct_70 = cc_res_70_pct;
+        
         
         % Regional cc
         stats(whichPt).(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
         stats(whichPt).(contig_text).(sec_text).regional_cc.res_mean = cc_region_res_mean;
         stats(whichPt).(contig_text).(sec_text).regional_cc.res_std = cc_region_res_std;
+        stats(whichPt).(contig_text).(sec_text).regional_cc.pct_95 = cc_region_res_95_pct;
+        stats(whichPt).(contig_text).(sec_text).regional_cc.pct_90 = cc_region_res_90_pct;
+        stats(whichPt).(contig_text).(sec_text).regional_cc.pct_80 = cc_region_res_80_pct;
+        stats(whichPt).(contig_text).(sec_text).regional_cc.pct_70 = cc_region_res_70_pct;
+        
 
         % node strength
         stats(whichPt).(contig_text).(sec_text).ns.rel_std = ns_rel_std;
