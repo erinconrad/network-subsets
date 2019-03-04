@@ -14,7 +14,7 @@ metric_names = {'Control centrality','Betweenness centrality','Node strength',..
     'Global efficiency','Synchronizability'};
     
 
-for dist = 1:length(dists)
+for dist = 2
     figure
     set(gcf,'Position',[8 138 1400 600]);
     [ha, pos] = tight_subplot(2, 3, [0.11 0.04], [0.1 0.06],[0.08 0.02]);
@@ -66,7 +66,11 @@ for dist = 1:length(dists)
         
         scatter(dist_measure_all,measure_all,50,'DisplayName',sprintf('rho = %1.2f, p = %1.2e',...
             new_rho,p));
-        l = legend('location','southeast');
+        if metric <4
+            l = legend('location','southeast');
+        else
+            l = legend('location','northeast');
+        end
         set(l,'Interpreter', 'none');
         l.FontSize = 25;
             

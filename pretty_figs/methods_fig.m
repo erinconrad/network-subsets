@@ -29,10 +29,11 @@ A_all = adj(4).data;
 A = squeeze(A_all(ceil(size(A_all,1)/2)-5,:,:));
 cc = control_centrality(A);
 all_cc = resampleNetwork(A,1,0.8,0,pt,whichPt,adj);
+cc_diff = (all_cc-cc)./cc;
 
 figure
-set(gcf,'Position',[175 369 1132 410]);
-[ha,pos] = tight_subplot(1,3,[0.01 0.01],[0.01 0.01],[0.03 0.01]);
+set(gcf,'Position',[175 369 1300 910]);
+[ha,pos] = tight_subplot(2,2,[0.05 0.03],[0.01 0.01],[0.02 0.03]);
 
 
 locs = pt(whichPt).new_elecs.locs;
@@ -46,7 +47,7 @@ names = dir([giftiFolder,'*pial.gii']);
 fname2 = names(1).name;
 g = gifti([giftiFolder,fname2]);
 
-circSize = 160;
+circSize = 200;
 
 %% Plot original cc's
 axes(ha(1));
@@ -57,7 +58,8 @@ view(-120,-11);
 scatter3(new_locs(:,1),new_locs(:,2),new_locs(:,3),circSize,'k');
 scatter3(new_locs(:,1),new_locs(:,2),new_locs(:,3),circSize,cc,'filled');
 set(gca,'clim',prctile(cc,[10 90]));
-annotation('textbox',[0.04 0.85 0.1 0.1],'String',...
+colorbar
+annotation('textbox',[0.10 0.9 0.1 0.1],'String',...
     'Electrode control centrality','LineStyle','none','fontsize',25);
 set(gca,'fontsize',20)
 
@@ -75,7 +77,7 @@ scatter3(new_locs(isnan(all_cc),1),new_locs(isnan(all_cc),2),new_locs(isnan(all_
 %}
 scatter3(new_locs(isnan(all_cc),1),new_locs(isnan(all_cc),2),new_locs(isnan(all_cc),3),...
     circSize+20,'x','r','linewidth',2);
-annotation('textbox',[0.4 0.85 0.1 0.1],'String',...
+annotation('textbox',[0.64 0.9 0.1 0.1],'String',...
     'Ignored electrodes','LineStyle','none','fontsize',25);
 set(gca,'fontsize',20)
 
@@ -90,8 +92,24 @@ scatter3(new_locs(~isnan(all_cc),1),new_locs(~isnan(all_cc),2),new_locs(~isnan(a
 scatter3(new_locs(~isnan(all_cc),1),new_locs(~isnan(all_cc),2),new_locs(~isnan(all_cc),3),...
     circSize,all_cc(~isnan(all_cc)),'filled');
 set(gca,'clim',prctile(cc,[10 90]));
-annotation('textbox',[0.71 0.85 0.1 0.1],'String',...
+colorbar
+annotation('textbox',[0.11 0.4 0.1 0.1],'String',...
     'New control centrality','LineStyle','none','fontsize',25);
+set(gca,'fontsize',20)
+
+%% Plot difference
+axes(ha(4));
+p = plotGIFTI(g);
+hold on
+view(-120,-11);
+%alpha(p,0.4)
+scatter3(new_locs(~isnan(all_cc),1),new_locs(~isnan(all_cc),2),new_locs(~isnan(all_cc),3),circSize,'k');
+scatter3(new_locs(~isnan(all_cc),1),new_locs(~isnan(all_cc),2),new_locs(~isnan(all_cc),3),...
+    circSize,cc_diff(~isnan(all_cc)),'filled');
+set(gca,'clim',prctile(cc_diff,[10 90]));
+colorbar
+annotation('textbox',[0.63 0.4 0.1 0.1],'String',...
+    'Relative change','LineStyle','none','fontsize',25);
 set(gca,'fontsize',20)
 
 saveas(gcf,[outFolder,'Fig1.fig'])

@@ -15,19 +15,27 @@ names_cc_regional = {};
 std_diff_cc_regional = [];
 std_diff_cc = [];
 main_cc_std_80 = [];
-
+cc_95 = [];
+cc_95_regional = [];
 
 for i = 1:length(stats)
     temp_std_diff_cc = stats(i).(contig_text).(sec_text).min_cc.res_std(4,:);
-    %if isequal(temp_std_diff_cc,[0 0 0]) == 0
+    if isfield(stats(i).(contig_text).(sec_text).min_cc,'pct_95') == 0
+        continue
+    end
+    temp_95_diff_cc = diff(squeeze(stats(i).(contig_text).(sec_text).min_cc.pct_95(4,:,:)),1)/2;
+    if isequal(temp_std_diff_cc,[0 0 0]) == 0
         names_cc =[names_cc;pt(i).name];
         std_diff_cc = [std_diff_cc;temp_std_diff_cc];
-   % end
+        cc_95 = [cc_95;temp_95_diff_cc];
+    end
     
     temp_std_diff_cc_regional = stats(i).(contig_text).(sec_text).regional_cc.res_std(4,:);
+    temp_95_diff_cc_regional = diff(squeeze(stats(i).(contig_text).(sec_text).regional_cc.pct_95(4,:,:)),1)/2;
     if isequaln(temp_std_diff_cc_regional,[nan nan nan]) == 0
         names_cc_regional =[names_cc_regional;pt(i).name];
         std_diff_cc_regional = [std_diff_cc_regional;temp_std_diff_cc_regional];
+        cc_95_regional = [cc_95_regional;temp_95_diff_cc_regional];
     end
     
     main_cc_std_80 = [main_cc_std_80;stats(i).(contig_text).(sec_text).cc.rel_std(4)];
@@ -35,21 +43,23 @@ end
 
 std_diff_cc = vecnorm(std_diff_cc,2,2);
 std_diff_cc_regional = vecnorm(std_diff_cc_regional,2,2);
+cc_95 = vecnorm(cc_95,2,2);
+cc_95_regional = vecnorm(cc_95_regional,2,2);
 
-fprintf('Range of std of min cc is %1.1f-%1.1f\n.',min(std_diff_cc),max(std_diff_cc));
-fprintf('Range of std of min cc region is %1.1f-%1.1f\n.',min(std_diff_cc_regional),max(std_diff_cc_regional));
+fprintf('Range of 95%% of min cc is %1.1f-%1.1f\n.',min(cc_95),max(cc_95));
+fprintf('Range of 95%% of min cc region is %1.1f-%1.1f\n.',min(cc_95_regional),max(cc_95_regional));
 
-table(names_cc,std_diff_cc)
-table(names_cc_regional,std_diff_cc_regional)
+table(names_cc,cc_95)
+table(names_cc_regional,cc_95_regional)
 
 figure
-set(gcf,'Position',[100 100 1000 500]);
+set(gcf,'Position',[100 100 1000 600]);
 [ha,pos] = tight_subplot(2, 3, [0.1 0.03], [0.02 0.14],[0.05 0.01]);
 %delete(ha(3))
 count = 0;
 
 
-for i = [1 4 8 20 33]
+for i = [1 4 8 32 33]
     count = count + 1;
     %if count == 3, count =  count+ 1; end
     
@@ -78,10 +88,19 @@ for i = [1 4 8 20 33]
     temp_std_diff_cc = stats(i).(contig_text).(sec_text).min_cc.res_std(4,:);
     %std_diff_cc = [std_diff_cc;temp_std_diff_cc];
     
+    % What are the half-lengths of the 95th CIs of the min cc loc in the
+    % resampled network?
+    temp_95_diff_cc = diff(squeeze(stats(i).(contig_text).(sec_text).min_cc.pct_95(4,:,:)),1)/2;
+    single_middle = mean(squeeze(stats(i).(contig_text).(sec_text).min_cc.pct_95(4,:,:)),1);
+    
     % What is the standard deviation of min cc region centroid in the
     % resampled network
     temp_std_diff_cc_regional = stats(i).(contig_text).(sec_text).regional_cc.res_std(4,:);
     %std_diff_cc_regional = [std_diff_cc_regional;temp_std_diff_cc_regional];
+    
+    temp_95_diff_cc_regional = diff(squeeze(stats(i).(contig_text).(sec_text).regional_cc.pct_95(4,:,:)),1)/2;
+    regional_middle = mean(squeeze(stats(i).(contig_text).(sec_text).regional_cc.pct_95(4,:,:)),1);
+    
     
     n = 30;
     % Plot
@@ -108,15 +127,25 @@ for i = [1 4 8 20 33]
     scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k','linewidth',2);
     hold on
     scatter3(locs(temp_min_cc,1),locs(temp_min_cc,2),locs(temp_min_cc,3),60,'r','filled');
+    
     [x,y,z] = ellipsoid(locs(temp_min_cc,1),locs(temp_min_cc,2),locs(temp_min_cc,3),...
-        temp_std_diff_cc(1),temp_std_diff_cc(2),temp_std_diff_cc(3),n);
+        temp_95_diff_cc(1),temp_95_diff_cc(2),temp_95_diff_cc(3),n);
+    %{
+    [x,y,z] = ellipsoid(single_middle(1),single_middle(2),single_middle(3),...
+        temp_95_diff_cc(1),temp_95_diff_cc(2),temp_95_diff_cc(3),n);
+        %}
     C(:,:,1) = ones(n); C(:,:,2) = zeros(n); C(:,:,3) = zeros(n);
     p_s = surf(x,y,z,C,'EdgeColor','none');
     alpha(p_s,0.2);
     if isnan(temp_min_elecs) == 0
         scatter3(centroid(1),centroid(2),centroid(3),100,'b','filled');
-        [x,y,z] = ellipsoid(centroid(1),centroid(2),centroid(3),temp_std_diff_cc_regional(1),...
-        temp_std_diff_cc_regional(2),temp_std_diff_cc_regional(3),n);
+        
+        [x,y,z] = ellipsoid(centroid(1),centroid(2),centroid(3),temp_95_diff_cc_regional(1),...
+        temp_95_diff_cc_regional(2),temp_95_diff_cc_regional(3),n);
+        %{
+        [x,y,z] = ellipsoid(regional_middle(1),regional_middle(2),regional_middle(3),temp_95_diff_cc_regional(1),...
+        temp_95_diff_cc_regional(2),temp_95_diff_cc_regional(3),n);
+        %}
         C(:,:,1) = zeros(n); C(:,:,2) = zeros(n); C(:,:,3) = ones(n);
         p_r = surf(x,y,z,C,'EdgeColor','none');
         alpha(p_r,0.2);
@@ -131,13 +160,13 @@ for i = [1 4 8 20 33]
     yticklabels([])
     zticklabels([])
     if count == 2
-        title(sprintf(['Standard deviation\n'...
+        title(sprintf(['95%% confidence intervals\n'...
             'for %s'],pt(i).name));
     else
         title(sprintf('%s',pt(i).name));
     end
     set(gca,'fontsize',20)
-    print(gcf,[outFolder,'std_cc_',contig_text,sec_text],'-depsc');
+    print(gcf,[outFolder,'pc_95_cc_',contig_text,sec_text],'-depsc');
     
    % fprintf('Std of min cc loc is %1.1f mm\n',std_diff_cc);
    % fprintf('Std of min cc region centroid is %1.1f mm\n',std_diff_cc);

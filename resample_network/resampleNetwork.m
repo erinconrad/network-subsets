@@ -1,5 +1,5 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
-    overlap_resec,dist_resec,temp_centroid_min] = ...
+    overlap_resec,dist_resec,temp_centroid_min,elecs_min] = ...
     resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
 
 %{
@@ -87,6 +87,8 @@ dist_resec = nan(n_f,n_perm);
 % control centrality region
 temp_centroid_min =nan(n_f,n_perm,3);
 
+elecs_min = [];
+
 %%  Loop through fractions
 for f = 1:n_f
     
@@ -142,6 +144,7 @@ for f = 1:n_f
                 (A_temp,num_resec,locs(ch_ids,:),1);
             [~,min_cc_regional_true] = min(cc_regional);
             elecs_regional_min = elecs_regional(min_cc_regional_true,:);
+            elecs_min = [elecs_min,elecs_regional_min];
             temp_centroid_min(f,i_p,:) = mean(locs(ch_ids(elecs_regional_min),:));
             
             if 1 == 0

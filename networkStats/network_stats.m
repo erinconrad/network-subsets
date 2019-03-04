@@ -205,7 +205,7 @@ for whichPt = whichPts
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
     [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
-        overlap_resec,dist_resec,temp_centroid_min] = ...
+        overlap_resec,dist_resec,temp_centroid_min,elecs_min] = ...
         resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
 
     %% Initialize SMC and rho arrays for node-level metrics
@@ -215,6 +215,7 @@ for whichPt = whichPts
     rho_cc = zeros(n_f,n_perm);
     true_cc_most_sync = zeros(n_f,n_perm);
     min_cc_resample_loc = zeros(n_f,n_perm,3);
+    most_sync = zeros(n_f,n_perm);
 
     % Betweenness centrality stuff
     rho_bc = zeros(n_f,n_perm);
@@ -252,6 +253,8 @@ for whichPt = whichPts
 
                 % Fill up SMC and rho arrays
                 true_cc_most_sync(f,i_p) = c_c(ch_most_sync);
+                
+                most_sync(f,i_p) = ch_most_sync;
                 
             end
 
@@ -299,6 +302,10 @@ for whichPt = whichPts
         
         % How often would we resect the wrong piece of brain?
         resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
+        
+        % 95% most sync electrodes
+        elecs_95 = get_perc_elecs(most_sync(4,:),95);
+        regional_95 = get_perc_elecs(elecs_min,95);
         
         % Mean and std of location of lowest cc in resampled network
         cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
@@ -348,6 +355,8 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).min_cc.pct_90 = cc_res_90_pct;
         stats(whichPt).(contig_text).(sec_text).min_cc.pct_80 = cc_res_80_pct;
         stats(whichPt).(contig_text).(sec_text).min_cc.pct_70 = cc_res_70_pct;
+        stats(whichPt).(contig_text).(sec_text).min_cc.elecs_95 = elecs_95;
+        
         
         
         % Regional cc
@@ -358,6 +367,7 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).regional_cc.pct_90 = cc_region_res_90_pct;
         stats(whichPt).(contig_text).(sec_text).regional_cc.pct_80 = cc_region_res_80_pct;
         stats(whichPt).(contig_text).(sec_text).regional_cc.pct_70 = cc_region_res_70_pct;
+        stats(whichPt).(contig_text).(sec_text).regional_cc.elecs_95 = regional_95;
         
 
         % node strength
