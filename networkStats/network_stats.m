@@ -303,13 +303,7 @@ for whichPt = whichPts
         % How often would we resect the wrong piece of brain?
         resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
         
-        % 95% most sync electrodes
-        elecs_95 = get_perc_elecs(most_sync(4,:),95);
-        if isempty(elecs_min) == 0
-            regional_95 = get_perc_elecs(elecs_min,95);
-        else
-            regional_95 = nan;
-        end
+        
         % Mean and std of location of lowest cc in resampled network
         cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
         cc_res_std = squeeze(nanstd(min_cc_resample_loc,0,2));
@@ -358,8 +352,6 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).min_cc.pct_90 = cc_res_90_pct;
         stats(whichPt).(contig_text).(sec_text).min_cc.pct_80 = cc_res_80_pct;
         stats(whichPt).(contig_text).(sec_text).min_cc.pct_70 = cc_res_70_pct;
-        stats(whichPt).(contig_text).(sec_text).min_cc.elecs_95 = elecs_95;
-        
         
         
         % Regional cc
@@ -370,8 +362,19 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).regional_cc.pct_90 = cc_region_res_90_pct;
         stats(whichPt).(contig_text).(sec_text).regional_cc.pct_80 = cc_region_res_80_pct;
         stats(whichPt).(contig_text).(sec_text).regional_cc.pct_70 = cc_region_res_70_pct;
-        stats(whichPt).(contig_text).(sec_text).regional_cc.elecs_95 = regional_95;
         
+        for i = [70 80 90 95]
+            elecs_single = get_perc_elecs(most_sync(4,:),i);
+            single_text = sprintf('single_%d',i);
+            reg_text = sprintf('regional_%d',i);
+            if isempty(elecs_min) == 0
+                elecs_regional = get_perc_elecs(elecs_min,i);
+            else
+                elecs_regional = nan;
+            end
+            stats(whichPt).(contig_text).(sec_text).min_cc_elecs.(single_text) = elecs_single;
+            stats(whichPt).(contig_text).(sec_text).min_cc_elecs.(reg_text) = elecs_regional;
+        end
 
         % node strength
         stats(whichPt).(contig_text).(sec_text).ns.rel_std = ns_rel_std;

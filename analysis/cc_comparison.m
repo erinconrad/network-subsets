@@ -5,7 +5,7 @@ pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'basic_metrics/'];
 
 %% Look at contiguous and -5 seconds
-contig_text = 'random';
+contig_text = 'contiguous';
 sec_text = 'sec_neg5';
 
 
@@ -101,8 +101,8 @@ for i = [1 4 8 32 33]
     temp_95_diff_cc_regional = diff(squeeze(stats(i).(contig_text).(sec_text).regional_cc.pct_95(4,:,:)),1)/2;
     regional_middle = mean(squeeze(stats(i).(contig_text).(sec_text).regional_cc.pct_95(4,:,:)),1);
     
-    elecs_95 = stats(whichPt).(contig_text).(sec_text).min_cc.elecs_95;
-    regional_95 = stats(whichPt).(contig_text).(sec_text).regional_cc.elecs_95;
+    elecs_95 = stats(i).(contig_text).(sec_text).min_cc.elecs_95;
+    regional_95 = stats(i).(contig_text).(sec_text).regional_cc.elecs_95;
     
     n = 30;
     % Plot
@@ -116,7 +116,7 @@ for i = [1 4 8 32 33]
             scatter3(locs(temp_min_elecs,1),locs(temp_min_elecs,2),locs(temp_min_elecs,3),...
                 100,'b','filled');
         end
-        scatter3(locs(temp_min_cc,1),locs(temp_min_cc,2),locs(temp_min_cc,3),60,'r','filled');
+        scatter3(locs(temp_min_cc,1),locs(temp_min_cc,2),locs(temp_min_cc,3),100,'r','filled');
         xticklabels([])
         yticklabels([])
         zticklabels([])
@@ -128,11 +128,13 @@ for i = [1 4 8 32 33]
     axes(ha(count))
     scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k','linewidth',2);
     hold on
-    scatter3(locs(temp_min_cc,1),locs(temp_min_cc,2),locs(temp_min_cc,3),60,'r','filled');
+    
     
     [x,y,z] = ellipsoid(locs(temp_min_cc,1),locs(temp_min_cc,2),locs(temp_min_cc,3),...
         temp_95_diff_cc(1),temp_95_diff_cc(2),temp_95_diff_cc(3),n);
-    scatter3(locs(
+    scatter3(locs(elecs_95,1),locs(elecs_95,2),locs(elecs_95,3),...
+        100,ones(size(elecs_95,1),1).*[1 0.7 0.7],'filled');
+    scatter3(locs(temp_min_cc,1),locs(temp_min_cc,2),locs(temp_min_cc,3),70,'rd','filled');
     %{
     [x,y,z] = ellipsoid(single_middle(1),single_middle(2),single_middle(3),...
         temp_95_diff_cc(1),temp_95_diff_cc(2),temp_95_diff_cc(3),n);
@@ -141,10 +143,15 @@ for i = [1 4 8 32 33]
     %p_s = surf(x,y,z,C,'EdgeColor','none');
     %alpha(p_s,0.2);
     if isnan(temp_min_elecs) == 0
-        scatter3(centroid(1),centroid(2),centroid(3),100,'b','filled');
+        
         
         [x,y,z] = ellipsoid(centroid(1),centroid(2),centroid(3),temp_95_diff_cc_regional(1),...
         temp_95_diff_cc_regional(2),temp_95_diff_cc_regional(3),n);
+
+        scatter3(locs(regional_95,1),locs(regional_95,2),locs(regional_95,3),...
+        100,ones(size(elecs_95,1),1).*[0.7 0.7 1],'filled');
+        hold on
+        scatter3(centroid(1),centroid(2),centroid(3),70,'bd','filled');
         %{
         [x,y,z] = ellipsoid(regional_middle(1),regional_middle(2),regional_middle(3),temp_95_diff_cc_regional(1),...
         temp_95_diff_cc_regional(2),temp_95_diff_cc_regional(3),n);
