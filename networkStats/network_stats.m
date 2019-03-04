@@ -305,8 +305,11 @@ for whichPt = whichPts
         
         % 95% most sync electrodes
         elecs_95 = get_perc_elecs(most_sync(4,:),95);
-        regional_95 = get_perc_elecs(elecs_min,95);
-        
+        if isempty(elecs_min) == 0
+            regional_95 = get_perc_elecs(elecs_min,95);
+        else
+            regional_95 = nan;
+        end
         % Mean and std of location of lowest cc in resampled network
         cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
         cc_res_std = squeeze(nanstd(min_cc_resample_loc,0,2));

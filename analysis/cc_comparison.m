@@ -101,6 +101,8 @@ for i = [1 4 8 32 33]
     temp_95_diff_cc_regional = diff(squeeze(stats(i).(contig_text).(sec_text).regional_cc.pct_95(4,:,:)),1)/2;
     regional_middle = mean(squeeze(stats(i).(contig_text).(sec_text).regional_cc.pct_95(4,:,:)),1);
     
+    elecs_95 = stats(whichPt).(contig_text).(sec_text).min_cc.elecs_95;
+    regional_95 = stats(whichPt).(contig_text).(sec_text).regional_cc.elecs_95;
     
     n = 30;
     % Plot
@@ -130,13 +132,14 @@ for i = [1 4 8 32 33]
     
     [x,y,z] = ellipsoid(locs(temp_min_cc,1),locs(temp_min_cc,2),locs(temp_min_cc,3),...
         temp_95_diff_cc(1),temp_95_diff_cc(2),temp_95_diff_cc(3),n);
+    scatter3(locs(
     %{
     [x,y,z] = ellipsoid(single_middle(1),single_middle(2),single_middle(3),...
         temp_95_diff_cc(1),temp_95_diff_cc(2),temp_95_diff_cc(3),n);
         %}
     C(:,:,1) = ones(n); C(:,:,2) = zeros(n); C(:,:,3) = zeros(n);
-    p_s = surf(x,y,z,C,'EdgeColor','none');
-    alpha(p_s,0.2);
+    %p_s = surf(x,y,z,C,'EdgeColor','none');
+    %alpha(p_s,0.2);
     if isnan(temp_min_elecs) == 0
         scatter3(centroid(1),centroid(2),centroid(3),100,'b','filled');
         
@@ -147,8 +150,8 @@ for i = [1 4 8 32 33]
         temp_95_diff_cc_regional(2),temp_95_diff_cc_regional(3),n);
         %}
         C(:,:,1) = zeros(n); C(:,:,2) = zeros(n); C(:,:,3) = ones(n);
-        p_r = surf(x,y,z,C,'EdgeColor','none');
-        alpha(p_r,0.2);
+       % p_r = surf(x,y,z,C,'EdgeColor','none');
+       % alpha(p_r,0.2);
         %{
         if isempty(pt(i).resec) == 0
             resec = pt(i).resec.nums;
