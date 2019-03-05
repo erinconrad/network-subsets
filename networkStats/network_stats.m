@@ -1,4 +1,4 @@
-function network_stats(whichPts)
+function network_stats(whichPts,do_soz_analysis)
 
 %{
 
@@ -38,8 +38,8 @@ tic
 
 %% Parameters
 
-% 1 if doing SOZ analysis, 0 if doing main analysis
-do_soz_analysis = 0;
+% do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis
+
 
 doPlots = 1;
 
@@ -137,7 +137,7 @@ for whichPt = whichPts
                         if isfield(stats(whichPt).eff.(contig_text).(sec_text),'true') == 1
                             if isempty(stats(whichPt).eff.(contig_text).(sec_text).true) == 0
                                 fprintf('Did %s, skipping\n',name);
-                                continue
+                               % continue
                             end
                         end
                     end
@@ -240,6 +240,12 @@ for whichPt = whichPts
     % Participation coefficient stuff
     rho_par = zeros(n_f,n_perm);
 
+    % Rhos for things in the resection zone
+    rho_cc_resec = zeros(n_f,n_perm);
+    rho_bc_resec = zeros(n_f,n_perm);
+    rho_ns_resec = zeros(n_f,n_perm);
+    rho_par_resec = zeros(n_f,n_perm);
+    
     %% Loop over each fraction and get various stats
     for f = 1:n_f
 
@@ -286,6 +292,21 @@ for whichPt = whichPts
             [rho_ns(f,i_p),~] = doStats(ns,ns_f_p);
             [rho_bc(f,i_p),~] = doStats(bc,bc_f_p);
             [rho_par(f,i_p),~] = doStats(par,par_f_p);
+            
+            %% Get rho just for electrodes in the resection zone
+            if isempty(pt(whichPt).resec) == 1
+                rho_cc_resec(f,i_p) = nan;
+                rho_bc_resec(f,i_p) = nan;
+                rho_ns_resec(f,i_p) = nan;
+                rho_par_resec(f,i_p) = nan;
+            else
+                resec = pt(whichPt).resec.nums;
+                [rho_ns_resec(f,i_p),~] = doStats(ns(resec),ns_f_p(resec));
+                [rho_bc_resec(f,i_p),~] = doStats(bc(resec),bc_f_p(resec));
+                [rho_cc_resec(f,i_p),~] = doStats(cc(resec),cc_f_p(resec));
+                [rho_par_resec(f,i_p),~] = doStats(par(resec),par_f_p(resec));
+            end
+                
 
         end
 
@@ -401,6 +422,11 @@ for whichPt = whichPts
         soz(whichPt).(contig_text).(sec_text).overlap_resec = overlap_resec;
         soz(whichPt).(contig_text).(sec_text).par_removed = avg_par_removed;
         soz(whichPt).(contig_text).(sec_text).bc_removed = avg_bc_removed;
+        
+        soz(whichPt).(contig_text).(sec_text).rho_cc_resec = rho_cc_resec;
+        soz(whichPt).(contig_text).(sec_text).rho_bc_resec = rho_bc_resec;
+        soz(whichPt).(contig_text).(sec_text).rho_ns_resec = rho_ns_resec;
+        soz(whichPt).(contig_text).(sec_text).rho_par_resec = rho_par_resec;
         
         save([resultsFolder,'basic_metrics/soz.mat'],'soz');
     end
