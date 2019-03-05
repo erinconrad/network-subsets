@@ -132,10 +132,12 @@ for f = 1:n_f
         bc = betweenness_centrality(A_temp,1);
         
         % get new synchronizability
-        all_sync(f,i_p) = synchronizability(A_temp);
+        all_sync(f,i_p) = synchronizability(A_temp)/...
+            synchronizability(generate_fake_graph(A_temp));
         
         % Get new efficiency
-        all_eff(f,i_p) = efficiency_wei(A_temp, 0);
+        all_eff(f,i_p) = efficiency_wei(A_temp, 0)/...
+            efficiency_wei(generate_fake_graph(A_temp),0);
         
         % new regional control centrality
         if isempty(pt(whichPt).resec) == 0 && e_f(f) == 0.8

@@ -192,6 +192,8 @@ for whichPt = whichPts
 
     %% Get true synchronizability
     sync = synchronizability(A);
+    sync_fake = synchronizability(generate_fake_graph(A));
+    sync_rat = sync/sync_fake;
 
     %% Get true betweenness centrality
     bc = betweenness_centrality(A,1);
@@ -199,8 +201,10 @@ for whichPt = whichPts
     %% Get true node strength
     ns = node_strength(A);
 
-    %% Get true global efficiency
+    %% Get true global efficiency and efficiency for fake network
     eff = efficiency_wei(A, 0);
+    eff_fake = efficiency_wei(generate_fake_graph(A),0);
+    eff_rat = eff/eff_fake;
 
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
@@ -216,6 +220,7 @@ for whichPt = whichPts
     true_cc_most_sync = zeros(n_f,n_perm);
     min_cc_resample_loc = zeros(n_f,n_perm,3);
     most_sync = zeros(n_f,n_perm);
+    
 
     % Betweenness centrality stuff
     rho_bc = zeros(n_f,n_perm);
@@ -225,6 +230,8 @@ for whichPt = whichPts
 
     %% Loop over each fraction and get various stats
     for f = 1:n_f
+
+        
         c_c_f = squeeze(all_c_c(:,f,:));
         ns_f = squeeze(all_ns(:,f,:));
         bc_f = squeeze(all_bc(:,f,:));
@@ -274,6 +281,8 @@ for whichPt = whichPts
     % Global measures of agreement: relative difference
     rel_sync = (all_sync-sync)/sync;
     rel_eff = (all_eff-eff)/eff;
+    
+    
 
     % Nodal measures: "average" the SRCs. To average the SRCs, I
     % apply a Fisher's transformation, average the z values, and then back
@@ -345,23 +354,11 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
         
         % Mean and STD of resampled min cc
-        stats(whichPt).(contig_text).(sec_text).min_cc.res_mean = cc_res_mean;
-        stats(whichPt).(contig_text).(sec_text).min_cc.res_std = cc_res_std;
         stats(whichPt).(contig_text).(sec_text).min_cc.true = min_cc_true;
-        stats(whichPt).(contig_text).(sec_text).min_cc.pct_95 = cc_res_95_pct;
-        stats(whichPt).(contig_text).(sec_text).min_cc.pct_90 = cc_res_90_pct;
-        stats(whichPt).(contig_text).(sec_text).min_cc.pct_80 = cc_res_80_pct;
-        stats(whichPt).(contig_text).(sec_text).min_cc.pct_70 = cc_res_70_pct;
         
         
         % Regional cc
         stats(whichPt).(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
-        stats(whichPt).(contig_text).(sec_text).regional_cc.res_mean = cc_region_res_mean;
-        stats(whichPt).(contig_text).(sec_text).regional_cc.res_std = cc_region_res_std;
-        stats(whichPt).(contig_text).(sec_text).regional_cc.pct_95 = cc_region_res_95_pct;
-        stats(whichPt).(contig_text).(sec_text).regional_cc.pct_90 = cc_region_res_90_pct;
-        stats(whichPt).(contig_text).(sec_text).regional_cc.pct_80 = cc_region_res_80_pct;
-        stats(whichPt).(contig_text).(sec_text).regional_cc.pct_70 = cc_region_res_70_pct;
         
         for i = [70 80 90 95]
             elecs_single = get_perc_elecs(most_sync(4,:),i);

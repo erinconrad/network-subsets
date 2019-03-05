@@ -177,6 +177,7 @@ for i = [1 4 8 32 33]
     end
     set(gca,'fontsize',20)
     print(gcf,[outFolder,'pc_95_cc_',contig_text,sec_text],'-depsc');
+    print(gcf,[outFolder,'pc_95_cc_',contig_text,sec_text],'-dpng');
     
    % fprintf('Std of min cc loc is %1.1f mm\n',std_diff_cc);
    % fprintf('Std of min cc region centroid is %1.1f mm\n',std_diff_cc);
