@@ -170,7 +170,7 @@ for f = 1:n_f
             efficiency_wei(generate_fake_graph(A_temp),0);
         
         % get new transitivity
-        all_trans(f,i_p) = transitivity(A_temp);
+        all_trans(f,i_p) = transitivity_wu(A_temp);
         all_trans_norm(f,i_p) = transitivity_wu(A_temp)/...
             transitivity_wu(generate_fake_graph(A_temp));
         
