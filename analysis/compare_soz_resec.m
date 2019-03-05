@@ -8,10 +8,15 @@ contig_text = 'contiguous';
 sec_text = 'sec_neg5';
 
 
-metrics = {'rho_cc','rho_bc','rho_ns','eff','sync'};
-dists = {'dist_soz','dist_resec','overlap_soz','overlap_resec'};
+metrics = {'rho_cc','rho_bc','rho_ns','eff','sync','trans','rho_cc_resec',...
+    'rho_bc_resec','rho_ns_resec'};
+dists = {'dist_soz','dist_resec','overlap_soz','overlap_resec','par_removed',...
+    'bc_removed'};
 metric_names = {'Control centrality','Betweenness centrality','Node strength',...
-    'Global efficiency','Synchronizability'};
+    'Global efficiency','Synchronizability','Transitivity',...
+    'Resection control centrality','Resection betweenness centrality',...
+    'Resection node strength'};
+global_metric = [0 0 0 1 1 1 0 0 0];
     
 
 for dist = 2
@@ -33,7 +38,7 @@ for dist = 2
             measure = base.(metrics{metric})';
             
             %% If it's a global metric, take absolute value
-            if strcmp(metrics{metric},'eff') == 1 || strcmp(metrics{metric},'sync') == 1
+            if global_metric(metric) == 1
                 measure = abs(measure);
             end
             

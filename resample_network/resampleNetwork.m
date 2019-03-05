@@ -1,6 +1,6 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
-    avg_par_removed,avg_bc_removed] = ...
+    avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm] = ...
     resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
 
 %{
@@ -71,9 +71,11 @@ all_bc = nan(nch,n_f,n_perm);
 
 % Initialize array for synhronizability for each fraction and permutation
 all_sync = nan(n_f,n_perm);
+all_sync_norm = nan(n_f,n_perm);
 
 % Initialize array for efficiency for each fraction and permutation
 all_eff = nan(n_f,n_perm);
+all_eff_norm = nan(n_f,n_perm);
 
 % Get arrays representing overlap and distance between removed channels and soz
 overlap_soz = nan(n_f,n_perm);
@@ -95,6 +97,7 @@ all_par = nan(nch,n_f,n_perm);
 
 % Transitivity
 all_trans = nan(n_f,n_perm);
+all_trans_norm = nan(n_f,n_perm);
 
 % Get true participation coefficient of electrodes (to determine the
 % average participation coefficient of the removed electrodes)
@@ -157,15 +160,18 @@ for f = 1:n_f
         par = participation_coef(A_temp,Ci);
         
         % get new synchronizability
-        all_sync(f,i_p) = synchronizability(A_temp)/...
+        all_sync(f,i_p) = synchronizability(A_temp);
+        all_sync_norm(f,i_p) = synchronizability(A_temp)/...
             synchronizability(generate_fake_graph(A_temp));
         
         % Get new efficiency
-        all_eff(f,i_p) = efficiency_wei(A_temp, 0)/...
+        all_eff(f,i_p) = efficiency_wei(A_temp, 0);
+        all_eff_norm(f,i_p) = efficiency_wei(A_temp, 0)/...
             efficiency_wei(generate_fake_graph(A_temp),0);
         
         % get new transitivity
-        all_trans(f,i_p) = transitivity_wu(A_temp)/...
+        all_trans(f,i_p) = transitivity(A_temp);
+        all_trans_norm(f,i_p) = transitivity_wu(A_temp)/...
             transitivity_wu(generate_fake_graph(A_temp));
         
         % new regional control centrality

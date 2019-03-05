@@ -193,7 +193,7 @@ for whichPt = whichPts
     %% Get true synchronizability
     sync = synchronizability(A);
     sync_fake = synchronizability(generate_fake_graph(A));
-    sync = sync/sync_fake;
+    sync_norm = sync/sync_fake;
 
     %% Get true betweenness centrality
     bc = betweenness_centrality(A,1);
@@ -208,17 +208,19 @@ for whichPt = whichPts
     %% Get true global efficiency and efficiency for fake network
     eff = efficiency_wei(A, 0);
     eff_fake = efficiency_wei(generate_fake_graph(A),0);
-    eff = eff/eff_fake;
+    eff_norm = eff/eff_fake;
     
     %% Get true transitivity
-    trans = transitivity_wu(A)/...
+    trans = transitivity_wu(A);
+    trans_norm = trans/...
             transitivity_wu(generate_fake_graph(A));
 
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
     [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
         overlap_resec,dist_resec,elecs_min,...
-        all_par,all_trans,avg_par_removed,avg_bc_removed] = ...
+        all_par,all_trans,avg_par_removed,avg_bc_removed,...
+        all_sync_norm,all_eff_norm,all_trans_norm] = ...
         resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
 
     %% Initialize SMC and rho arrays for node-level metrics
@@ -317,6 +319,9 @@ for whichPt = whichPts
     rel_sync = (all_sync-sync)/sync;
     rel_eff = (all_eff-eff)/eff;
     rel_trans = (all_trans-trans)/trans;
+    rel_sync_norm = (all_sync_norm-sync_norm)/sync_norm;
+    rel_eff_norm = (all_eff_norm-eff_norm)/eff_norm;
+    rel_trans_norm = (all_trans_norm-trans_norm)/trans_norm;
     
 
     % Nodal measures: "average" the SRCs. To average the SRCs, I
@@ -393,16 +398,19 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
         stats(whichPt).(contig_text).(sec_text).sync.true = sync;
         stats(whichPt).(contig_text).(sec_text).sync.rel_diff = rel_sync;
+        stats(whichPt).(contig_text).(sec_text).sync.rel_diff_norm = rel_sync_norm;
         
         % transitivity
         stats(whichPt).(contig_text).(sec_text).trans.std = std(all_trans,0,2);
         stats(whichPt).(contig_text).(sec_text).trans.true = trans;
         stats(whichPt).(contig_text).(sec_text).trans.rel_diff = rel_trans;
+        stats(whichPt).(contig_text).(sec_text).trans.rel_diff_norm = rel_trans_norm;
 
         % efficiency
         stats(whichPt).(contig_text).(sec_text).eff.std = std(all_eff,0,2);
         stats(whichPt).(contig_text).(sec_text).eff.true = eff;
         stats(whichPt).(contig_text).(sec_text).eff.rel_diff = rel_eff;
+        stats(whichPt).(contig_text).(sec_text).eff.rel_diff_norm = rel_eff_norm;
 
         save([resultsFolder,'basic_metrics/stats.mat'],'stats');
     elseif do_soz_analysis == 1
