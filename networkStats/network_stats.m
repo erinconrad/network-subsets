@@ -303,7 +303,7 @@ for whichPt = whichPts
                 resec = pt(whichPt).resec.nums;
                 [rho_ns_resec(f,i_p),~] = doStats(ns(resec),ns_f_p(resec));
                 [rho_bc_resec(f,i_p),~] = doStats(bc(resec),bc_f_p(resec));
-                [rho_cc_resec(f,i_p),~] = doStats(cc(resec),cc_f_p(resec));
+                [rho_cc_resec(f,i_p),~] = doStats(c_c(resec),c_c_f_p(resec));
                 [rho_par_resec(f,i_p),~] = doStats(par(resec),par_f_p(resec));
             end
                 
