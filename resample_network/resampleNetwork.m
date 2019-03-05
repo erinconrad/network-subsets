@@ -1,5 +1,6 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
-    overlap_resec,dist_resec,temp_centroid_min,elecs_min] = ...
+    overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
+    avg_par_removed,avg_bc_removed] = ...
     resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
 
 %{
@@ -89,6 +90,22 @@ temp_centroid_min =nan(n_f,n_perm,3);
 
 elecs_min = [];
 
+% Participation coefficient
+all_par = nan(nch,n_f,n_perm);
+
+% Transitivity
+all_trans = nan(n_f,n_perm);
+
+% Get true participation coefficient of electrodes (to determine the
+% average participation coefficient of the removed electrodes)
+[Ci,~]=modularity_und(A);
+true_par = participation_coef(A,Ci);
+avg_par_removed = nan(n_f,n_perm);
+
+% Get true bc of electrodes
+true_bc = betweenness_centrality(A,1);
+avg_bc_removed = nan(n_f,n_perm);
+
 %%  Loop through fractions
 for f = 1:n_f
     
@@ -115,6 +132,10 @@ for f = 1:n_f
         overlap_resec(f,i_p) = overlap_resec_t;
         dist_resec(f,i_p) = dist_resec_t;
         
+        %% Get bc and pc of removed electrodes
+        avg_par_removed(f,i_p) = mean(true_par(which_elecs));
+        avg_bc_removed(f,i_p) = mean(true_bc(which_elecs));
+        
         % Remove the electrodes from the new adjacency matrix
         A_temp = A;
         ch_ids = 1:nch;
@@ -131,6 +152,10 @@ for f = 1:n_f
         % Get new betweenness centrality
         bc = betweenness_centrality(A_temp,1);
         
+        % Get new participation coefficient
+        [Ci,~]=modularity_und(A_temp);
+        par = participation_coef(A_temp,Ci);
+        
         % get new synchronizability
         all_sync(f,i_p) = synchronizability(A_temp)/...
             synchronizability(generate_fake_graph(A_temp));
@@ -138,6 +163,10 @@ for f = 1:n_f
         % Get new efficiency
         all_eff(f,i_p) = efficiency_wei(A_temp, 0)/...
             efficiency_wei(generate_fake_graph(A_temp),0);
+        
+        % get new transitivity
+        all_trans(f,i_p) = transitivity_wu(A_temp)/...
+            transitivity_wu(generate_fake_graph(A_temp));
         
         % new regional control centrality
         if isempty(pt(whichPt).resec) == 0 && e_f(f) == 0.8
@@ -147,7 +176,6 @@ for f = 1:n_f
             [~,min_cc_regional_true] = min(cc_regional);
             elecs_regional_min = elecs_regional(min_cc_regional_true,:);
             elecs_min = [elecs_min,elecs_regional_min];
-            temp_centroid_min(f,i_p,:) = mean(locs(ch_ids(elecs_regional_min),:));
             
             if 1 == 0
                 % Plot the new min cc region and the electrodes we're
@@ -172,6 +200,7 @@ for f = 1:n_f
             all_c_c(ch_ids(i),f,i_p) = c_c(i);
             all_ns(ch_ids(i),f,i_p) = ns(i);
             all_bc(ch_ids(i),f,i_p) = bc(i);
+            all_par(ch_ids(i),f,i_p) = par(i);
         end
         
         

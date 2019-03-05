@@ -193,23 +193,32 @@ for whichPt = whichPts
     %% Get true synchronizability
     sync = synchronizability(A);
     sync_fake = synchronizability(generate_fake_graph(A));
-    sync_rat = sync/sync_fake;
+    sync = sync/sync_fake;
 
     %% Get true betweenness centrality
     bc = betweenness_centrality(A,1);
 
     %% Get true node strength
     ns = node_strength(A);
+    
+    %% Get true participation coefficient
+    [Ci,~] = modularity_und(A);
+    par = participation_coef(A,Ci);
 
     %% Get true global efficiency and efficiency for fake network
     eff = efficiency_wei(A, 0);
     eff_fake = efficiency_wei(generate_fake_graph(A),0);
-    eff_rat = eff/eff_fake;
+    eff = eff/eff_fake;
+    
+    %% Get true transitivity
+    trans = transitivity_wu(A)/...
+            transitivity_wu(generate_fake_graph(A));
 
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
     [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
-        overlap_resec,dist_resec,temp_centroid_min,elecs_min] = ...
+        overlap_resec,dist_resec,elecs_min,...
+        all_par,all_trans,avg_par_removed,avg_bc_removed] = ...
         resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
 
     %% Initialize SMC and rho arrays for node-level metrics
@@ -227,6 +236,9 @@ for whichPt = whichPts
 
     % Node strength centrality stuff
     rho_ns = zeros(n_f,n_perm);
+    
+    % Participation coefficient stuff
+    rho_par = zeros(n_f,n_perm);
 
     %% Loop over each fraction and get various stats
     for f = 1:n_f
@@ -235,12 +247,14 @@ for whichPt = whichPts
         c_c_f = squeeze(all_c_c(:,f,:));
         ns_f = squeeze(all_ns(:,f,:));
         bc_f = squeeze(all_bc(:,f,:));
+        par_f = squeeze(all_par(:,f,:));
         
         % Loop over each permutation
         for i_p = 1:n_perm
             c_c_f_p = squeeze(c_c_f(:,i_p));
             ns_f_p = squeeze(ns_f(:,i_p));
             bc_f_p = squeeze(bc_f(:,i_p));
+            par_f_p = squeeze(par_f(:,i_p));
 
             %% Do stats on control centrality
 
@@ -271,7 +285,7 @@ for whichPt = whichPts
             % sense
             [rho_ns(f,i_p),~] = doStats(ns,ns_f_p);
             [rho_bc(f,i_p),~] = doStats(bc,bc_f_p);
-
+            [rho_par(f,i_p),~] = doStats(par,par_f_p);
 
         end
 
@@ -281,7 +295,7 @@ for whichPt = whichPts
     % Global measures of agreement: relative difference
     rel_sync = (all_sync-sync)/sync;
     rel_eff = (all_eff-eff)/eff;
-    
+    rel_trans = (all_trans-trans)/trans;
     
 
     % Nodal measures: "average" the SRCs. To average the SRCs, I
@@ -290,6 +304,7 @@ for whichPt = whichPts
     rho_mean_cc = average_rho(rho_cc,2);
     rho_mean_ns = average_rho(rho_ns,2);
     rho_mean_bc = average_rho(rho_bc,2);
+    rho_mean_par = average_rho(rho_par,2);
      
     %% Fill up stats structures
     
@@ -304,6 +319,7 @@ for whichPt = whichPts
         cc_rel_std = rel_std_nodal(all_c_c,c_c);
         ns_rel_std = rel_std_nodal(all_ns,ns);
         bc_rel_std = rel_std_nodal(all_bc,bc);
+        par_rel_std = rel_std_nodal(all_par,par);
         
         % Global measures: we will do relative std (std across
         % permutations divided by std across patients). And so we will
@@ -311,42 +327,9 @@ for whichPt = whichPts
         
         % How often would we resect the wrong piece of brain?
         resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
-        
-        
-        % Mean and std of location of lowest cc in resampled network
-        cc_res_mean = squeeze(nanmean(min_cc_resample_loc,2));
-        cc_res_std = squeeze(nanstd(min_cc_resample_loc,0,2));
-        cc_res_95_pct = squeeze(prctile(min_cc_resample_loc,[2.5 97.5],2));
-        cc_res_90_pct = squeeze(prctile(min_cc_resample_loc,[5 95],2));
-        cc_res_80_pct = squeeze(prctile(min_cc_resample_loc,[10 90],2));
-        cc_res_70_pct = squeeze(prctile(min_cc_resample_loc,[15 85],2));
-
-        % Mean and std of location of centroid of lowest cc region in resampled network
-        cc_region_res_mean = squeeze(nanmean(temp_centroid_min,2));
-        cc_region_res_std = squeeze(nanstd(temp_centroid_min,0,2));
-        cc_region_res_95_pct = squeeze(prctile(temp_centroid_min,[2.5 97.5],2));
-        cc_region_res_90_pct = squeeze(prctile(temp_centroid_min,[5 95],2));
-        cc_region_res_80_pct = squeeze(prctile(temp_centroid_min,[10 90],2));
-        cc_region_res_70_pct = squeeze(prctile(temp_centroid_min,[15 85],2));
-        
+       
         stats(whichPt).name = name;
-        
-        %% plot the locations
-        if 1==0
-            perc_95 = diff(squeeze(cc_res_95_pct(4,:,:)),1);
-            
-            figure
-            scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
-            hold on
-            scatter3(locs(min_cc_true,1),locs(min_cc_true,2),locs(min_cc_true,3),100,'r');
-            hold on
-            [x,y,z] = ellipsoid(cc_res_mean(4,1),cc_res_mean(4,3),cc_res_mean(4,3),...
-        perc_95(1)/2,perc_95(2)/2,perc_95(3)/2,30);
-            C(:,:,1) = ones(30); C(:,:,2) = zeros(30); C(:,:,3) = zeros(30);
-            p_r = surf(x,y,z,C,'EdgeColor','none');
-                alpha(p_r,0.2);
-        end
-
+ 
         % control centrality
         stats(whichPt).(contig_text).(sec_text).cc.true = c_c;
         stats(whichPt).(contig_text).(sec_text).cc.rel_std = cc_rel_std;
@@ -380,12 +363,20 @@ for whichPt = whichPts
         % betweenness centrality
         stats(whichPt).(contig_text).(sec_text).bc.rel_std = bc_rel_std;
         stats(whichPt).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
+        
+        % Participation coeff
+        stats(whichPt).(contig_text).(sec_text).par.rel_std = par_rel_std;
+        stats(whichPt).(contig_text).(sec_text).par.rho_mean = rho_mean_par;
 
         % synchronizability
         stats(whichPt).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
         stats(whichPt).(contig_text).(sec_text).sync.true = sync;
         stats(whichPt).(contig_text).(sec_text).sync.rel_diff = rel_sync;
         
+        % transitivity
+        stats(whichPt).(contig_text).(sec_text).trans.std = std(all_trans,0,2);
+        stats(whichPt).(contig_text).(sec_text).trans.true = trans;
+        stats(whichPt).(contig_text).(sec_text).trans.rel_diff = rel_trans;
 
         % efficiency
         stats(whichPt).(contig_text).(sec_text).eff.std = std(all_eff,0,2);
@@ -403,10 +394,13 @@ for whichPt = whichPts
         soz(whichPt).(contig_text).(sec_text).rho_ns = rho_ns;
         soz(whichPt).(contig_text).(sec_text).sync = rel_sync;
         soz(whichPt).(contig_text).(sec_text).eff = rel_eff;
+        soz(whichPt).(contig_text).(sec_text).trans = rel_trans;
         soz(whichPt).(contig_text).(sec_text).dist_soz = dist_soz;
         soz(whichPt).(contig_text).(sec_text).dist_resec = dist_resec;
         soz(whichPt).(contig_text).(sec_text).overlap_soz = overlap_soz;
         soz(whichPt).(contig_text).(sec_text).overlap_resec = overlap_resec;
+        soz(whichPt).(contig_text).(sec_text).par_removed = avg_par_removed;
+        soz(whichPt).(contig_text).(sec_text).bc_removed = avg_bc_removed;
         
         save([resultsFolder,'basic_metrics/soz.mat'],'soz');
     end
