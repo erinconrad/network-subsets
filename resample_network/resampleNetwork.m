@@ -124,7 +124,7 @@ for f = 1:n_f
             which_elecs = randperm(nch,e_n(f));
         elseif contig == 1 % random electrodes close to each other
             if do_soz_analysis == 1
-                which_elecs = pickConChs(locs,e_n(f),0,0,do_soz_analysis,i_p);
+                which_elecs = pickConChs(locs,e_n(f),1,0,do_soz_analysis,i_p);
             else
                 which_elecs = pickConChs(locs,e_n(f),0,20,do_soz_analysis,0);
             end

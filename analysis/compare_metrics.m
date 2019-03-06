@@ -8,8 +8,8 @@ outFolder = [resultsFolder,'basic_metrics/'];
 doPlots = 1;
 
 %% Initialize arrays
-nodal_metrics = {'cc','ns','bc'};
-global_metrics = {'sync','eff'};
+nodal_metrics = {'cc','ns','bc','ec','clust'};
+global_metrics = {'sync','eff','trans'};
 ef = [20 40 60 80 100];
 
 np = length(stats);
@@ -101,6 +101,7 @@ if doPlots == 1
          hold on
     end
     legend('Control centrality','Node strength','Betweenness centrality',...
+        'Eigenvector centrality','Clustering coefficient',...
         'location','southeast');
     %xlabel('Percent nodes retained');
     ylabel({'Spearman rank correlation',...
@@ -115,6 +116,7 @@ if doPlots == 1
          hold on
     end
     legend('Control centrality','Node strength','Betweenness centrality',...
+        'Eigenvector centrality','Clustering coefficient',...
         'location','northeast');
     %xlabel('Percent nodes retained');
     ylabel({'Relative standard deviation'})
@@ -129,8 +131,8 @@ if doPlots == 1
          scatter(ef,avg_ag_global(j,:),200,'filled');
          hold on
     end
-    legend('Synchronizability','Global efficiency',...
-        'location','southeast');
+    legend('Synchronizability','Global efficiency','Transitivity',...
+        'location','northeast');
     xlabel('Percent nodes retained');
     ylabel({'Relative difference',...
         'from original'})
@@ -144,7 +146,7 @@ if doPlots == 1
          scatter(ef,avg_var_global(j,:),200,'filled');
          hold on
     end
-    legend('Synchronizability','Global efficiency',...
+    legend('Synchronizability','Global efficiency','Transitivity',...
         'location','northeast');
     xlabel('Percent nodes retained');
     ylabel({'Relative standard deviation'})
@@ -159,7 +161,8 @@ if doPlots == 1
     figure
     set(gcf,'Position',[31 173 1400 632]);
     [ha, pos] = tight_subplot(2, 1, [0.1 0.15], [0.1 0.07],[0.06 0.02]);
-    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250];
+    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
+        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330];
 
     % Nodal metrics
     axes(ha(1))
@@ -169,7 +172,8 @@ if doPlots == 1
             hold on
         end
     end
-    legend('Control centrality','Node strength','Betweenness centrality');
+    legend('Control centrality','Node strength','Betweenness centrality',...
+        'Eigenvector centrality','Clustering coefficient');
     xticks(1:length(names))
     %xlabel('Which patient')
     ylabel('Relative standard deviation')
@@ -186,7 +190,7 @@ if doPlots == 1
             hold on
         end
     end
-    legend('Synchronizability','Global efficiency');
+    legend('Synchronizability','Global efficiency','Transitivity');
     xticks(1:length(names))
     xlabel('Which patient')
     ylabel('Relative standard deviation')

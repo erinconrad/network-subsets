@@ -103,6 +103,10 @@ for contig = contigs %1 means semi-contiguous set of electrodes, 0 means random 
 % Loop through patients
 for whichPt = whichPts
     
+    if unique(pt(which).new_elecs.locs) == 1
+        continue
+    end
+    
     if do_soz_analysis == 1
         % Here, not taking random samples, but rather systematically going
         % through all contiguous chunks

@@ -4,15 +4,17 @@ function compare_soz_resec(soz)
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'basic_metrics/'];
 
-contig_text = 'random';
+contig_text = 'contiguous';
 sec_text = 'sec_neg5';
 
 
-metrics = {'rho_cc','rho_bc','rho_ns','eff','sync','trans','rho_cc_resec',...
-    'rho_bc_resec','rho_ns_resec'};
+metrics = {'rho_cc','rho_bc','rho_ns','rho_ec','rho_clust',...
+    'eff','sync','trans',...
+    'rho_cc_resec','rho_bc_resec','rho_ns_resec'};
 dists = {'dist_soz','dist_resec','overlap_soz','overlap_resec','par_removed',...
     'bc_removed'};
 metric_names = {'Control centrality','Betweenness centrality','Node strength',...
+    'Eigenvector centrality','Clustering coefficient'...
     'Global efficiency','Synchronizability','Transitivity',...
     'Resection control centrality','Resection betweenness centrality',...
     'Resection node strength'};
@@ -20,7 +22,7 @@ dist_names = {'Distance from SOZ','Distance from resection zone',...
     'Overlap with SOZ','Overlap with resection zone',...
     'Average participation coefficient of ignored electrodes',...
     'Average betweenness centrality of ignored electrodes'};
-global_metric = [0 0 0 1 1 1 0 0 0];
+global_metric = [0 0 0 0 0 1 1 1 0 0 0];
     
 
 for dist = 6
@@ -29,7 +31,7 @@ for dist = 6
     [ha, pos] = tight_subplot(2, 3, [0.11 0.04], [0.1 0.06],[0.08 0.02]);
     count = 0;
     
-    for metric = 1:6
+    for metric = 2
         count = count + 1;
         axes(ha(count))
         
@@ -65,6 +67,7 @@ for dist = 6
         dist_coeff =  lme.Coefficients{2,2};
         dist_p = lme.Coefficients{2,6};
         [~,p] = ttest(z);
+        
         
         %% New rho
         new_rho = tanh(nanmean(z));
