@@ -103,7 +103,7 @@ for contig = contigs %1 means semi-contiguous set of electrodes, 0 means random 
 % Loop through patients
 for whichPt = whichPts
     
-    if unique(pt(which).new_elecs.locs) == 1
+    if unique(pt(whichPt).new_elecs.locs) == 1
         continue
     end
     
