@@ -31,7 +31,7 @@ for dist = 6
     [ha, pos] = tight_subplot(2, 3, [0.11 0.04], [0.1 0.06],[0.08 0.02]);
     count = 0;
     
-    for metric = 2
+    for metric = [1:3,6:8]
         count = count + 1;
         axes(ha(count))
         
@@ -50,6 +50,8 @@ for dist = 6
             
             dist_measure = base.(dists{dist})';
             rho =  corr(measure,dist_measure);
+            if rho == 1, continue; end
+                
             measure_all = [measure_all;measure];
             dist_measure_all = [dist_measure_all;dist_measure];
             pt_all = [pt_all;ones(size(measure,1),1)*i];
