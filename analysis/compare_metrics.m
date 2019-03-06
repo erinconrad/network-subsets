@@ -44,7 +44,7 @@ for i = 1:length(stats)
     %% Get agreement and variability for global metrics by resection size
     for j = 1:length(global_metrics)
         std_global(i,j,:) = base.(global_metrics{j}).std';
-        ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff,2);
+        ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff_norm,2);
         true_global(i,j,:) = base.(global_metrics{j}).true;
     end
    

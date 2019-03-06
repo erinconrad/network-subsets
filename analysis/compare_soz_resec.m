@@ -4,7 +4,7 @@ function compare_soz_resec(soz)
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'basic_metrics/'];
 
-contig_text = 'contiguous';
+contig_text = 'random';
 sec_text = 'sec_neg5';
 
 
@@ -16,16 +16,20 @@ metric_names = {'Control centrality','Betweenness centrality','Node strength',..
     'Global efficiency','Synchronizability','Transitivity',...
     'Resection control centrality','Resection betweenness centrality',...
     'Resection node strength'};
+dist_names = {'Distance from SOZ','Distance from resection zone',...
+    'Overlap with SOZ','Overlap with resection zone',...
+    'Average participation coefficient of ignored electrodes',...
+    'Average betweenness centrality of ignored electrodes'};
 global_metric = [0 0 0 1 1 1 0 0 0];
     
 
-for dist = 2
+for dist = 6
     figure
     set(gcf,'Position',[8 138 1400 600]);
     [ha, pos] = tight_subplot(2, 3, [0.11 0.04], [0.1 0.06],[0.08 0.02]);
     count = 0;
-    delete(ha(6));
-    for metric = 1:length(metrics)
+    
+    for metric = 1:6
         count = count + 1;
         axes(ha(count))
         
@@ -84,7 +88,7 @@ for dist = 2
         elseif count == 4
             ylabel({'Relative difference','from true metric'});
         elseif count == 5
-            xlabel('Distance of ignored region from resection zone');
+            xlabel(sprintf('%s',dist_names{dist}));
         end
             
         title(sprintf('%s',metric_names{metric}),'Interpreter', 'none');

@@ -1,7 +1,8 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
-    avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm] = ...
-    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
+    avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm,...
+    all_ec,all_clust,all_le] = ...
+    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,do_soz_analysis)
 
 %{
 This function resamples the network by removing a fraction of nodes and then
@@ -35,11 +36,7 @@ nch = size(A,1);
 e_n = nch-ceil(e_f*nch);
 n_f = length(e_f);
 
-%% Remove from locs the electrodes that are not in the adjacency matrix
-% These are electrodes that are in the location file but for which there is
-% no EEG tracing
-
-% THIS SHOULDN'T HAPPEN ANYMORE!
+%% Ensure that all electrodes in loc are in adjacency matrix
 for i = 1:length(pt(whichPt).new_elecs.electrodes)
     e_name = pt(whichPt).new_elecs.electrodes(i).name;
     found_it = 0;
@@ -77,6 +74,15 @@ all_sync_norm = nan(n_f,n_perm);
 all_eff = nan(n_f,n_perm);
 all_eff_norm = nan(n_f,n_perm);
 
+% Initialize array for eigenvector centrality
+all_ec = nan(nch,n_f,n_perm);
+
+% Initialize array for local efficiency
+all_le = nan(nch,n_f,n_perm);
+
+% Initialize array for clustering coefficient
+all_clust = nan(nch,n_f,n_perm);
+
 % Get arrays representing overlap and distance between removed channels and soz
 overlap_soz = nan(n_f,n_perm);
 dist_soz = nan(n_f,n_perm);
@@ -86,10 +92,7 @@ dist_soz = nan(n_f,n_perm);
 overlap_resec = nan(n_f,n_perm);
 dist_resec = nan(n_f,n_perm);
 
-% Initialize array representing centroid of minimum
-% control centrality region
-temp_centroid_min =nan(n_f,n_perm,3);
-
+% Initialize array representing electrodes in most synchronizig region
 elecs_min = [];
 
 % Participation coefficient
@@ -116,11 +119,15 @@ for f = 1:n_f
     for i_p = 1:n_perm
         
         %% Take e_n electrodes and just remove them
-        % (e_n is nch - n_f)
+        % (e_n is nch - n_f(f))
         if contig == 0 % random electrodes
             which_elecs = randperm(nch,e_n(f));
         elseif contig == 1 % random electrodes close to each other
-            which_elecs = pickConChs(locs,e_n(f),0,20);
+            if do_soz_analysis == 1
+                which_elecs = pickConChs(locs,e_n(f),0,0,do_soz_analysis,i_p);
+            else
+                which_elecs = pickConChs(locs,e_n(f),0,20,do_soz_analysis,0);
+            end
         end
         
         %% Compare electrodes to SOZ and resection zone
@@ -152,6 +159,9 @@ for f = 1:n_f
         % Get new node strength
         ns = node_strength(A_temp);
         
+        % Get new clustering coefficient
+        clust = clustering_coef_wu(A_temp);
+        
         % Get new betweenness centrality
         bc = betweenness_centrality(A_temp,1);
         
@@ -169,10 +179,16 @@ for f = 1:n_f
         all_eff_norm(f,i_p) = efficiency_wei(A_temp, 0)/...
             efficiency_wei(generate_fake_graph(A_temp),0);
         
+        % Get new local efficiency
+        %le = efficiency_wei(A_temp,1);
+        
         % get new transitivity
         all_trans(f,i_p) = transitivity_wu(A_temp);
         all_trans_norm(f,i_p) = transitivity_wu(A_temp)/...
             transitivity_wu(generate_fake_graph(A_temp));
+        
+        % get new eigenvector centrality
+        ec = eigenvector_centrality_und(A_temp);
         
         % new regional control centrality
         if isempty(pt(whichPt).resec) == 0 && e_f(f) == 0.8
@@ -196,8 +212,6 @@ for f = 1:n_f
                 pause
                 close(gcf)
             end
-        else
-            temp_centroid_min(f,i_p,:) = [nan nan nan];
         end
         
         
@@ -207,6 +221,9 @@ for f = 1:n_f
             all_ns(ch_ids(i),f,i_p) = ns(i);
             all_bc(ch_ids(i),f,i_p) = bc(i);
             all_par(ch_ids(i),f,i_p) = par(i);
+            all_ec(ch_ids(i),f,i_p) = ec(i);
+            all_clust(ch_ids(i),f,i_p) = clust(i);
+            %all_le(ch_ids(i),f,i_p) = le(i);
         end
         
         

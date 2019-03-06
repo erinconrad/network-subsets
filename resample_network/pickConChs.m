@@ -1,4 +1,4 @@
-function out_chs = pickConChs(locs,n,plotStuff,jitter)
+function out_chs = pickConChs(locs,n,plotStuff,jitter,do_soz_analysis,i)
 
 %{
 The goal of this function is to select a random group of n more or less
@@ -18,9 +18,13 @@ if n > size(locs,1)
     error('Requesting too many electrodes\n');
 end
 
-
-% Pick a random channel
-ch = randi(length(chs));
+if do_soz_analysis == 1
+    % We will systematically loop through all channels
+    ch = i;
+else
+    % Pick a random channel
+    ch = randi(length(chs));
+end
 
 % Get distances to other chs
 dist = vecnorm(locs-repmat(locs(ch,:),length(chs),1),2,2);

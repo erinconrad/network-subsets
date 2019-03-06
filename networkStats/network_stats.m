@@ -36,24 +36,23 @@ the "resected region"
 
 tic
 
+
 %% Parameters
 
 % do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis
-
 
 doPlots = 1;
 
 % add to existing stats array? Or re-write with new stats array?
 merge = 1;
 
-% How many random resamples to do of each fraction
-n_perm = 1e2;
-
 % What fraction of nodes to retain
 if do_soz_analysis == 1
     e_f = 0.8;
+    contigs = 1;
 else
     e_f = [0.2 0.4 0.6 0.8 1];
+    contigs = [0 1];
 end
 n_f = length(e_f);
 
@@ -71,6 +70,7 @@ addpath(p1);
 addpath([bctFolder]);
 
 load([dataFolder,'structs/info.mat']);
+
 
 %% Load the output structure to add more info to it
 if merge == 1
@@ -98,10 +98,18 @@ end
 
 %% Loop through patients, times, and whether contig or random electrodes
 for which_sec = [-5 0] % 0 means start time of the seizure, -5 is 5 seconds before
-for contig = [1 0] %1 means semi-contiguous set of electrodes, 0 means random electrodes
+for contig = contigs %1 means semi-contiguous set of electrodes, 0 means random electrodes
 
 % Loop through patients
 for whichPt = whichPts
+    
+    if do_soz_analysis == 1
+        % Here, not taking random samples, but rather systematically going
+        % through all contiguous chunks
+        n_perm = length(pt(whichPt).new_elecs.electrodes);
+    else
+        n_perm = 1e2;
+    end
 
     % Make result folder
     name = pt(whichPt).name;
@@ -137,7 +145,7 @@ for whichPt = whichPts
                         if isfield(stats(whichPt).eff.(contig_text).(sec_text),'true') == 1
                             if isempty(stats(whichPt).eff.(contig_text).(sec_text).true) == 0
                                 fprintf('Did %s, skipping\n',name);
-                               % continue
+                                continue
                             end
                         end
                     end
@@ -146,7 +154,7 @@ for whichPt = whichPts
         end
     end
 
-    % Get adjacency matrix
+    %% Get adjacency matrix
     [adj,~] = reconcileAdj(pt,whichPt);
 
     if strcmp(freq,'high_gamma') == 1
@@ -159,10 +167,11 @@ for whichPt = whichPts
     % Start with the middle and add which second
     A = squeeze(A_all(ceil(size(A_all,1)/2)+which_sec,:,:));
 
-    %% Get true control centrality
+    %% Get true metrics
+    fprintf('Getting true metrics\n');
+    
+    %% Control centrality
     c_c = control_centrality(A);
-    fprintf('There are %d synchronizing and %d desynchronizing nodes.\n',...
-        sum(c_c<0),sum(c_c>0));
     
     % Get identity of node with lowest control centrality
     [~,min_cc_true] = min(c_c);
@@ -170,7 +179,7 @@ for whichPt = whichPts
     % Get locations
     locs = pt(whichPt).new_elecs.locs; % all electrode locations
     
-    %% Get regional control centrality
+    %% Regional control centrality
     
     if isempty(pt(whichPt).resec) == 0
         
@@ -197,6 +206,15 @@ for whichPt = whichPts
 
     %% Get true betweenness centrality
     bc = betweenness_centrality(A,1);
+    
+    %% Get true eigenvector centrality
+    ec = eigenvector_centrality_und(A);
+    
+    %% Get true clustering coefficient
+    clust = clustering_coef_wu(A);
+    
+    %% Get local efficiency
+   % le = efficiency_wei(A,1);
 
     %% Get true node strength
     ns = node_strength(A);
@@ -215,23 +233,21 @@ for whichPt = whichPts
     trans_norm = trans/...
             transitivity_wu(generate_fake_graph(A));
 
+    fprintf('Got true metrics, now resampling network...\n');
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
     [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
         overlap_resec,dist_resec,elecs_min,...
         all_par,all_trans,avg_par_removed,avg_bc_removed,...
-        all_sync_norm,all_eff_norm,all_trans_norm] = ...
-        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
+        all_sync_norm,all_eff_norm,all_trans_norm,all_ec,...
+        all_clust,all_le] = ...
+        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,do_soz_analysis);
 
     %% Initialize SMC and rho arrays for node-level metrics
 
     % Control centrality stuff
-    SMC_cc = zeros(n_f,n_perm);
     rho_cc = zeros(n_f,n_perm);
-    true_cc_most_sync = zeros(n_f,n_perm);
-    min_cc_resample_loc = zeros(n_f,n_perm,3);
     most_sync = zeros(n_f,n_perm);
-    
 
     % Betweenness centrality stuff
     rho_bc = zeros(n_f,n_perm);
@@ -241,12 +257,24 @@ for whichPt = whichPts
     
     % Participation coefficient stuff
     rho_par = zeros(n_f,n_perm);
+    
+    % Eigenvalue centality stuff
+    rho_ec = zeros(n_f,n_perm);
+    
+    % Local efficiency stuff
+    rho_le = zeros(n_f,n_perm);
+    
+    % Clustering coefficient stuff
+    rho_clust = zeros(n_f,n_perm);
 
     % Rhos for things in the resection zone
     rho_cc_resec = zeros(n_f,n_perm);
     rho_bc_resec = zeros(n_f,n_perm);
     rho_ns_resec = zeros(n_f,n_perm);
     rho_par_resec = zeros(n_f,n_perm);
+    rho_ec_resec = zeros(n_f,n_perm);
+    rho_clust_resec = zeros(n_f,n_perm);
+    rho_le_resec = zeros(n_f,n_perm);
     
     %% Loop over each fraction and get various stats
     for f = 1:n_f
@@ -256,6 +284,9 @@ for whichPt = whichPts
         ns_f = squeeze(all_ns(:,f,:));
         bc_f = squeeze(all_bc(:,f,:));
         par_f = squeeze(all_par(:,f,:));
+        ec_f = squeeze(all_ec(:,f,:));
+        clust_f = squeeze(all_clust(:,f,:));
+       % le_f = squeeze(all_le(:,f,:));
         
         % Loop over each permutation
         for i_p = 1:n_perm
@@ -263,37 +294,26 @@ for whichPt = whichPts
             ns_f_p = squeeze(ns_f(:,i_p));
             bc_f_p = squeeze(bc_f(:,i_p));
             par_f_p = squeeze(par_f(:,i_p));
+            ec_f_p = squeeze(ec_f(:,i_p));
+            clust_f_p = squeeze(clust_f(:,i_p));
+           % le_f_p = squeeze(le_f(:,i_p));
 
-            %% Do stats on control centrality
+            %% Find most synchronizing node
 
-            % Get rho and SMC
-            [rho_cc(f,i_p),SMC_cc(f,i_p)] = doStats(c_c,c_c_f_p);
+            % Get the identity of the most synchronizing node (the one we would
+            % tell the surgeons to resect)
+            [~,ch_most_sync] = min(c_c_f_p);
+            most_sync(f,i_p) = ch_most_sync;
+            
 
-            if sum(isnan(c_c_f_p)) == length(c_c_f_p)
-                true_cc_most_sync(f,i_p) = nan;
-            else
-
-                % Get the identity of the most synchronizing node (the one we would
-                % tell the surgeons to resect)
-                [~,ch_most_sync] = min(c_c_f_p);
-                
-                % Get loc of most synchronizing node
-                min_cc_resample_loc(f,i_p,:) = locs(ch_most_sync,:);
-
-                % Fill up SMC and rho arrays
-                true_cc_most_sync(f,i_p) = c_c(ch_most_sync);
-                
-                most_sync(f,i_p) = ch_most_sync;
-                
-            end
-
-
-            %% Do Spearman rank on node strength and betweenness centrality
-            % For these, they are always non-negative and so SMC doesn't make
-            % sense
+            %% Do Spearman rank for nodal measures
+            [rho_cc(f,i_p),~] = doStats(c_c,c_c_f_p);
             [rho_ns(f,i_p),~] = doStats(ns,ns_f_p);
             [rho_bc(f,i_p),~] = doStats(bc,bc_f_p);
             [rho_par(f,i_p),~] = doStats(par,par_f_p);
+            [rho_ec(f,i_p),~] = doStats(ec,ec_f_p);
+            [rho_clust(f,i_p),~] = doStats(clust,clust_f_p);
+           % [rho_le(f,i_p),~] = doStats(le,le_f_p);
             
             %% Get rho just for electrodes in the resection zone
             if isempty(pt(whichPt).resec) == 1
@@ -301,12 +321,18 @@ for whichPt = whichPts
                 rho_bc_resec(f,i_p) = nan;
                 rho_ns_resec(f,i_p) = nan;
                 rho_par_resec(f,i_p) = nan;
+                rho_ec_resec(f,i_p) = nan;
+                rho_clust_resec(f,i_p) = nan;
+                %rho_le_resec(f,i_p) = nan;
             else
                 resec = pt(whichPt).resec.nums;
                 [rho_ns_resec(f,i_p),~] = doStats(ns(resec),ns_f_p(resec));
                 [rho_bc_resec(f,i_p),~] = doStats(bc(resec),bc_f_p(resec));
                 [rho_cc_resec(f,i_p),~] = doStats(c_c(resec),c_c_f_p(resec));
                 [rho_par_resec(f,i_p),~] = doStats(par(resec),par_f_p(resec));
+                [rho_ec_resec(f,i_p),~] = doStats(ec(resec),ec_f_p(resec));
+                [rho_clust_resec(f,i_p),~] = doStats(clust(resec),clust_f_p(resec));
+               % [rho_le_resec(f,i_p),~] = doStats(le(resec),le_f_p(resec));
             end
                 
 
@@ -331,6 +357,9 @@ for whichPt = whichPts
     rho_mean_ns = average_rho(rho_ns,2);
     rho_mean_bc = average_rho(rho_bc,2);
     rho_mean_par = average_rho(rho_par,2);
+    rho_mean_ec = average_rho(rho_ec,2);
+    rho_mean_clust = average_rho(rho_clust,2);
+   % rho_mean_le = average_rho(rho_le,2);
      
     %% Fill up stats structures
     
@@ -346,29 +375,32 @@ for whichPt = whichPts
         ns_rel_std = rel_std_nodal(all_ns,ns);
         bc_rel_std = rel_std_nodal(all_bc,bc);
         par_rel_std = rel_std_nodal(all_par,par);
+        ec_rel_std = rel_std_nodal(all_ec,ec);
+        clust_rel_std = rel_std_nodal(all_clust,clust);
+       % le_rel_std = rel_std_nodal(all_le,le);
         
+        %% Global measures
         % Global measures: we will do relative std (std across
         % permutations divided by std across patients). And so we will
         % record the standard deviation for now.
         
-        % How often would we resect the wrong piece of brain?
-        resect_wrong = sum((true_cc_most_sync > 0),2)/n_perm;
        
+        %% Fill up structures
         stats(whichPt).name = name;
  
         % control centrality
         stats(whichPt).(contig_text).(sec_text).cc.true = c_c;
         stats(whichPt).(contig_text).(sec_text).cc.rel_std = cc_rel_std;
-        stats(whichPt).(contig_text).(sec_text).cc.resect_wrong = resect_wrong;
         stats(whichPt).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
         
-        % Mean and STD of resampled min cc
+        % Most synchronizing electrode
         stats(whichPt).(contig_text).(sec_text).min_cc.true = min_cc_true;
         
-        
-        % Regional cc
+        % Electrodes in most synchronizing contiguous region
         stats(whichPt).(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
         
+        % Electrodes in various percentiles of most synchronizing electrode
+        % and region across resampling
         for i = [70 80 90 95]
             elecs_single = get_perc_elecs(most_sync(4,:),i);
             single_text = sprintf('single_%d',i);
@@ -393,6 +425,18 @@ for whichPt = whichPts
         % Participation coeff
         stats(whichPt).(contig_text).(sec_text).par.rel_std = par_rel_std;
         stats(whichPt).(contig_text).(sec_text).par.rho_mean = rho_mean_par;
+        
+        % Eigenvector centrality
+        stats(whichPt).(contig_text).(sec_text).ec.rel_std = ec_rel_std;
+        stats(whichPt).(contig_text).(sec_text).ec.rho_mean = rho_mean_ec;
+        
+        % Local efficiency
+       % stats(whichPt).(contig_text).(sec_text).le.rel_std = le_rel_std;
+       % stats(whichPt).(contig_text).(sec_text).le.rho_mean = rho_mean_le;
+        
+        % clustering coefficient
+        stats(whichPt).(contig_text).(sec_text).clust.rel_std = clust_rel_std;
+        stats(whichPt).(contig_text).(sec_text).clust.rho_mean = rho_mean_clust;
 
         % synchronizability
         stats(whichPt).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
@@ -415,12 +459,17 @@ for whichPt = whichPts
         save([resultsFolder,'basic_metrics/stats.mat'],'stats');
     elseif do_soz_analysis == 1
         %% Do the analysis of dependence of agreement on distance from important things
-        
-        
-        
+       
+        % Nodal
         soz(whichPt).(contig_text).(sec_text).rho_cc = rho_cc;
         soz(whichPt).(contig_text).(sec_text).rho_bc = rho_bc;
         soz(whichPt).(contig_text).(sec_text).rho_ns = rho_ns;
+        soz(whichPt).(contig_text).(sec_text).rho_ec = rho_ec;
+        soz(whichPt).(contig_text).(sec_text).rho_par = rho_par;
+        soz(whichPt).(contig_text).(sec_text).rho_clust = rho_clust;
+       % soz(whichPt).(contig_text).(sec_text).rho_le = rho_le;
+        
+        % Global
         soz(whichPt).(contig_text).(sec_text).sync = rel_sync;
         soz(whichPt).(contig_text).(sec_text).eff = rel_eff;
         soz(whichPt).(contig_text).(sec_text).trans = rel_trans;
@@ -435,6 +484,9 @@ for whichPt = whichPts
         soz(whichPt).(contig_text).(sec_text).rho_bc_resec = rho_bc_resec;
         soz(whichPt).(contig_text).(sec_text).rho_ns_resec = rho_ns_resec;
         soz(whichPt).(contig_text).(sec_text).rho_par_resec = rho_par_resec;
+        soz(whichPt).(contig_text).(sec_text).rho_ec_resec = rho_ec_resec;
+        soz(whichPt).(contig_text).(sec_text).rho_clust_resec = rho_clust_resec;
+       % soz(whichPt).(contig_text).(sec_text).rho_le_resec = rho_le_resec;
         
         save([resultsFolder,'basic_metrics/soz.mat'],'soz');
     end
@@ -602,7 +654,7 @@ function rel_std = rel_std_nodal(perm_metric,true_metric)
     % The average across electrodes of the std across permutations
     std_across_perm = nanmean(squeeze(nanstd(perm_metric,0,3)),1);
         
-    % Std across electrodes of the true cc
+    % Std across electrodes of the true metric
     std_across_ch = nanstd(true_metric,0,1);
 
     % Relative std

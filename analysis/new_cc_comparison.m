@@ -6,7 +6,7 @@ outFolder = [resultsFolder,'basic_metrics/'];
 
 %% Look at contiguous and -5 seconds
 contig_text = 'random';
-sec_text = 'sec_neg5';
+sec_text = 'sec_0';
 
 np = length(stats);
 
@@ -63,10 +63,10 @@ end
 %% Do stats
 
 % Is the dice score for good outcome better than for bad outcome?
-[p,h,stats] = ranksum(ds(good_outcome==1),ds(good_outcome==0));
+[p,~,stats1] = ranksum(ds(good_outcome==1),ds(good_outcome==0));
 fprintf(['Mean dice score of good outcome is %1.2f and bad outcome %1.2f.\n'...
     'Wilcoxon rank sum: p = %1.2f, ranksum = %d.\n'],nanmean(ds(good_outcome==1)),...
-    nanmean(ds(good_outcome==0)),p,stats.ranksum);
+    nanmean(ds(good_outcome==0)),p,stats1.ranksum);
 
 % Get the number of electrodes in the 95% CI for single min cc
 num_single_95 = cellfun(@length,single_95);
