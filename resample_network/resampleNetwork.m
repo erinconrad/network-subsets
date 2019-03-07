@@ -191,7 +191,7 @@ for f = 1:n_f
         ec = eigenvector_centrality_und(A_temp);
         
         % new regional control centrality
-        if isempty(pt(whichPt).resec) == 0
+        if isempty(pt(whichPt).resec) == 0 && e_f(f) == 0.8
             num_resec = length(pt(whichPt).resec.nums);
             [cc_regional,elecs_regional] = regional_control_centrality...
                 (A_temp,num_resec,locs(ch_ids,:),1);
@@ -212,6 +212,8 @@ for f = 1:n_f
                 pause
                 close(gcf)
             end
+        else
+            cc_regional = nan;
         end
         
         
