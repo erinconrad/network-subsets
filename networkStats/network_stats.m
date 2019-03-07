@@ -244,7 +244,7 @@ for whichPt = whichPts
         overlap_resec,dist_resec,elecs_min,...
         all_par,all_trans,avg_par_removed,avg_bc_removed,...
         all_sync_norm,all_eff_norm,all_trans_norm,all_ec,...
-        all_clust,all_le] = ...
+        all_clust,all_le,cc_reg] = ...
         resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,do_soz_analysis);
 
     %% Initialize SMC and rho arrays for node-level metrics
@@ -270,6 +270,9 @@ for whichPt = whichPts
     
     % Clustering coefficient stuff
     rho_clust = zeros(n_f,n_perm);
+    
+    % Regional control centrality
+    rho_cc_reg = zeros(n_f,n_perm);
 
     % Rhos for things in the resection zone
     rho_cc_resec = zeros(n_f,n_perm);
@@ -290,6 +293,7 @@ for whichPt = whichPts
         par_f = squeeze(all_par(:,f,:));
         ec_f = squeeze(all_ec(:,f,:));
         clust_f = squeeze(all_clust(:,f,:));
+        cc_reg_f = squeeze(cc_reg(:,f,:));
        % le_f = squeeze(all_le(:,f,:));
         
         % Loop over each permutation
@@ -300,6 +304,7 @@ for whichPt = whichPts
             par_f_p = squeeze(par_f(:,i_p));
             ec_f_p = squeeze(ec_f(:,i_p));
             clust_f_p = squeeze(clust_f(:,i_p));
+            cc_reg_f_p = squeeze(cc_reg_f(:,i_p));
            % le_f_p = squeeze(le_f(:,i_p));
 
             %% Find most synchronizing node
@@ -317,6 +322,7 @@ for whichPt = whichPts
             [rho_par(f,i_p),~] = doStats(par,par_f_p);
             [rho_ec(f,i_p),~] = doStats(ec,ec_f_p);
             [rho_clust(f,i_p),~] = doStats(clust,clust_f_p);
+            [rho_cc_reg(f,i_p),~] = doStats(cc_regional,cc_reg_f_p);
            % [rho_le(f,i_p),~] = doStats(le,le_f_p);
             
             %% Get rho just for electrodes in the resection zone
@@ -363,6 +369,7 @@ for whichPt = whichPts
     rho_mean_par = average_rho(rho_par,2);
     rho_mean_ec = average_rho(rho_ec,2);
     rho_mean_clust = average_rho(rho_clust,2);
+    rho_mean_cc_reg = average_rho(rho_cc_reg,2);
    % rho_mean_le = average_rho(rho_le,2);
      
     %% Fill up stats structures
@@ -381,6 +388,7 @@ for whichPt = whichPts
         par_rel_std = rel_std_nodal(all_par,par);
         ec_rel_std = rel_std_nodal(all_ec,ec);
         clust_rel_std = rel_std_nodal(all_clust,clust);
+        cc_reg_rel_std = rel_std_nodal(cc_reg,cc_regional);
        % le_rel_std = rel_std_nodal(all_le,le);
         
         %% Global measures
@@ -396,6 +404,11 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).cc.true = c_c;
         stats(whichPt).(contig_text).(sec_text).cc.rel_std = cc_rel_std;
         stats(whichPt).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
+        
+        % regional control centrality
+        stats(whichPt).(contig_text).(sec_text).cc_reg.true = cc_regional;
+        stats(whichPt).(contig_text).(sec_text).cc_reg.rel_std = cc_reg_rel_std;
+        stats(whichPt).(contig_text).(sec_text).cc_reg.rho_mean = rho_mean_cc_reg;
         
         % Most synchronizing electrode
         stats(whichPt).(contig_text).(sec_text).min_cc.true = min_cc_true;

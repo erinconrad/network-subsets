@@ -1,7 +1,7 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
     avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm,...
-    all_ec,all_clust,all_le] = ...
+    all_ec,all_clust,all_le,cc_reg] = ...
     resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,do_soz_analysis)
 
 %{
@@ -223,6 +223,7 @@ for f = 1:n_f
             all_par(ch_ids(i),f,i_p) = par(i);
             all_ec(ch_ids(i),f,i_p) = ec(i);
             all_clust(ch_ids(i),f,i_p) = clust(i);
+            cc_reg(ch_ids(i),f,i_p) = cc_regional(i);
             %all_le(ch_ids(i),f,i_p) = le(i);
         end
         

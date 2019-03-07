@@ -40,6 +40,7 @@ for dist = 6
         dist_measure_all = [];
         pt_all = [];
         for i = 1:length(soz)
+            if isempty(soz(i).(contig_text)) == 1, continue; end;
             base = soz(i).(contig_text).(sec_text);
             measure = base.(metrics{metric})';
             
