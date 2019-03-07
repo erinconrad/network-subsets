@@ -213,7 +213,7 @@ for f = 1:n_f
                 close(gcf)
             end
         else
-            cc_regional = nan;
+            cc_regional = nan(length(ch_ids),1);
         end
         
         
