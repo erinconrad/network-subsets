@@ -201,6 +201,7 @@ for whichPt = whichPts
     else
         % Not doing it if we don't have resection data
         elecs_regional_min = nan;
+        cc_regional = nan;
     end
 
     %% Get true synchronizability

@@ -57,6 +57,7 @@ end
 % Initialize cell array for each channel of the control centralities for
 % each fraction and permutation
 all_c_c = nan(nch,n_f,n_perm);
+cc_reg = nan(nch,n_f,n_perm);
 
 % Initialize cell array for each channel of the node strengths for each
 % fraction and permutation
