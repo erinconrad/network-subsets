@@ -24,6 +24,7 @@ true_global = zeros(np,length(global_metrics));
 
 for i = 1:length(stats)
     
+    if isempty(stats(i).name) == 1, continue; end
     %% Extract just numbers from name (for plotting)
     names = [names;stats(i).name];
     [num_idx_s] = regexp(stats(i).name,'\d+');

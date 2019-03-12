@@ -485,6 +485,7 @@ for whichPt = whichPts
         soz(whichPt).(contig_text).(sec_text).rho_ec = rho_ec;
         soz(whichPt).(contig_text).(sec_text).rho_par = rho_par;
         soz(whichPt).(contig_text).(sec_text).rho_clust = rho_clust;
+        soz(whichPt).(contig_text).(sec_text).rho_cc_reg = rho_cc_reg;
        % soz(whichPt).(contig_text).(sec_text).rho_le = rho_le;
         
         % Global

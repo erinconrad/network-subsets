@@ -24,14 +24,18 @@ dist_names = {'Distance from SOZ','Distance from resection zone',...
     'Average betweenness centrality of ignored electrodes'};
 global_metric = [0 0 0 0 0 1 1 1 0 0 0];
     
+metrics_to_plot = 6:8;
+dist_to_plot = 2;
 
-for dist = 6
+for dist = dist_to_plot
     figure
     set(gcf,'Position',[8 138 1400 600]);
-    [ha, pos] = tight_subplot(2, 3, [0.11 0.04], [0.1 0.06],[0.08 0.02]);
+    [ha, pos] = tight_subplot(min(2,length(metrics_to_plot)/3),...
+        min(3,length(metrics_to_plot)), [0.11 0.04], [0.1 0.06],[0.08 0.02]);
+    %delete(ha(6));
     count = 0;
     
-    for metric = [1:3,6:8]
+    for metric = metrics_to_plot
         count = count + 1;
         axes(ha(count))
         
@@ -88,18 +92,20 @@ for dist = 6
         end
         set(l,'Interpreter', 'none');
         l.FontSize = 25;
-            
-        if count == 1
-            ylabel({'Spearman rank coefficient','with true metric'});
-        elseif count == 4
-            ylabel({'Relative difference','from true metric'});
-        elseif count == 5
+        
+        if count ==1 || count == 4
+            if global_metric(metric) == 0
+                ylabel({'Spearman rank coefficient','with true metric'});
+            elseif global_metric(metric) == 1
+                ylabel({'Relative difference','from true metric'});
+            end
+        end
+        if count == 2
             xlabel(sprintf('%s',dist_names{dist}));
         end
-            
         title(sprintf('%s',metric_names{metric}),'Interpreter', 'none');
         set(gca,'fontsize',20)
-        print(gcf,[outFolder,'dist_from_resec',contig_text,sec_text],'-depsc');
+        print(gcf,[outFolder,dists{dist},'_',contig_text,sec_text],'-depsc');
         %}
         
     end
