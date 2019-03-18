@@ -200,6 +200,8 @@ for f = 1:n_f
                 [~,min_cc_regional_true] = min(cc_regional);
                 elecs_regional_min = elecs_regional(min_cc_regional_true,:);
                 elecs_min = [elecs_min,ch_ids(elecs_regional_min)];
+            else
+                cc_regional = nan(length(ch_ids),1);
             end
             
             if 1 == 0
