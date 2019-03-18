@@ -43,7 +43,7 @@ tic
 
 % do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis
 
-doSave = 0;
+doSave = 1;
 doPlots = 1;
 
 % add to existing stats array? Or re-write with new stats array?
