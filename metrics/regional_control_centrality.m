@@ -20,7 +20,7 @@ choices of regions. If N_total_electrodes is 100 and n_region_electrodes is
 20, then this means there are 5x10^20 ways to choose regions. This is too
 many to enumerate all possible regions and find the lowest possible cc. 
 
-I am going to reduce 5x10^20 to just 100 (or N_total_electrodes) by looping
+I am going to reduce 5x10^20 to just N_total_electrodes by looping
 through all electrodes, calculating its nearest n_region_electrodes-1
 neighbors, and getting control centrality for that region.
 
@@ -37,7 +37,7 @@ sync = synchronizability(A);
 
 if contig == 0
     
-    
+    %{
     % I could do Monte Carlo approach here. Warning! If I do 1e4, I get a
     % different set of "min cc electrodes" each time. 
     nboot = 1e4;
@@ -107,7 +107,7 @@ if contig == 0
         
         elecs(ib,:) = set';
     end
-    
+    %}
     
 elseif contig == 1
     % number of total channels
@@ -127,7 +127,7 @@ elseif contig == 1
         [~,I] = sort(dist);
         chs_sorted = chs(I);
         
-        % Take the first n-1 channels
+        % Take the first n channels
         region = chs_sorted(1:n);
         elecs(i,:) = region;
         
@@ -155,7 +155,16 @@ elseif contig == 1
         
     end
     
-    
+    % Plot the regional control centralities
+    if 1 == 0
+        figure
+        scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
+        hold on
+        scatter3(locs(:,1),locs(:,2),locs(:,3),100,cc,'filled');
+        colorbar;
+        pause
+        close(gcf)
+    end
 end
 
 

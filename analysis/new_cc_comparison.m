@@ -4,30 +4,35 @@ function new_cc_comparison(stats,pt)
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'basic_metrics/'];
 
-%% Look at contiguous and -5 seconds
-contig_text = 'random';
-sec_text = 'sec_0';
+
+contig_text = 'contiguous';
+sec_text = 'sec_neg5';
 
 np = length(stats);
 
 %% Get data
-single_true = zeros(np,1);
+single_true = nan(np,1);
 region_true =cell(np,1);
 single_95 = cell(np,1);
 region_95 = cell(np,1);
 single_names = cell(np,1);
 region_names = cell(np,1);
 resec = cell(np,1);
-ds = zeros(np,1);
-good_outcome = zeros(np,1);
-
+ds = nan(np,1);
+good_outcome = nan(np,1);
+min_reg_cc = cell(np,1);
 
 for i = 1:length(stats)
+    
+    if isempty(stats(i).name) ==1 ,continue; end
+    
+    % Get the most synchronizing electrode
     single_true(i) = stats(i).(contig_text).(sec_text).min_cc.true';
     single_names{i} = pt(i).name;
     single_95{i} = stats(i).(contig_text).(sec_text).min_cc_elecs.single_95';
     nchs = length(pt(i).new_elecs.electrodes);
     
+    % Get the outcome
     outcome = pt(i).clinical.outcome;
     if contains(outcome,'1.') == 1 || contains(outcome,'ILAE1') == 1||...
             contains(outcome,'ILAE2') == 1
@@ -37,24 +42,39 @@ for i = 1:length(stats)
     end
     good_outcome(i) = good_outcome_temp;        
     
-    
+    % Only do analysis if there were resected electrodes
     if sum(isnan(stats(i).(contig_text).(sec_text).regional_cc.true)) == 0
+        
+        % Get resected electrodes
         resec_temp = pt(i).resec.nums;
         resec{i} = resec_temp;
+        n_res = length(resec_temp);
+        
+        % Get the electrodes in the most synchronizing region
         region_true{i} = stats(i).(contig_text).(sec_text).regional_cc.true';
         region_names{i} = pt(i).name;
         region_95{i} = stats(i).(contig_text).(sec_text).min_cc_elecs.regional_95';
-        is_resec = zeros(nchs,1); is_resec(resec_temp) = 1;
-        is_sync = zeros(nchs,1); is_sync(stats(i).(contig_text).(sec_text).regional_cc.true') = 1;
         
+        % Get electrodes with minimal regional control centrality
+        reg_cc = stats(i).(contig_text).(sec_text).cc_reg.true;
+        [~,reg_cc_sorted_chs] = sort(reg_cc);
+        min_reg_cc{i} = reg_cc_sorted_chs(1:n_res);
+        
+        % Get dice score to examine overlap between resected electrodes and
+        % most synchronizing electrodes
+        is_resec = zeros(nchs,1); is_resec(resec_temp) = 1;
+        is_sync = zeros(nchs,1); is_sync(region_true{i}') = 1;
+        if sum(is_resec) ~= sum(is_sync), error('what\n'); end
         ds_temp = dice_score(is_resec,is_sync);
         ds(i) = ds_temp;
+        
     else
         ds(i) = nan;
         resec{i} = nan;
         region_true{i} = nan;
         region_names{i} = nan;
         region_95{i} = nan;
+        min_reg_cc{i} = nan;
         
     end
 
@@ -67,6 +87,18 @@ end
 fprintf(['Mean dice score of good outcome is %1.2f and bad outcome %1.2f.\n'...
     'Wilcoxon rank sum: p = %1.2f, ranksum = %d.\n'],nanmean(ds(good_outcome==1)),...
     nanmean(ds(good_outcome==0)),p,stats1.ranksum);
+
+% Do a chi2 comparing good and bad outcome with overlap and no overlap
+yes_overlap = (ds>0);
+no_overlap = (ds==0);
+yes_overlap_outcome = good_outcome(yes_overlap);
+no_overlap_outcome = good_outcome(no_overlap);
+
+[tbl,chi2,p,labels] = crosstab([ones(length(yes_overlap_outcome),1);...
+                2*ones(length(no_overlap_outcome),1)],...
+                [yes_overlap_outcome;no_overlap_outcome]);
+
+
 
 % Get the number of electrodes in the 95% CI for single min cc
 num_single_95 = cellfun(@length,single_95);
@@ -135,7 +167,7 @@ for i = 1:length(stats)
     yticklabels([])
     zticklabels([])
     pause
-    print(gcf,[pt_folder,'most_sync_',contig_text,sec_text],'-depsc');
+    %print(gcf,[pt_folder,'most_sync_',contig_text,sec_text],'-depsc');
     close(gcf)
 end
 

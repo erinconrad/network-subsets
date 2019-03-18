@@ -192,13 +192,13 @@ for f = 1:n_f
         ec = eigenvector_centrality_und(A_temp);
         
         % new regional control centrality
-        if isempty(pt(whichPt).resec) == 0 && e_f(f) == 0.8
+        if isempty(pt(whichPt).resec) == 0 && e_f(f) > 0.2
             num_resec = length(pt(whichPt).resec.nums);
             [cc_regional,elecs_regional] = regional_control_centrality...
                 (A_temp,num_resec,locs(ch_ids,:),1);
             [~,min_cc_regional_true] = min(cc_regional);
             elecs_regional_min = elecs_regional(min_cc_regional_true,:);
-            elecs_min = [elecs_min,elecs_regional_min];
+            elecs_min = [elecs_min,ch_ids(elecs_regional_min)];
             
             if 1 == 0
                 % Plot the new min cc region and the electrodes we're

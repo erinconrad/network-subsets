@@ -1,5 +1,7 @@
 function network_stats(whichPts,do_soz_analysis)
 
+% do 100 random and average for fake matrix
+
 %{
 
 This function takes an adjacency matrix A, calculates global and nodal
@@ -41,6 +43,7 @@ tic
 
 % do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis
 
+doSave = 0;
 doPlots = 1;
 
 % add to existing stats array? Or re-write with new stats array?
@@ -51,7 +54,7 @@ if do_soz_analysis == 1
     e_f = 0.8;
     contigs = 1;
 else
-    e_f = [0.2 0.4 0.6 0.8 1];
+    e_f = 0.8;%[0.2 0.4 0.6 0.8 1];
     contigs = [0 1];
 end
 n_f = length(e_f);
@@ -143,16 +146,11 @@ for whichPt = whichPts
             stats = soz;
         end
         if length(stats) >= whichPt
-            if isfield(stats(whichPt),'eff') == 1
-                if isfield(stats(whichPt).eff,(contig_text)) == 1
-                    if isfield(stats(whichPt).eff.(contig_text),(sec_text)) == 1
-                        if isfield(stats(whichPt).eff.(contig_text).(sec_text),'true') == 1
-                            if isempty(stats(whichPt).eff.(contig_text).(sec_text).true) == 0
-                                fprintf('Did %s, skipping\n',name);
-                                continue
-                            end
-                        end
-                    end
+            if isfield(stats(whichPt),(contig_text)) == 1
+                if isfield(stats(whichPt).(contig_text),(sec_text)) == 1
+                    
+                    fprintf('Did %s, skipping\n',name);
+                   % continue
                 end
             end 
         end
@@ -198,6 +196,20 @@ for whichPt = whichPts
 
         % Get electrodes in region with lowest cc
         elecs_regional_min = elecs_regional(min_cc_regional_true,:);
+        
+        % Get dice score to compare n electrodes in min cc region and
+        % electrodes that themselves have the n smallest cc regions (should
+        % be similar but probably not equivalent)
+        %{
+        [cc_regional_sorted,I] = sort(cc_regional);
+        is_min_cc_1 = zeros(size(locs,1),1);
+        is_min_cc_1(I(1:num_resec)) = 1;
+        
+        is_min_cc_2 = zeros(size(locs,1),1);
+        is_min_cc_2(elecs_regional_min) = 1;
+        ds = dice_score(is_min_cc_1,is_min_cc_2);
+        %}
+        
     else
         % Not doing it if we don't have resection data
         elecs_regional_min = nan;
@@ -474,7 +486,9 @@ for whichPt = whichPts
         stats(whichPt).(contig_text).(sec_text).eff.rel_diff = rel_eff;
         stats(whichPt).(contig_text).(sec_text).eff.rel_diff_norm = rel_eff_norm;
 
-        save([resultsFolder,'basic_metrics/stats.mat'],'stats');
+        if doSave == 1
+            save([resultsFolder,'basic_metrics/stats.mat'],'stats');
+        end
     elseif do_soz_analysis == 1
         %% Do the analysis of dependence of agreement on distance from important things
        
@@ -506,8 +520,9 @@ for whichPt = whichPts
         soz(whichPt).(contig_text).(sec_text).rho_ec_resec = rho_ec_resec;
         soz(whichPt).(contig_text).(sec_text).rho_clust_resec = rho_clust_resec;
        % soz(whichPt).(contig_text).(sec_text).rho_le_resec = rho_le_resec;
-        
-        save([resultsFolder,'basic_metrics/soz.mat'],'soz');
+        if doSave == 1
+            save([resultsFolder,'basic_metrics/soz.mat'],'soz');
+        end
     end
 
     %% Plots

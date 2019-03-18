@@ -8,7 +8,7 @@ outFolder = [resultsFolder,'basic_metrics/'];
 doPlots = 1;
 
 %% Initialize arrays
-nodal_metrics = {'cc','ns','bc','ec','clust'};
+nodal_metrics = {'cc','cc_reg','ns','bc','ec','clust'};
 global_metrics = {'sync','eff','trans'};
 ef = [20 40 60 80 100];
 
@@ -16,11 +16,11 @@ np = length(stats);
 
 names ={};
 name_nums = {};
-ag_nodal = zeros(np,length(nodal_metrics),length(ef));
-var_nodal = zeros(np,length(nodal_metrics),length(ef));
-ag_global = zeros(np,length(global_metrics),length(ef));
-std_global = zeros(np,length(global_metrics),length(ef));
-true_global = zeros(np,length(global_metrics));
+ag_nodal = nan(np,length(nodal_metrics),length(ef));
+var_nodal = nan(np,length(nodal_metrics),length(ef));
+ag_global = nan(np,length(global_metrics),length(ef));
+std_global = nan(np,length(global_metrics),length(ef));
+true_global = nan(np,length(global_metrics));
 
 for i = 1:length(stats)
     
@@ -52,13 +52,13 @@ for i = 1:length(stats)
 end
 
 %% Get var_global (relative std by dividing by std across patients)
-var_global = std_global./std(true_global,0,1);
+var_global = std_global./nanstd(true_global,0,1);
 
 %% Average over patients
 avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
-avg_var_nodal = squeeze(mean(var_nodal,1));
-avg_ag_global = squeeze(mean(ag_global,1));
-avg_var_global = squeeze(mean(var_global,1));
+avg_var_nodal = squeeze(nanmean(var_nodal,1));
+avg_ag_global = squeeze(nanmean(ag_global,1));
+avg_var_global = squeeze(nanmean(var_global,1));
 
 %% Individual patient, 80% retained
 var_nodal_80 = var_nodal(:,:,4);
@@ -67,26 +67,26 @@ var_global_80 = var_global(:,:,4);
 %% Calculate statistics for variability
 
 % Compare variability when 80% retained for global metrics
-[p,~,stats] = signrank(var_global_80(:,1),var_global_80(:,2));
+[p,~,stats1] = signrank(var_global_80(:,1),var_global_80(:,2));
 fprintf('Sign rank test for global metrics: p = %1.2e, sign-rank = %d\n',...
-    p, stats.signedrank);
+    p, stats1.signedrank);
 
 % Compare variability when 80% retained for nodal metrics
-[p,tbl] = friedman(var_nodal_80,1,'off');
+[p,tbl] = friedman(var_nodal_80(~isnan(var_nodal_80(:,1)),[1,3:end]),1,'off');
 fprintf('Friedman test for global metrics: p = %1.1e, chi-squared = %1.1f\n',...
     p, tbl{2,5});
 
-[p,~,stats] = signrank(var_nodal_80(:,1),var_nodal_80(:,2));
+[p,~,stats1] = signrank(var_nodal_80(:,1),var_nodal_80(:,2));
 fprintf('Sign rank test for cc vs ns: p = %1.2e, sign-rank = %d\n',...
-    p, stats.signedrank);
+    p, stats1.signedrank);
 
-[p,~,stats] = signrank(var_nodal_80(:,1),var_nodal_80(:,3));
+[p,~,stats1] = signrank(var_nodal_80(:,1),var_nodal_80(:,3));
 fprintf('Sign rank test for cc vs bc: p = %1.2e, sign-rank = %d\n',...
-    p, stats.signedrank);
+    p, stats1.signedrank);
 
-[p,~,stats] = signrank(var_nodal_80(:,2),var_nodal_80(:,3));
+[p,~,stats1] = signrank(var_nodal_80(:,2),var_nodal_80(:,3));
 fprintf('Sign rank test for ns vs bc: p = %1.2e, sign-rank = %d\n',...
-    p, stats.signedrank);
+    p, stats1.signedrank);
 
 %% Plot averages across patients
 if doPlots == 1
@@ -101,7 +101,8 @@ if doPlots == 1
          scatter(ef,avg_ag_nodal(j,:),200,'filled');
          hold on
     end
-    legend('Control centrality','Node strength','Betweenness centrality',...
+    legend('Control centrality','Regional control centrality',...
+        'Node strength','Betweenness centrality',...
         'Eigenvector centrality','Clustering coefficient',...
         'location','southeast');
     %xlabel('Percent nodes retained');
@@ -116,7 +117,8 @@ if doPlots == 1
          scatter(ef,avg_var_nodal(j,:),200,'filled');
          hold on
     end
-    legend('Control centrality','Node strength','Betweenness centrality',...
+    legend('Control centrality','Regional control centrality',...
+        'Node strength','Betweenness centrality',...
         'Eigenvector centrality','Clustering coefficient',...
         'location','northeast');
     %xlabel('Percent nodes retained');
@@ -167,13 +169,17 @@ if doPlots == 1
 
     % Nodal metrics
     axes(ha(1))
+    count = 0;
     for i = 1:size(var_nodal_80,1)
+        if isempty(stats(i).name) == 1, continue; end
+        count = count + 1;
         for j = 1:size(var_nodal_80,2)
-            scatter(i,var_nodal_80(i,j),200,cols(j,:),'filled');
+            scatter(count,var_nodal_80(i,j),200,cols(j,:),'filled');
             hold on
         end
     end
-    legend('Control centrality','Node strength','Betweenness centrality',...
+    legend('Control centrality','Regional control centrality',...
+        'Node strength','Betweenness centrality',...
         'Eigenvector centrality','Clustering coefficient');
     xticks(1:length(names))
     %xlabel('Which patient')
@@ -185,9 +191,12 @@ if doPlots == 1
 
     % Global metrics
     axes(ha(2))
+    count = 0;
     for i = 1:size(var_global_80,1)
+        if isempty(stats(i).name) == 1, continue; end
+        count = count + 1;
         for j = 1:size(var_global_80,2)
-            scatter(i,var_global_80(i,j),200,cols(j,:),'filled');
+            scatter(count,var_global_80(i,j),200,cols(j,:),'filled');
             hold on
         end
     end
