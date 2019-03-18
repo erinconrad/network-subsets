@@ -54,7 +54,7 @@ if do_soz_analysis == 1
     e_f = 0.8;
     contigs = 1;
 else
-    e_f = 0.8;%[0.2 0.4 0.6 0.8 1];
+    e_f = [0.2 0.4 0.6 0.8 1];
     contigs = [0 1];
 end
 n_f = length(e_f);
