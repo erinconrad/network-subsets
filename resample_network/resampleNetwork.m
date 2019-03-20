@@ -181,7 +181,7 @@ for f = 1:n_f
         all_eff(f,i_p) = efficiency_wei(A_temp, 0);
         eff_fake = nan(100,1);
         for i = 1:100
-            eff_fake(i) = efficiency_wei(generate_fake_graph(A_temp,0));
+            eff_fake(i) = efficiency_wei(generate_fake_graph(A_temp),0);
         end
         all_eff_norm(f,i_p) = efficiency_wei(A_temp,0)/mean(eff_fake);
         
