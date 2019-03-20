@@ -52,7 +52,7 @@ for whichPt = whichPts
     cc = nan(ntimes,nchs);
     
     for i = 1:ntimes
-        data = cell(py.open_cc.open_cc_f(fname,1));
+        data = cell(py.open_cc.open_cc_f(fname,i));
         data = cell2mat(data);
         
         cc(i,:) = data;

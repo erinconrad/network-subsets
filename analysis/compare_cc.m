@@ -17,11 +17,14 @@ load([dataFolder,'structs/info.mat']);
 A_all = adj(4).data;
 A = squeeze(A_all(ceil(size(A_all,1)/2)+which_sec,:,:));
 
-true_cc = true_cc_all(ceil(size(true_cc_all,1)/2)+which_sec,:);
+true_cc = true_cc_all(ceil(size(true_cc_all,1)/2)+which_sec,:)';
+%A = squeeze(A_all(1,:,:));
+%true_cc = true_cc_all(1,:)';
 
 cc = control_centrality(A);
 
 locs = pt(whichPt).new_elecs.locs; 
+
 
 figure
 subplot(1,2,1)
