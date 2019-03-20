@@ -33,8 +33,9 @@ for i = 1:length(stats)
     %% Look at contiguous and -5 seconds
     contig_text = 'random';
     sec_text = 'sec_neg5';
+    freq = 'high_gamma';
     
-    base = stats(i).(contig_text).(sec_text);
+    base = stats(i).(freq).(contig_text).(sec_text);
     
     %% Get agreement and variability for metrics by resection size
     for j = 1:length(nodal_metrics)
@@ -156,7 +157,7 @@ if doPlots == 1
     %title('Variability by subsample size');
     set(gca,'Fontsize',20);
     pause
-    print(gcf,[outFolder,'avg_metrics_',contig_text,sec_text],'-depsc');
+    print(gcf,[outFolder,'avg_metrics_',freq,contig_text,sec_text],'-depsc');
     close(gcf)
 
     %% Plot 80% for all patients
@@ -206,7 +207,7 @@ if doPlots == 1
     ylabel('Relative standard deviation')
     set(gca,'fontsize',20)
     pause
-    print(gcf,[outFolder,'all_pat_80_',contig_text,sec_text],'-depsc');
+    print(gcf,[outFolder,'all_pat_80_',freq,contig_text,sec_text],'-depsc');
     close(gcf)
 
 end

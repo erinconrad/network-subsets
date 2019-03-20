@@ -1,5 +1,10 @@
 function compare_cc(whichPts)
 
+%{
+The purpose of this is to compare the cc's I calculated from the ones John
+calculated. When I ran this on ~25 patients they were the same.
+%}
+
 which_sec = -5;
 
 if isempty(whichPts) == 1

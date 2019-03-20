@@ -2,7 +2,8 @@ function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
     avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm,...
     all_ec,all_clust,all_le,cc_reg] = ...
-    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
+    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,...
+    sync_fake,eff_fake,trans_fake)
 
 %{
 This function resamples the network by removing a fraction of nodes and then
@@ -171,30 +172,19 @@ for f = 1:n_f
         
         % get new synchronizability
         all_sync(f,i_p) = synchronizability(A_temp);
-        sync_fake = nan(100,1);
-        for i = 1:100
-            sync_fake(i) = synchronizability(generate_fake_graph(A_temp));
-        end
-        all_sync_norm(f,i_p) = synchronizability(A_temp)/mean(sync_fake);
+        all_sync_norm(f,i_p) = synchronizability(A_temp)/sync_fake;
         
         % Get new efficiency
         all_eff(f,i_p) = efficiency_wei(A_temp, 0);
-        eff_fake = nan(100,1);
-        for i = 1:100
-            eff_fake(i) = efficiency_wei(generate_fake_graph(A_temp),0);
-        end
-        all_eff_norm(f,i_p) = efficiency_wei(A_temp,0)/mean(eff_fake);
+       
+        all_eff_norm(f,i_p) = efficiency_wei(A_temp,0)/eff_fake;
         
         % Get new local efficiency
         %le = efficiency_wei(A_temp,1);
         
         % get new transitivity
         all_trans(f,i_p) = transitivity_wu(A_temp);
-        trans_fake = nan(100,1);
-        for i = 1:100
-            trans_fake(i) = transitivity_wu(generate_fake_graph(A_temp));
-        end
-        all_trans_norm(f,i_p) = transitivity_wu(A_temp)/mean(trans_fake);
+        all_trans_norm(f,i_p) = transitivity_wu(A_temp)/(trans_fake);
         
         % get new eigenvector centrality
         ec = eigenvector_centrality_und(A_temp);

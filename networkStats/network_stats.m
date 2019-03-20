@@ -14,6 +14,7 @@ To do:
 - double check all code
 - correlate nodal variability with number of electrodes
 - confirm stats
+- look at temporal sensitivity of cc
 
 
 %}
@@ -233,7 +234,8 @@ for whichPt = whichPts
     for i = 1:100
         sync_fake(i) = synchronizability(generate_fake_graph(A));
     end
-    sync_norm = sync/mean(sync_fake);
+    m_sync_fake = mean(sync_fake);
+    sync_norm = sync/m_sync_fake;
 
     %% Get true betweenness centrality
     bc = betweenness_centrality(A,1);
@@ -260,7 +262,8 @@ for whichPt = whichPts
     for i = 1:100
         eff_fake(i) = efficiency_wei(generate_fake_graph(A),0);
     end
-    eff_norm = eff/mean(eff_fake);
+    m_eff_fake = mean(eff_fake);
+    eff_norm = eff/m_eff_fake;
     
     %% Get true transitivity
     trans = transitivity_wu(A);
@@ -268,7 +271,8 @@ for whichPt = whichPts
     for i = 1:100
         trans_fake(i) = transitivity_wu(generate_fake_graph(A));
     end
-    trans_norm = trans/mean(trans_fake);
+    m_trans_fake = mean(trans_fake);
+    trans_norm = trans/m_trans_fake;
 
     fprintf('Got true metrics, now resampling network...\n');
     %% Resample network and get new metrics
@@ -278,7 +282,8 @@ for whichPt = whichPts
         all_par,all_trans,avg_par_removed,avg_bc_removed,...
         all_sync_norm,all_eff_norm,all_trans_norm,all_ec,...
         all_clust,all_le,cc_reg] = ...
-        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
+        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,...
+        m_sync_fake,m_eff_fake,m_trans_fake);
 
     %% Initialize SMC and rho arrays for node-level metrics
 

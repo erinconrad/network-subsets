@@ -6,6 +6,7 @@ outFolder = [resultsFolder,'basic_metrics/'];
 
 contig_text = 'contiguous';
 sec_text = 'sec_neg5';
+freq = 'high_gamma';
 
 
 metrics = {'rho_cc','rho_bc','rho_ns','rho_ec','rho_clust',...
@@ -44,8 +45,8 @@ for dist = dist_to_plot
         dist_measure_all = [];
         pt_all = [];
         for i = 1:length(soz)
-            if isempty(soz(i).(contig_text)) == 1, continue; end;
-            base = soz(i).(contig_text).(sec_text);
+            if isempty(soz(i).(freq).(contig_text)) == 1, continue; end
+            base = soz(i).(freq).(contig_text).(sec_text);
             measure = base.(metrics{metric})';
             
             %% If it's a global metric, take absolute value
@@ -105,7 +106,7 @@ for dist = dist_to_plot
         end
         title(sprintf('%s',metric_names{metric}),'Interpreter', 'none');
         set(gca,'fontsize',20)
-        print(gcf,[outFolder,dists{dist},'_',contig_text,sec_text],'-depsc');
+        print(gcf,[outFolder,dists{dist},'_',freq,contig_text,sec_text],'-depsc');
         %}
         
     end

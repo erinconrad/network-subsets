@@ -7,6 +7,7 @@ outFolder = [resultsFolder,'basic_metrics/'];
 
 contig_text = 'random';
 sec_text = 'sec_neg5';
+freq = 'high_gamma';
 
 np = length(stats);
 
@@ -26,10 +27,12 @@ for i = 1:length(stats)
     
     if isempty(stats(i).name) ==1 ,continue; end
     
+    base = stats(i).(freq).(contig_text).(sec_text);
+    
     % Get the most synchronizing electrode
-    single_true(i) = stats(i).(contig_text).(sec_text).min_cc.true';
+    single_true(i) = base.min_cc.true';
     single_names{i} = pt(i).name;
-    single_95{i} = stats(i).(contig_text).(sec_text).min_cc_elecs.single_95';
+    single_95{i} = base.min_cc_elecs.single_95';
     nchs = length(pt(i).new_elecs.electrodes);
     
     % Get the outcome
@@ -43,7 +46,7 @@ for i = 1:length(stats)
     good_outcome(i) = good_outcome_temp;        
     
     % Only do analysis if there were resected electrodes
-    if sum(isnan(stats(i).(contig_text).(sec_text).regional_cc.true)) == 0
+    if sum(isnan(base.regional_cc.true)) == 0
         
         % Get resected electrodes
         resec_temp = pt(i).resec.nums;
@@ -51,12 +54,12 @@ for i = 1:length(stats)
         n_res = length(resec_temp);
         
         % Get the electrodes in the most synchronizing region
-        region_true{i} = stats(i).(contig_text).(sec_text).regional_cc.true';
+        region_true{i} = base.regional_cc.true';
         region_names{i} = pt(i).name;
-        region_95{i} = stats(i).(contig_text).(sec_text).min_cc_elecs.regional_95';
+        region_95{i} = base.min_cc_elecs.regional_95';
         
         % Get electrodes with minimal regional control centrality
-        reg_cc = stats(i).(contig_text).(sec_text).cc_reg.true;
+        reg_cc = base.cc_reg.true;
         [~,reg_cc_sorted_chs] = sort(reg_cc);
         min_reg_cc{i} = reg_cc_sorted_chs(1:n_res);
         
@@ -124,6 +127,7 @@ fprintf(['The mean ratio of electrodes in the 95%% CI for the most\n'...
 %% Make plots
 %% Individual plots
 for i = 1:length(stats)
+    base = stats(i).(freq).(contig_text).(sec_text);
     locs = pt(i).new_elecs.locs;
     
     if isempty(pt(i).resec) == 1, continue; end
@@ -131,7 +135,7 @@ for i = 1:length(stats)
     name = pt(i).name;
     pt_folder = [outFolder,name,'/'];
     ex_regional = [];
-    true = stats(i).(contig_text).(sec_text).regional_cc.true';
+    true = base.regional_cc.true';
     ex_regional = [ex_regional;true];
     
     
@@ -147,7 +151,7 @@ for i = 1:length(stats)
     
     for j = [70 80 90 95]
         count = count + 1;
-        elecs = stats(i).(contig_text).(sec_text).min_cc_elecs.(sprintf('regional_%d',j))';
+        elecs = base.min_cc_elecs.(sprintf('regional_%d',j))';
         elecs(ismember(elecs,ex_regional)) = [];
         ex_regional = [ex_regional;elecs];
         c=colormap(parula(5));
@@ -180,6 +184,7 @@ count = 0;
 
 for text = {'single','regional'}
     for i = [1 4 7]
+        base = stats(i).(freq).(contig_text).(sec_text);
         count = count + 1;
         %if count == 3, count =  count+ 1; end
 
@@ -194,10 +199,10 @@ for text = {'single','regional'}
         ex_single = [];
         ex_regional = [];
         if strcmp(text,'single') == 1
-            true1 = stats(i).(contig_text).(sec_text).min_cc.true';
+            true1 = base.min_cc.true';
             ex_single = [ex_single;true1];
         else
-            true1 = stats(i).(contig_text).(sec_text).regional_cc.true';
+            true1 = base.regional_cc.true';
             ex_regional = [ex_regional;true1];
         end
         col_one = ones(size(true1,1),1).*c(1,:);
@@ -206,7 +211,7 @@ for text = {'single','regional'}
         
         for j = [70 80 90 95]
             new_count = new_count + 1;
-            elecs = stats(i).(contig_text).(sec_text).min_cc_elecs.([text{1},sprintf('_%d',j)])';
+            elecs = base.min_cc_elecs.([text{1},sprintf('_%d',j)])';
             if strcmp(text,'single') == 1
                 elecs(ismember(elecs,ex_single)) = [];
                 ex_single = [ex_single;elecs];
@@ -269,8 +274,8 @@ for text = {'single','regional'}
 
 end
 
-print(gcf,[outFolder,'pc_95_cc_',contig_text,sec_text],'-depsc');
-print(gcf,[outFolder,'pc_95_cc_',contig_text,sec_text],'-dpng');
+print(gcf,[outFolder,'pc_95_cc_',freq,contig_text,sec_text],'-depsc');
+print(gcf,[outFolder,'pc_95_cc_',freq,contig_text,sec_text],'-dpng');
 
 
 
