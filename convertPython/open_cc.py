@@ -6,7 +6,7 @@ def open_cc_f(file,whichsec):
     data = np.load(file)
 
     # get list
-    a = data[:,1].tolist()
+    a = data[:,whichsec].tolist()
     
     return a
 
