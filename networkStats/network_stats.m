@@ -10,31 +10,10 @@ specified fractions of electrodes, and then gets statistics on how the
 network measures change.
 
 
-Stuff to add:
-- get other network metrics 
-    - path length
-    (https://www.sciencedirect.com/science/article/pii/S1388245715012584)
-    - clustering coefficient
-    (https://www.sciencedirect.com/science/article/pii/S1388245715012584)
-    - node heterogeneity
-    - epileptor model - The Virtual Brain
-
-- take number N of resected electrodes and randomly move them around so
-still N contiguous electrodes and recalculate the control centrality of
-the "resected region"
-
-- which adjacency matrices to use?
-    - 5 seconds before
-    - right at seizure onset
-    - 10 seconds after
-- aim3/results/patientID/aim3/multiband - minutes long, nchxnchxTxfband
-- multiple freq bands
-    - start with high gamma
-
-- brain connectivity toolbox
-
-- lkini/aim3/results/PATIENT/aim3 - ictal.1.noderes.npz;
-ictal.1.cres.longtingae.npz
+To do:
+- double check all code
+- correlate nodal variability with number of electrodes
+- confirm stats
 
 
 %}
@@ -47,7 +26,7 @@ tic
 % do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis
 
 doSave = 1;
-doPlots = 1;
+doPlots = 0;
 
 % add to existing stats array? Or re-write with new stats array?
 merge = 1;
@@ -62,8 +41,6 @@ else
 end
 n_f = length(e_f);
 
-% Which freq?
-freq = 'high_gamma';
 
 
 %% Load Stuff
@@ -101,11 +78,16 @@ else
     end
 end
 
+freq_cell = {'high_gamma','beta'};
 
 %% Loop through patients, times, and whether contig or random electrodes
-for which_sec = [-5 0] % 0 means start time of the seizure, -5 is 5 seconds before
-for contig = contigs %1 means semi-contiguous set of electrodes, 0 means random electrodes
+for f = 1:length(freq_cell)
+    freq = freq_cell{f};
+for which_sec = [-5 0 5] % 0 means start time of the seizure, -5 is 5 seconds before
+for contig = contigs %1 means contiguous set of electrodes, 0 means random electrodes
 
+    
+    
 % Loop through patients
 for whichPt = whichPts
     
@@ -113,7 +95,7 @@ for whichPt = whichPts
         continue
     end
     
-    if do_soz_analysis == 1
+    if contigs == 1
         % Here, not taking random samples, but rather systematically going
         % through all contiguous chunks
         n_perm = length(pt(whichPt).new_elecs.electrodes);
@@ -149,23 +131,31 @@ for whichPt = whichPts
             stats = soz;
         end
         if length(stats) >= whichPt
-            if isfield(stats(whichPt),(contig_text)) == 1
-                if isfield(stats(whichPt).(contig_text),(sec_text)) == 1
-                    
-                    fprintf('Did %s, skipping\n',name);
-                   % continue
-                end
-            end 
+            if isfield(stats(whichPt),(freq)) == 1
+                if isfield(stats(whichPt).(freq),(contig_text)) == 1
+                    if isfield(stats(whichPt).(freq).(contig_text),(sec_text)) == 1
+
+                        fprintf('Did %s, skipping\n',name);
+                        continue
+                    end
+                end 
+            end
         end
     end
 
     %% Get adjacency matrix
     [adj,~] = reconcileAdj(pt,whichPt);
 
+    %% Get appropriate frequency band
     if strcmp(freq,'high_gamma') == 1
         A_all = adj(4).data;
         if contains(adj(4).name,'highgamma') == 0
             error('This isn''t gamma!'\n');
+        end
+    elseif strcmp(freq,'beta') == 1
+        A_all = adj(2).data;
+        if contains(adj(2).name,'beta') == 0
+            error('This isn''t beta!\n');
         end
     end
 
@@ -239,8 +229,11 @@ for whichPt = whichPts
 
     %% Get true synchronizability
     sync = synchronizability(A);
-    sync_fake = synchronizability(generate_fake_graph(A));
-    sync_norm = sync/sync_fake;
+    sync_fake = nan(100,1);
+    for i = 1:100
+        sync_fake(i) = synchronizability(generate_fake_graph(A));
+    end
+    sync_norm = sync/mean(sync_fake);
 
     %% Get true betweenness centrality
     bc = betweenness_centrality(A,1);
@@ -263,13 +256,19 @@ for whichPt = whichPts
 
     %% Get true global efficiency and efficiency for fake network
     eff = efficiency_wei(A, 0);
-    eff_fake = efficiency_wei(generate_fake_graph(A),0);
-    eff_norm = eff/eff_fake;
+    eff_fake = nan(100,1);
+    for i = 1:100
+        eff_fake(i) = efficiency_wei(generate_fake_graph(A),0);
+    end
+    eff_norm = eff/mean(eff_fake);
     
     %% Get true transitivity
     trans = transitivity_wu(A);
-    trans_norm = trans/...
-            transitivity_wu(generate_fake_graph(A));
+    trans_fake = nan(100,1);
+    for i = 1:100
+        trans_fake(i) = transitivity_wu(generate_fake_graph(A));
+    end
+    trans_norm = trans/mean(trans_fake);
 
     fprintf('Got true metrics, now resampling network...\n');
     %% Resample network and get new metrics
@@ -279,7 +278,7 @@ for whichPt = whichPts
         all_par,all_trans,avg_par_removed,avg_bc_removed,...
         all_sync_norm,all_eff_norm,all_trans_norm,all_ec,...
         all_clust,all_le,cc_reg] = ...
-        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,do_soz_analysis);
+        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
 
     %% Initialize SMC and rho arrays for node-level metrics
 
@@ -435,20 +434,20 @@ for whichPt = whichPts
         stats(whichPt).name = name;
  
         % control centrality
-        stats(whichPt).(contig_text).(sec_text).cc.true = c_c;
-        stats(whichPt).(contig_text).(sec_text).cc.rel_std = cc_rel_std;
-        stats(whichPt).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.true = c_c;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_std = cc_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
         
         % regional control centrality
-        stats(whichPt).(contig_text).(sec_text).cc_reg.true = cc_regional;
-        stats(whichPt).(contig_text).(sec_text).cc_reg.rel_std = cc_reg_rel_std;
-        stats(whichPt).(contig_text).(sec_text).cc_reg.rho_mean = rho_mean_cc_reg;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.true = cc_regional;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel_std = cc_reg_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rho_mean = rho_mean_cc_reg;
         
         % Most synchronizing electrode
-        stats(whichPt).(contig_text).(sec_text).min_cc.true = min_cc_true;
+        stats(whichPt).(freq).(contig_text).(sec_text).min_cc.true = min_cc_true;
         
         % Electrodes in most synchronizing contiguous region
-        stats(whichPt).(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
+        stats(whichPt).(freq).(contig_text).(sec_text).regional_cc.true = elecs_regional_min;
         
         % Electrodes in various percentiles of most synchronizing electrode
         % and region across resampling
@@ -461,45 +460,45 @@ for whichPt = whichPts
             else
                 elecs_regional = nan;
             end
-            stats(whichPt).(contig_text).(sec_text).min_cc_elecs.(single_text) = elecs_single;
-            stats(whichPt).(contig_text).(sec_text).min_cc_elecs.(reg_text) = elecs_regional;
+            stats(whichPt).(freq).(contig_text).(sec_text).min_cc_elecs.(single_text) = elecs_single;
+            stats(whichPt).(freq).(contig_text).(sec_text).min_cc_elecs.(reg_text) = elecs_regional;
         end
 
         % node strength
-        stats(whichPt).(contig_text).(sec_text).ns.rel_std = ns_rel_std;
-        stats(whichPt).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
+        stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_std = ns_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
 
         % betweenness centrality
-        stats(whichPt).(contig_text).(sec_text).bc.rel_std = bc_rel_std;
-        stats(whichPt).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
+        stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_std = bc_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
         
         % Participation coeff
-        stats(whichPt).(contig_text).(sec_text).par.rel_std = par_rel_std;
-        stats(whichPt).(contig_text).(sec_text).par.rho_mean = rho_mean_par;
+        stats(whichPt).(freq).(contig_text).(sec_text).par.rel_std = par_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).par.rho_mean = rho_mean_par;
         
         % Eigenvector centrality
-        stats(whichPt).(contig_text).(sec_text).ec.rel_std = ec_rel_std;
-        stats(whichPt).(contig_text).(sec_text).ec.rho_mean = rho_mean_ec;
+        stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_std = ec_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).ec.rho_mean = rho_mean_ec;
         
         % Local efficiency
        % stats(whichPt).(contig_text).(sec_text).le.rel_std = le_rel_std;
        % stats(whichPt).(contig_text).(sec_text).le.rho_mean = rho_mean_le;
         
         % clustering coefficient
-        stats(whichPt).(contig_text).(sec_text).clust.rel_std = clust_rel_std;
-        stats(whichPt).(contig_text).(sec_text).clust.rho_mean = rho_mean_clust;
+        stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_std = clust_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).clust.rho_mean = rho_mean_clust;
 
         % synchronizability
-        stats(whichPt).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
-        stats(whichPt).(contig_text).(sec_text).sync.true = sync;
-        stats(whichPt).(contig_text).(sec_text).sync.rel_diff = rel_sync;
-        stats(whichPt).(contig_text).(sec_text).sync.rel_diff_norm = rel_sync_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.true = sync;
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.rel_diff = rel_sync;
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.rel_diff_norm = rel_sync_norm;
         
         % transitivity
-        stats(whichPt).(contig_text).(sec_text).trans.std = std(all_trans,0,2);
-        stats(whichPt).(contig_text).(sec_text).trans.true = trans;
-        stats(whichPt).(contig_text).(sec_text).trans.rel_diff = rel_trans;
-        stats(whichPt).(contig_text).(sec_text).trans.rel_diff_norm = rel_trans_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.std = std(all_trans,0,2);
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.true = trans;
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.rel_diff = rel_trans;
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.rel_diff_norm = rel_trans_norm;
 
         % efficiency
         stats(whichPt).(contig_text).(sec_text).eff.std = std(all_eff,0,2);
@@ -514,32 +513,32 @@ for whichPt = whichPts
         %% Do the analysis of dependence of agreement on distance from important things
        
         % Nodal
-        soz(whichPt).(contig_text).(sec_text).rho_cc = rho_cc;
-        soz(whichPt).(contig_text).(sec_text).rho_bc = rho_bc;
-        soz(whichPt).(contig_text).(sec_text).rho_ns = rho_ns;
-        soz(whichPt).(contig_text).(sec_text).rho_ec = rho_ec;
-        soz(whichPt).(contig_text).(sec_text).rho_par = rho_par;
-        soz(whichPt).(contig_text).(sec_text).rho_clust = rho_clust;
-        soz(whichPt).(contig_text).(sec_text).rho_cc_reg = rho_cc_reg;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_cc = rho_cc;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_bc = rho_bc;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_ns = rho_ns;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_ec = rho_ec;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_par = rho_par;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_clust = rho_clust;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_cc_reg = rho_cc_reg;
        % soz(whichPt).(contig_text).(sec_text).rho_le = rho_le;
         
         % Global
-        soz(whichPt).(contig_text).(sec_text).sync = rel_sync;
-        soz(whichPt).(contig_text).(sec_text).eff = rel_eff;
-        soz(whichPt).(contig_text).(sec_text).trans = rel_trans;
-        soz(whichPt).(contig_text).(sec_text).dist_soz = dist_soz;
-        soz(whichPt).(contig_text).(sec_text).dist_resec = dist_resec;
-        soz(whichPt).(contig_text).(sec_text).overlap_soz = overlap_soz;
-        soz(whichPt).(contig_text).(sec_text).overlap_resec = overlap_resec;
-        soz(whichPt).(contig_text).(sec_text).par_removed = avg_par_removed;
-        soz(whichPt).(contig_text).(sec_text).bc_removed = avg_bc_removed;
+        soz(whichPt).(freq).(contig_text).(sec_text).sync = rel_sync;
+        soz(whichPt).(freq).(contig_text).(sec_text).eff = rel_eff;
+        soz(whichPt).(freq).(contig_text).(sec_text).trans = rel_trans;
+        soz(whichPt).(freq).(contig_text).(sec_text).dist_soz = dist_soz;
+        soz(whichPt).(freq).(contig_text).(sec_text).dist_resec = dist_resec;
+        soz(whichPt).(freq).(contig_text).(sec_text).overlap_soz = overlap_soz;
+        soz(whichPt).(freq).(contig_text).(sec_text).overlap_resec = overlap_resec;
+        soz(whichPt).(freq).(contig_text).(sec_text).par_removed = avg_par_removed;
+        soz(whichPt).(freq).(contig_text).(sec_text).bc_removed = avg_bc_removed;
         
-        soz(whichPt).(contig_text).(sec_text).rho_cc_resec = rho_cc_resec;
-        soz(whichPt).(contig_text).(sec_text).rho_bc_resec = rho_bc_resec;
-        soz(whichPt).(contig_text).(sec_text).rho_ns_resec = rho_ns_resec;
-        soz(whichPt).(contig_text).(sec_text).rho_par_resec = rho_par_resec;
-        soz(whichPt).(contig_text).(sec_text).rho_ec_resec = rho_ec_resec;
-        soz(whichPt).(contig_text).(sec_text).rho_clust_resec = rho_clust_resec;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_cc_resec = rho_cc_resec;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_bc_resec = rho_bc_resec;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_ns_resec = rho_ns_resec;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_par_resec = rho_par_resec;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_ec_resec = rho_ec_resec;
+        soz(whichPt).(freq).(contig_text).(sec_text).rho_clust_resec = rho_clust_resec;
        % soz(whichPt).(contig_text).(sec_text).rho_le_resec = rho_le_resec;
         if doSave == 1
             save([resultsFolder,'basic_metrics/soz.mat'],'soz');
@@ -696,6 +695,7 @@ for whichPt = whichPts
     
 end
 
+end
 end
 end
 

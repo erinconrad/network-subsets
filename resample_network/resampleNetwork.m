@@ -2,7 +2,7 @@ function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
     avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm,...
     all_ec,all_clust,all_le,cc_reg] = ...
-    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,do_soz_analysis)
+    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
 
 %{
 This function resamples the network by removing a fraction of nodes and then
@@ -124,11 +124,10 @@ for f = 1:n_f
         if contig == 0 % random electrodes
             which_elecs = randperm(nch,e_n(f));
         elseif contig == 1 % random electrodes close to each other
-            if do_soz_analysis == 1
-                which_elecs = pickConChs(locs,e_n(f),0,0,do_soz_analysis,i_p);
-            else
-                which_elecs = pickConChs(locs,e_n(f),0,20,do_soz_analysis,0);
-            end
+            
+            which_elecs = pickConChs(locs,e_n(f),0,0,i_p);
+            
+            
         end
         
         %% Compare electrodes to SOZ and resection zone
@@ -172,21 +171,30 @@ for f = 1:n_f
         
         % get new synchronizability
         all_sync(f,i_p) = synchronizability(A_temp);
-        all_sync_norm(f,i_p) = synchronizability(A_temp)/...
-            synchronizability(generate_fake_graph(A_temp));
+        sync_fake = nan(100,1);
+        for i = 1:100
+            sync_fake(i) = synchronizability(generate_fake_graph(A_temp));
+        end
+        all_sync_norm(f,i_p) = synchronizability(A_temp)/mean(sync_fake);
         
         % Get new efficiency
         all_eff(f,i_p) = efficiency_wei(A_temp, 0);
-        all_eff_norm(f,i_p) = efficiency_wei(A_temp, 0)/...
-            efficiency_wei(generate_fake_graph(A_temp),0);
+        eff_fake = nan(100,1);
+        for i = 1:100
+            eff_fake(i) = efficiency_wei(generate_fake_graph(A_temp,0));
+        end
+        all_eff_norm(f,i_p) = efficiency_wei(A_temp,0)/mean(eff_fake);
         
         % Get new local efficiency
         %le = efficiency_wei(A_temp,1);
         
         % get new transitivity
         all_trans(f,i_p) = transitivity_wu(A_temp);
-        all_trans_norm(f,i_p) = transitivity_wu(A_temp)/...
-            transitivity_wu(generate_fake_graph(A_temp));
+        trans_fake = nan(100,1);
+        for i = 1:100
+            trans_fake(i) = transitivity_wu(generate_fake_graph(A_temp));
+        end
+        all_trans_norm(f,i_p) = transitivity_wu(A_temp)/mean(trans_fake);
         
         % get new eigenvector centrality
         ec = eigenvector_centrality_und(A_temp);
