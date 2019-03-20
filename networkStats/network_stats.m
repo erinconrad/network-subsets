@@ -436,7 +436,7 @@ for whichPt = whichPts
        
         %% Fill up structures
         stats(whichPt).name = name;
- 
+         
         % control centrality
         stats(whichPt).(freq).(contig_text).(sec_text).cc.true = c_c;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_std = cc_rel_std;
@@ -505,10 +505,10 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).trans.rel_diff_norm = rel_trans_norm;
 
         % efficiency
-        stats(whichPt).(contig_text).(sec_text).eff.std = std(all_eff,0,2);
-        stats(whichPt).(contig_text).(sec_text).eff.true = eff;
-        stats(whichPt).(contig_text).(sec_text).eff.rel_diff = rel_eff;
-        stats(whichPt).(contig_text).(sec_text).eff.rel_diff_norm = rel_eff_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.std = std(all_eff,0,2);
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.true = eff;
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.rel_diff = rel_eff;
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.rel_diff_norm = rel_eff_norm;
 
         if doSave == 1
             save([resultsFolder,'basic_metrics/stats.mat'],'stats');
