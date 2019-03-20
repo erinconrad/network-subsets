@@ -1,6 +1,6 @@
 function compare_cc(true_cc_all,whichPt)
 
-which_sec = 0;
+which_sec = -5;
 
 %% Load Stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
@@ -31,11 +31,13 @@ subplot(1,2,1)
 scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
 scatter3(locs(:,1),locs(:,2),locs(:,3),100,cc,'filled');
 set(gca,'clim',prctile(cc,[10 90]));
+colorbar
 
 subplot(1,2,2)
 scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
-scatter3(locs(:,1),locs(:,2),locs(:,3),100,true_cc,'filled');
-set(gca,'clim',prctile(true_cc,[10 90]));
+scatter3(locs(:,1),locs(:,2),locs(:,3),100,cc./true_cc,'filled');
+set(gca,'clim',prctile(cc./true_cc,[10 90]));
+colorbar
 
 
 end
