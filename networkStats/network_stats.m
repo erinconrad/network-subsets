@@ -33,6 +33,9 @@ the "resected region"
 
 - brain connectivity toolbox
 
+- lkini/aim3/results/PATIENT/aim3 - ictal.1.noderes.npz;
+ictal.1.cres.longtingae.npz
+
 
 %}
 
@@ -180,6 +183,24 @@ for whichPt = whichPts
     
     % Get locations
     locs = pt(whichPt).new_elecs.locs; % all electrode locations
+    
+    %% Second order control centrality
+    %{
+    socc = second_order_cc(A);
+    
+    figure
+    subplot(2,1,1)
+    scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
+    hold on
+    scatter3(locs(:,1),locs(:,2),locs(:,3),100,c_c,'filled');
+    set(gca,'clim',prctile(c_c,[10 90]));
+    
+    subplot(2,1,2)
+    scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k');
+    hold on
+    scatter3(locs(:,1),locs(:,2),locs(:,3),100,1./socc,'filled');
+    set(gca,'clim',prctile(1./socc,[10 90]));
+    %}
     
     %% Regional control centrality
     

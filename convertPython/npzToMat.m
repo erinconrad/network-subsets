@@ -4,7 +4,7 @@ mod = py.importlib.import_module('open_adj');
 py.reload(mod);
 
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
-    pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+    pwfile,dataFolder,bctFolder,mainFolder,adjFolder] = resectFileLocs;
 baseFolder = [mainFolder,'/data/adjacencyMatrices/'];
 
 if isempty(whichPts) == 1

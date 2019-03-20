@@ -5,7 +5,7 @@ pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'basic_metrics/'];
 
 
-contig_text = 'contiguous';
+contig_text = 'random';
 sec_text = 'sec_neg5';
 
 np = length(stats);
