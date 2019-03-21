@@ -82,8 +82,8 @@ end
 freq_cell = {'high_gamma','beta'};
 
 %% Loop through patients, times, and whether contig or random electrodes
-for f = 1:length(freq_cell)
-    freq = freq_cell{f};
+for ff = 1:length(freq_cell)
+    freq = freq_cell{ff};
 for which_sec = [-5 0 5] % 0 means start time of the seizure, -5 is 5 seconds before
 for contig = contigs %1 means contiguous set of electrodes, 0 means random electrodes
 
@@ -96,7 +96,7 @@ for whichPt = whichPts
         continue
     end
     
-    if contigs == 1
+    if contig == 1
         % Here, not taking random samples, but rather systematically going
         % through all contiguous chunks
         n_perm = length(pt(whichPt).new_elecs.electrodes);
