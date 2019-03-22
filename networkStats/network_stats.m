@@ -419,6 +419,7 @@ for whichPt = whichPts
         %% Nodal measure of variability
         % Nodal measure: relative std (std across permuations divided by
         % std across electrodes)
+        %{
         cc_rel_std = rel_std_nodal(all_c_c,c_c);
         ns_rel_std = rel_std_nodal(all_ns,ns);
         bc_rel_std = rel_std_nodal(all_bc,bc);
@@ -427,11 +428,19 @@ for whichPt = whichPts
         clust_rel_std = rel_std_nodal(all_clust,clust);
         cc_reg_rel_std = rel_std_nodal(cc_reg,cc_regional);
        % le_rel_std = rel_std_nodal(all_le,le);
+        %}
+        
+        % Reliability
+        cc_rel = reliability_nodal(all_c_c,c_c);
+        ns_rel = reliability_nodal(all_ns,ns);
+        bc_rel = reliability_nodal(all_bc,bc);
+        par_rel = reliability_nodal(all_par,par);
+        ec_rel = reliability_nodal(all_ec,ec);
+        clust_rel = reliability_nodal(all_clust,clust);
+        cc_reg_rel = reliability_nodal(cc_reg,cc_regional);
         
         %% Global measures
-        % Global measures: we will do relative std (std across
-        % permutations divided by std across patients). And so we will
-        % record the standard deviation for now.
+        % Global measures: we will do global reliability
         
        
         %% Fill up structures
@@ -469,19 +478,19 @@ for whichPt = whichPts
         end
 
         % node strength
-        stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_std = ns_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).ns.rel = ns_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
 
         % betweenness centrality
-        stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_std = bc_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).bc.rel = bc_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
         
         % Participation coeff
-        stats(whichPt).(freq).(contig_text).(sec_text).par.rel_std = par_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).par.rel = par_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).par.rho_mean = rho_mean_par;
         
         % Eigenvector centrality
-        stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_std = ec_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).ec.rel = ec_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rho_mean = rho_mean_ec;
         
         % Local efficiency
@@ -489,7 +498,7 @@ for whichPt = whichPts
        % stats(whichPt).(contig_text).(sec_text).le.rho_mean = rho_mean_le;
         
         % clustering coefficient
-        stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_std = clust_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).clust.rel = clust_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rho_mean = rho_mean_clust;
 
         % synchronizability
