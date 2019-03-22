@@ -4,6 +4,7 @@ function new_cc_comparison(stats,pt)
 contig_text = 'random';
 sec_text = 'sec_neg5';
 freq = 'high_gamma';
+do_individ_plots = 0;
 
 %% Locations
 
@@ -13,7 +14,7 @@ outFolder = [resultsFolder,'basic_metrics/'];
 
 np = length(stats);
 
-%% Get data
+%% Initialize arrays
 single_true = nan(np,1);
 region_true =cell(np,1);
 single_95 = cell(np,1);
@@ -25,6 +26,7 @@ ds = nan(np,1);
 good_outcome = nan(np,1);
 min_reg_cc = cell(np,1);
 
+% Loop through patients
 for i = 1:length(stats)
     
     if isempty(stats(i).name) ==1 ,continue; end
@@ -61,9 +63,11 @@ for i = 1:length(stats)
         region_95{i} = base.min_cc_elecs.regional_95';
         
         % Get electrodes with minimal regional control centrality
+        %{
         reg_cc = base.cc_reg.true;
         [~,reg_cc_sorted_chs] = sort(reg_cc);
         min_reg_cc{i} = reg_cc_sorted_chs(1:n_res);
+        %}
         
         % Get dice score to examine overlap between resected electrodes and
         % most synchronizing electrodes
@@ -103,7 +107,8 @@ no_overlap_outcome = good_outcome(no_overlap);
                 2*ones(length(no_overlap_outcome),1)],...
                 [yes_overlap_outcome;no_overlap_outcome]);
 
-
+fprintf(['Chi2 comparing number of people with good outcome among those\n'...
+    'with overlap and those without: p = %1.3f, chi2 = %1.2f\n'],p,chi2);
 
 % Get the number of electrodes in the 95% CI for single min cc
 num_single_95 = cellfun(@length,single_95);
@@ -125,9 +130,23 @@ fprintf(['The mean ratio of electrodes in the 95%% CI for the most\n'...
     'synchronizing region to true synchronizing region is %1.1f, range %1.1f-%1.1f\n'],nanmean(mult_region_95),...
     min(mult_region_95),max(mult_region_95));
 
+%% Compare number of electrodes and ratio of electrodes in 95% CI with outcome
+
+% Number
+[p,~,stats1] = ranksum(num_region_95(good_outcome==1),num_region_95(good_outcome==0));
+fprintf(['Mean number of electrodes in 95%% CI for good outcome is %1.2f and bad outcome %1.2f.\n'...
+    'Wilcoxon rank sum: p = %1.2f, ranksum = %d.\n'],nanmean(num_region_95(good_outcome==1)),...
+    nanmean(num_region_95(good_outcome==0)),p,stats1.ranksum);
+
+% Ratio
+[p,~,stats1] = ranksum(mult_region_95(good_outcome==1),mult_region_95(good_outcome==0));
+fprintf(['Mean ratio of electrodes in 95%% CI for good outcome is %1.2f and bad outcome %1.2f.\n'...
+    'Wilcoxon rank sum: p = %1.2f, ranksum = %d.\n'],nanmean(mult_region_95(good_outcome==1)),...
+    nanmean(mult_region_95(good_outcome==0)),p,stats1.ranksum);
 
 %% Make plots
 %% Individual plots
+if do_individ_plots == 1
 for i = 1:length(stats)
     base = stats(i).(freq).(contig_text).(sec_text);
     locs = pt(i).new_elecs.locs;
@@ -176,6 +195,7 @@ for i = 1:length(stats)
     %print(gcf,[pt_folder,'most_sync_',contig_text,sec_text],'-depsc');
     close(gcf)
 end
+end
 
 %% 3 patient plot
 figure
@@ -193,8 +213,8 @@ for text = {'single','regional'}
         locs = pt(i).new_elecs.locs;
         resec = locs(pt(i).resec.nums,:);
         axes(ha(count))
-        scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k','linewidth',2);
-        hold on
+        
+        %hold on
         new_count = 0;
         pl = zeros(6,1);
         c = colormap(parula(5));
@@ -210,6 +230,7 @@ for text = {'single','regional'}
         col_one = ones(size(true1,1),1).*c(1,:);
         pl(1)=scatter3(locs(true1,1),locs(true1,2),locs(true1,3),...
                 100,col_one,'filled');
+        hold on
         
         for j = [70 80 90 95]
             new_count = new_count + 1;
@@ -238,8 +259,10 @@ for text = {'single','regional'}
  
         end
         
-        scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k','linewidth',2);
+        
+        
         pl(6) = scatter3(resec(:,1),resec(:,2),resec(:,3),15,'k','filled');
+        scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k','linewidth',2);
         if count == 3
             legend(pl,{'True','70%','80%','90%','95%','Resected'},'Position',[0.91 0.75 0.05 0.2],...
                 'box','on');
@@ -249,24 +272,8 @@ for text = {'single','regional'}
         end
 
         
-        annotation('textbox',[0 0.7 0.1 0.1],'String',...
-    sprintf('Most\nsynchronizing\nelectrode'),'LineStyle','none','fontsize',20);
-
-        annotation('textbox',[0 0.22 0.1 0.1],'String',...
-    sprintf('Most\nsynchronizing\nregion'),'LineStyle','none','fontsize',20);
-
-        annotation('textbox',[0.18 0.9 0.1 0.1],'String',...
-    sprintf('Patient 1'),'LineStyle','none','fontsize',20);
-
-        annotation('textbox',[0.48 0.9 0.1 0.1],'String',...
-    sprintf('Patient 2'),'LineStyle','none','fontsize',20);
-
-
-        annotation('textbox',[0.77 0.9 0.1 0.1],'String',...
-    sprintf('Patient 3'),'LineStyle','none','fontsize',20);
-        
+       
         set(gca,'fontsize',20)
-
         xticklabels([])
         yticklabels([])
         zticklabels([])
@@ -275,6 +282,23 @@ for text = {'single','regional'}
     end
 
 end
+ annotation('textbox',[0 0.7 0.1 0.1],'String',...
+sprintf('Most\nsynchronizing\nelectrode'),'LineStyle','none','fontsize',20);
+
+    annotation('textbox',[0 0.22 0.1 0.1],'String',...
+sprintf('Most\nsynchronizing\nregion'),'LineStyle','none','fontsize',20);
+
+    annotation('textbox',[0.18 0.9 0.1 0.1],'String',...
+sprintf('Patient 1'),'LineStyle','none','fontsize',20);
+
+    annotation('textbox',[0.48 0.9 0.1 0.1],'String',...
+sprintf('Patient 2'),'LineStyle','none','fontsize',20);
+
+
+    annotation('textbox',[0.77 0.9 0.1 0.1],'String',...
+sprintf('Patient 3'),'LineStyle','none','fontsize',20);
+
+    set(gca,'fontsize',20)
 
 print(gcf,[outFolder,'pc_95_cc_',freq,contig_text,sec_text],'-depsc');
 print(gcf,[outFolder,'pc_95_cc_',freq,contig_text,sec_text],'-dpng');
