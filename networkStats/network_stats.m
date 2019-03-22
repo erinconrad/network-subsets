@@ -13,9 +13,7 @@ network measures change.
 To do:
 - double check all code
 - correlate nodal variability with number of electrodes
-- confirm stats
 - look at temporal sensitivity of cc
-
 
 %}
 
@@ -23,16 +21,15 @@ tic
 
 
 %% Parameters
-
-% do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis
-
 doSave = 1;
 doPlots = 0;
 
 % add to existing stats array? Or re-write with new stats array?
 merge = 1;
 
-% What fraction of nodes to retain
+% do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis
+% e_f: What fraction of nodes to retain
+% contigs: 1 means contiguous set of electrodes, 0 means random electrodes
 if do_soz_analysis == 1
     e_f = 0.8;
     contigs = 1;
@@ -79,26 +76,27 @@ else
     end
 end
 
+% which frequencies to do
 freq_cell = {'high_gamma','beta'};
 
-%% Loop through patients, times, and whether contig or random electrodes
+%% Loop through patients, times, frequencies, and whether contig or random electrodes
 for ff = 1:length(freq_cell)
     freq = freq_cell{ff};
-for which_sec = [-5 0 5] % 0 means start time of the seizure, -5 is 5 seconds before
-for contig = contigs %1 means contiguous set of electrodes, 0 means random electrodes
+for which_sec = [-5 0 5] % 0 means EEC, -5 is 5 seconds before
+for contig = contigs 
 
-    
     
 % Loop through patients
 for whichPt = whichPts
     
+ 
     if unique(pt(whichPt).new_elecs.locs) == -1
         continue
     end
     
     if contig == 1
         % Here, not taking random samples, but rather systematically going
-        % through all contiguous chunks
+        % through each electrode and its N nearest neighbors
         n_perm = length(pt(whichPt).new_elecs.electrodes);
     else
         n_perm = 1e2;
@@ -160,6 +158,7 @@ for whichPt = whichPts
         end
     end
 
+    %% Get which time
     % Start with the middle and add which second
     A = squeeze(A_all(ceil(size(A_all,1)/2)+which_sec,:,:));
 
@@ -194,7 +193,8 @@ for whichPt = whichPts
     %}
     
     %% Regional control centrality
-    
+    % the change in synchronizability when you remove an electrode and its
+    % N nearest neighbors, where N = the number of resected electrodes
     if isempty(pt(whichPt).resec) == 0
         
         % Get number of resected electrodes
@@ -230,6 +230,10 @@ for whichPt = whichPts
 
     %% Get true synchronizability
     sync = synchronizability(A);
+    
+    % Control for graph size by dividing by an average fake graph of the
+    % same size, obtained by permuting entries of the upper triangular of
+    % the true A, and reflecting over to get an undirected graph.
     sync_fake = nan(100,1);
     for i = 1:100
         sync_fake(i) = synchronizability(generate_fake_graph(A));
@@ -265,7 +269,7 @@ for whichPt = whichPts
     m_eff_fake = mean(eff_fake);
     eff_norm = eff/m_eff_fake;
     
-    %% Get true transitivity
+    %% Get true transitivity and normalized transitivity
     trans = transitivity_wu(A);
     trans_fake = nan(100,1);
     for i = 1:100
@@ -274,7 +278,9 @@ for whichPt = whichPts
     m_trans_fake = mean(trans_fake);
     trans_norm = trans/m_trans_fake;
 
+    
     fprintf('Got true metrics, now resampling network...\n');
+    
     %% Resample network and get new metrics
     % all_c_c is nch x n_f x n_perm size matrix
     [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
@@ -284,7 +290,7 @@ for whichPt = whichPts
         all_clust,all_le,cc_reg] = ...
         resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
 
-    %% Initialize SMC and rho arrays for node-level metrics
+    %% Initialize arrays to compare old to new metrics
 
     % Control centrality stuff
     rho_cc = zeros(n_f,n_perm);
@@ -323,7 +329,7 @@ for whichPt = whichPts
     %% Loop over each fraction and get various stats
     for f = 1:n_f
 
-        
+        % The metrics for that number of removed electrodes
         c_c_f = squeeze(all_c_c(:,f,:));
         ns_f = squeeze(all_ns(:,f,:));
         bc_f = squeeze(all_bc(:,f,:));
@@ -335,6 +341,8 @@ for whichPt = whichPts
         
         % Loop over each permutation
         for i_p = 1:n_perm
+            
+            % The metrics for that specific permutation
             c_c_f_p = squeeze(c_c_f(:,i_p));
             ns_f_p = squeeze(ns_f(:,i_p));
             bc_f_p = squeeze(bc_f(:,i_p));
@@ -448,12 +456,12 @@ for whichPt = whichPts
          
         % control centrality
         stats(whichPt).(freq).(contig_text).(sec_text).cc.true = c_c;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_std = cc_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.rel = cc_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
         
         % regional control centrality
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.true = cc_regional;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel_std = cc_reg_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel = cc_reg_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rho_mean = rho_mean_cc_reg;
         
         % Most synchronizing electrode

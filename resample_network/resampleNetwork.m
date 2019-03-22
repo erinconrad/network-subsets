@@ -34,9 +34,10 @@ nch = size(A,1);
 
 % What fractions of electrodes to take = e_f
 e_n = nch-ceil(e_f*nch);
-n_f = length(e_f);
+n_f = length(e_f); % number of electrodes to ignore
 
 %% Ensure that all electrodes in loc are in adjacency matrix
+% It should be perfectly aligned
 for i = 1:length(pt(whichPt).new_elecs.electrodes)
     e_name = pt(whichPt).new_elecs.electrodes(i).name;
     found_it = 0;
@@ -123,7 +124,9 @@ for f = 1:n_f
         % (e_n is nch - n_f(f))
         if contig == 0 % random electrodes
             which_elecs = randperm(nch,e_n(f));
-        elseif contig == 1 % random electrodes close to each other
+        elseif contig == 1 
+            % the e_n nearest neighbors, NOT RANDOM AT ALL because I am not
+            % adding jitter and I am looping through channel by channel
             
             which_elecs = pickConChs(locs,e_n(f),0,0,i_p);
             
@@ -132,11 +135,21 @@ for f = 1:n_f
         
         %% Compare electrodes to SOZ and resection zone
         [overlap_soz_t,dist_soz_t] = compare_elecs(which_elecs,soz,locs,doPlot);
+        % Get distance from SOZ and overlap with SOZ
+        
         if isempty(resec) == 0
             [overlap_resec_t,dist_resec_t] = compare_elecs(which_elecs,resec,locs,doPlot);
+            % Get distance from resection zone and overlap with resection
+            % zone
         else
             overlap_resec_t = nan; dist_resec_t = nan;
         end
+        
+        % Note that dist_resec(f,i_p) tells us the average distance between
+        % the e_n nearest neighbors to channel i_p (because in the SOZ
+        % analysis n_perm is the number of channels and we are looping
+        % though each channel one by one) and the resection zone. We are
+        % ignoring those e_n channels
         overlap_soz(f,i_p) = overlap_soz_t;
         dist_soz(f,i_p) = dist_soz_t;
         overlap_resec(f,i_p) = overlap_resec_t;
@@ -146,14 +159,18 @@ for f = 1:n_f
         avg_par_removed(f,i_p) = mean(true_par(which_elecs));
         avg_bc_removed(f,i_p) = mean(true_bc(which_elecs));
         
-        % Remove the electrodes from the new adjacency matrix
+        %% Remove the electrodes from the new adjacency matrix
+        % Note that this is one of the trickiest parts of this and the most
+        % susceptible to error. I need to keep track of WHICH channels I am
+        % reporting the updated nodal measures on.
         A_temp = A;
         ch_ids = 1:nch;
         A_temp(which_elecs,:) = [];
         A_temp(:,which_elecs) = [];
         ch_ids(which_elecs) = [];
         
-        % Get new control centrality
+        % Get new control centrality of remaining electrodes in the new
+        % network
         c_c = control_centrality(A_temp);
         
         % Get new node strength
@@ -171,6 +188,10 @@ for f = 1:n_f
         
         % get new synchronizability
         all_sync(f,i_p) = synchronizability(A_temp);
+        
+        % To normalize it, generate fake matrix just once, for the first
+        % permutation, and use the same fake matrix each time. (Then
+        % re-make it when drop to a new number of removed electrodes).
         if i_p == 1
             sync_fake = nan(100,1);
             for i = 1:100
@@ -240,6 +261,11 @@ for f = 1:n_f
         
         
         % Populate the node-specific metrics
+        % If there were 10 electrodes to start, and I ignored 3 and 8, then
+        % ch_ids would be [1 2 4 5 6 7 9 10]. When i is 3, then this
+        % corresponds to ch_ids(3) = 4, and so I would be reporting nodal
+        % metrics for original channel number 4 (which is channel number 3
+        % in the resampled network).
         for i = 1:length(ch_ids)
             all_c_c(ch_ids(i),f,i_p) = c_c(i);
             all_ns(ch_ids(i),f,i_p) = ns(i);

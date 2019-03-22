@@ -1,16 +1,15 @@
 function out_chs = pickConChs(locs,n,plotStuff,jitter,i)
 
 %{
-The goal of this function is to select a random group of n more or less
-contiguous electrodes. It picks a random channel, and then sorts all
-channels based on their distance from this channel, and then it selects the
-closest n of them. It also adds some random jitter to the distances so that
-it gets random groups of electrodes.
+The goal of this function is to select 
+contiguous electrodes. It takes the indicated channel i and returns its n
+nearest neigbors.
+
+Jitter is 0 and so there is no randomness.
 
 %}
 
 %% Parameters
-% jitter: 0-10 nearly contiguous; 100+ very discontiguous
 
 chs = 1:size(locs,1);
 
