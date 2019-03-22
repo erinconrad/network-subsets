@@ -1,13 +1,15 @@
 function new_cc_comparison(stats,pt)
 
-[electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
-pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
-outFolder = [resultsFolder,'basic_metrics/'];
-
-
+%% Parameters
 contig_text = 'random';
 sec_text = 'sec_neg5';
 freq = 'high_gamma';
+
+%% Locations
+
+[electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
+pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+outFolder = [resultsFolder,'basic_metrics/'];
 
 np = length(stats);
 

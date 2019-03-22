@@ -448,7 +448,8 @@ for whichPt = whichPts
         cc_reg_rel = reliability_nodal(cc_reg,cc_regional);
         
         %% Global measures
-        % Global measures: we will do global reliability
+        % Global measures: we will do global reliability so for now store
+        % the std across permutations
         
        
         %% Fill up structures
@@ -547,6 +548,8 @@ for whichPt = whichPts
         soz(whichPt).(freq).(contig_text).(sec_text).sync = rel_sync;
         soz(whichPt).(freq).(contig_text).(sec_text).eff = rel_eff;
         soz(whichPt).(freq).(contig_text).(sec_text).trans = rel_trans;
+        
+        % Distance from/overlap with SOZ/resection zone
         soz(whichPt).(freq).(contig_text).(sec_text).dist_soz = dist_soz;
         soz(whichPt).(freq).(contig_text).(sec_text).dist_resec = dist_resec;
         soz(whichPt).(freq).(contig_text).(sec_text).overlap_soz = overlap_soz;
@@ -554,6 +557,7 @@ for whichPt = whichPts
         soz(whichPt).(freq).(contig_text).(sec_text).par_removed = avg_par_removed;
         soz(whichPt).(freq).(contig_text).(sec_text).bc_removed = avg_bc_removed;
         
+        % Agreement of nodal measures for electrodes in resection zone
         soz(whichPt).(freq).(contig_text).(sec_text).rho_cc_resec = rho_cc_resec;
         soz(whichPt).(freq).(contig_text).(sec_text).rho_bc_resec = rho_bc_resec;
         soz(whichPt).(freq).(contig_text).(sec_text).rho_ns_resec = rho_ns_resec;
@@ -725,6 +729,7 @@ toc
 
 end
 
+% No longer used
 function rel_std = rel_std_nodal(perm_metric,true_metric)
     
     % The average across electrodes of the std across permutations

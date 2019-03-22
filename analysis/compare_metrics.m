@@ -1,14 +1,20 @@
 function compare_metrics(stats)
 
+%% Parameters
+contig_text = 'random';
+sec_text = 'sec_neg5';
+freq = 'high_gamma';
+doPlots = 1;
+
+%% Locations
 
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'basic_metrics/'];
 
-doPlots = 1;
 
 %% Initialize arrays
-nodal_metrics = {'cc','cc_reg','ns','bc','ec','clust'};
+nodal_metrics = {'cc','ns','bc','ec','clust'};
 global_metrics = {'sync','eff','trans'};
 ef = [20 40 60 80 100];
 
@@ -22,6 +28,7 @@ ag_global = nan(np,length(global_metrics),length(ef));
 std_global = nan(np,length(global_metrics),length(ef));
 true_global = nan(np,length(global_metrics));
 
+% Loop through patients
 for i = 1:length(stats)
     
     if isempty(stats(i).name) == 1, continue; end
@@ -29,17 +36,12 @@ for i = 1:length(stats)
     names = [names;stats(i).name];
     [num_idx_s] = regexp(stats(i).name,'\d+');
     name_nums = [name_nums;stats(i).name(num_idx_s:end)];
-    
-    %% Look at contiguous and -5 seconds
-    contig_text = 'random';
-    sec_text = 'sec_neg5';
-    freq = 'high_gamma';
-    
+
     base = stats(i).(freq).(contig_text).(sec_text);
     
-    %% Get agreement and variability for metrics by resection size
+    %% Get agreement and reliability for metrics by resection size
     for j = 1:length(nodal_metrics)
-        var_nodal(i,j,:) = base.(nodal_metrics{j}).rel_std;
+        var_nodal(i,j,:) = base.(nodal_metrics{j}).rel;
         ag_nodal(i,j,:) = base.(nodal_metrics{j}).rho_mean';
     end
     
@@ -94,39 +96,52 @@ if doPlots == 1
 
     % Nodal metrics
     figure
-    set(gcf,'Position',[174 207 1136 582])
-    [ha, pos] = tight_subplot(2, 2, [0.07 0.1], [0.1 0.06],[0.11 0.02]);
+    set(gcf,'Position',[174 207 1300 582])
+    pos_f = get(gcf,'Position');
+    [ha, pos] = tight_subplot(2, 2, [0.07 0.07], [0.1 0.06],[0.11 0.02]);
     % Average agreement
     axes(ha(1))
     for j = 1:size(avg_ag_nodal,1)
          scatter(ef,avg_ag_nodal(j,:),200,'filled');
          hold on
     end
+    %{
     legend('Control centrality','Regional control centrality',...
         'Node strength','Betweenness centrality',...
         'Eigenvector centrality','Clustering coefficient',...
         'location','southeast');
+    %}
     %xlabel('Percent nodes retained');
-    ylabel({'Spearman rank correlation',...
+    ylabel({'NODAL METRICS','','Spearman rank correlation',...
         'with original'})
     title('Average agreement by subsample size');
     set(gca,'Fontsize',20);
 
     % Variability
     axes(ha(2))
+    nd = zeros(size(avg_ag_nodal,1),1);
     for j = 1:size(avg_ag_nodal,1)
-         scatter(ef,avg_var_nodal(j,:),200,'filled');
+       nd(j) = scatter(ef,avg_var_nodal(j,:),200,'filled');
          hold on
     end
+    %{
     legend('Control centrality','Regional control centrality',...
         'Node strength','Betweenness centrality',...
         'Eigenvector centrality','Clustering coefficient',...
-        'location','northeast');
+        'location','northeastoutside');
+    %}
     %xlabel('Percent nodes retained');
-    ylabel({'Relative standard deviation'})
-    title('Variability by subsample size');
+    ylabel({'Reliability'})
+    title('Reliability by subsample size');
     set(gca,'Fontsize',20);
-
+    
+   % axes(ha(3))
+    legend(nd,{'Control centrality',...
+        'Node strength','Betweenness centrality',...
+        'Eigenvector centrality','Clustering coefficient'},'Location',...
+        'southeast');
+    legend boxoff
+   % set(gca,'Fontsize',20);
 
     % Global metrics
     % Average agreement
@@ -135,29 +150,99 @@ if doPlots == 1
          scatter(ef,avg_ag_global(j,:),200,'filled');
          hold on
     end
+    %{
     legend('Synchronizability','Global efficiency','Transitivity',...
         'location','northeast');
+    %}
     xlabel('Percent nodes retained');
-    ylabel({'Relative difference',...
+    ylabel({'GLOBAL METRICS','','Relative difference',...
         'from original'})
     %title('Average agreement by subsample size');
     set(gca,'Fontsize',20);
 
 
     % Variability
+    gl = zeros(size(avg_ag_global,1),1);
     axes(ha(4))
     for j = 1:size(avg_ag_global,1)
-         scatter(ef,avg_var_global(j,:),200,'filled');
+         gl(j) = scatter(ef,avg_var_global(j,:),200,'filled');
          hold on
     end
+    %{
     legend('Synchronizability','Global efficiency','Transitivity',...
-        'location','northeast');
+        'location','northeastoutside');
+    %}
     xlabel('Percent nodes retained');
-    ylabel({'Relative standard deviation'})
+    ylabel({'Reliability'})
     %title('Variability by subsample size');
     set(gca,'Fontsize',20);
+    
+   % axes(ha(6))
+    legend(gl,{'Synchronizability','Global efficiency','Transitivity'},'Location',...
+        'southeast');
+    legend boxoff
+    %set(gca,'Fontsize',20);
+    
     pause
     print(gcf,[outFolder,'avg_metrics_',freq,contig_text,sec_text],'-depsc');
+    close(gcf)
+    
+    %% Just reliability
+    figure
+    set(gcf,'Position',[174 207 1300 350])
+    pos_f = get(gcf,'Position');
+    [ha, pos] = tight_subplot(1, 2, [0.07 0.06], [0.17 0.1],[0.05 0.02]);
+    
+    % Variability
+    axes(ha(1))
+    nd = zeros(size(avg_ag_nodal,1),1);
+    for j = 1:size(avg_ag_nodal,1)
+       nd(j) = scatter(ef,avg_var_nodal(j,:),200,'filled');
+         hold on
+    end
+    %{
+    legend('Control centrality','Regional control centrality',...
+        'Node strength','Betweenness centrality',...
+        'Eigenvector centrality','Clustering coefficient',...
+        'location','northeastoutside');
+    %}
+    xlabel('Percent nodes retained');
+    ylabel({'Reliability'})
+   % title('Reliability by subsample size','Position',[0.1 0.1 0.1 0.1]);
+    set(gca,'Fontsize',20);
+    
+   % axes(ha(3))
+    legend(nd,{'Control centrality',...
+        'Node strength','Betweenness centrality',...
+        'Eigenvector centrality','Clustering coefficient'},'Location',...
+        'southeast');
+    legend boxoff
+    
+    gl = zeros(size(avg_ag_global,1),1);
+    axes(ha(2))
+    for j = 1:size(avg_ag_global,1)
+         gl(j) = scatter(ef,avg_var_global(j,:),200,'filled');
+         hold on
+    end
+    %{
+    legend('Synchronizability','Global efficiency','Transitivity',...
+        'location','northeastoutside');
+    %}
+    xlabel('Percent nodes retained');
+   % ylabel({'Reliability'})
+    %title('Variability by subsample size');
+    set(gca,'Fontsize',20);
+    
+   % axes(ha(6))
+    legend(gl,{'Synchronizability','Global efficiency','Transitivity'},'Location',...
+        'southeast');
+    legend boxoff
+    annotation('textbox',[0.40 0.915 0.1 0.1],'String',...
+        'Reliability by subsample size','FontSize',25,'linestyle','none',...
+        'fontweight','bold');
+    
+    pause
+    print(gcf,[outFolder,'avg_reliability_',freq,contig_text,sec_text],'-depsc');
     close(gcf)
 
     %% Plot 80% for all patients
@@ -179,14 +264,16 @@ if doPlots == 1
             hold on
         end
     end
-    legend('Control centrality','Regional control centrality',...
+    legend('Control centrality',...
         'Node strength','Betweenness centrality',...
-        'Eigenvector centrality','Clustering coefficient');
+        'Eigenvector centrality','Clustering coefficient','location',...
+        'southeast');
+    legend boxoff
     xticks(1:length(names))
     %xlabel('Which patient')
-    ylabel('Relative standard deviation')
+    ylabel('Reliability')
     set(gca,'fontsize',20)
-    title('Variability of metric when 20% of network removed');
+    title('Reliability of metric when 20% of network removed','fontsize',25);
     %xticklabels(name_nums)
 
 
@@ -201,10 +288,12 @@ if doPlots == 1
             hold on
         end
     end
-    legend('Synchronizability','Global efficiency','Transitivity');
+    legend('Synchronizability','Global efficiency','Transitivity','location',...
+        'southeast');
+    legend boxoff
     xticks(1:length(names))
     xlabel('Which patient')
-    ylabel('Relative standard deviation')
+    ylabel('Reliability')
     set(gca,'fontsize',20)
     pause
     print(gcf,[outFolder,'all_pat_80_',freq,contig_text,sec_text],'-depsc');
