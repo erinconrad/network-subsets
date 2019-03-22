@@ -448,12 +448,12 @@ for whichPt = whichPts
          
         % control centrality
         stats(whichPt).(freq).(contig_text).(sec_text).cc.true = c_c;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_std = cc_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_std = cc_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
         
         % regional control centrality
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.true = cc_regional;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel_std = cc_reg_rel_std;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel_std = cc_reg_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rho_mean = rho_mean_cc_reg;
         
         % Most synchronizing electrode

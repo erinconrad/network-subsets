@@ -52,7 +52,7 @@ for i = 1:length(stats)
    
 end
 
-%% Get var_global (relative std by dividing by std across patients)
+%% Get reliability for global metrics
 var_global = std_global./nanstd(true_global,0,1);
 
 %% Average over patients
