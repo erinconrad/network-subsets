@@ -53,7 +53,7 @@ for i = 1:length(stats)
 end
 
 %% Get reliability for global metrics
-var_global = std_global./nanstd(true_global,0,1);
+var_global = global_reliability(std_global,nanstd(true_global,0,1));
 
 %% Average over patients
 avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
