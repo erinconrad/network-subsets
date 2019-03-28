@@ -10,7 +10,7 @@ do_individ_plots = 0;
 
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
-outFolder = [resultsFolder,'basic_metrics/'];
+outFolder = [resultsFolder,'cc_comparison/'];
 
 np = length(stats);
 

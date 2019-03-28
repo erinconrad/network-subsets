@@ -82,7 +82,7 @@ freq_cell = {'high_gamma','beta'};
 %% Loop through patients, times, frequencies, and whether contig or random electrodes
 for ff = 1:length(freq_cell)
     freq = freq_cell{ff};
-for which_sec = [-5 0 5] % 0 means EEC, -5 is 5 seconds before
+for which_sec = [0 -10 -5 5 10] % 0 means EEC, -5 is 5 seconds before
 for contig = contigs 
 
     
@@ -298,21 +298,25 @@ for whichPt = whichPts
 
     % Betweenness centrality stuff
     rho_bc = zeros(n_f,n_perm);
+    most_bc = zeros(n_f,n_perm);
 
     % Node strength centrality stuff
     rho_ns = zeros(n_f,n_perm);
+    most_ns = zeros(n_f,n_perm);
     
     % Participation coefficient stuff
     rho_par = zeros(n_f,n_perm);
     
     % Eigenvalue centality stuff
     rho_ec = zeros(n_f,n_perm);
+    most_ec = zeros(n_f,n_perm);
     
     % Local efficiency stuff
     rho_le = zeros(n_f,n_perm);
     
     % Clustering coefficient stuff
     rho_clust = zeros(n_f,n_perm);
+    most_clust = zeros(n_f,n_perm);
     
     % Regional control centrality
     rho_cc_reg = zeros(n_f,n_perm);
@@ -358,6 +362,11 @@ for whichPt = whichPts
             % tell the surgeons to resect)
             [~,ch_most_sync] = min(c_c_f_p);
             most_sync(f,i_p) = ch_most_sync;
+            
+            [~,most_ns(f,i_p)] = max(ns_f_p);
+            [~,most_bc(f,i_p)] = max(ns_f_p);
+            [~,most_ec(f,i_p)] = max(ns_f_p);
+            [~,most_clust(f,i_p)] = max(ns_f_p);
             
 
             %% Do Spearman rank for nodal measures
@@ -484,6 +493,12 @@ for whichPt = whichPts
             end
             stats(whichPt).(freq).(contig_text).(sec_text).min_cc_elecs.(single_text) = elecs_single;
             stats(whichPt).(freq).(contig_text).(sec_text).min_cc_elecs.(reg_text) = elecs_regional;
+            
+            stats(whichPt).(freq).(contig_text).(sec_text).cc.(single_text) = get_perc_elecs(most_sync(4,:),i);
+            stats(whichPt).(freq).(contig_text).(sec_text).ns.(single_text) = get_perc_elecs(most_ns(4,:),i);
+            stats(whichPt).(freq).(contig_text).(sec_text).bc.(single_text) = get_perc_elecs(most_bc(4,:),i);
+            stats(whichPt).(freq).(contig_text).(sec_text).ec.(single_text) = get_perc_elecs(most_ec(4,:),i);
+            stats(whichPt).(freq).(contig_text).(sec_text).clust.(single_text) = get_perc_elecs(most_clust(4,:),i);
         end
 
         % node strength
@@ -527,6 +542,12 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).eff.true = eff;
         stats(whichPt).(freq).(contig_text).(sec_text).eff.rel_diff = rel_eff;
         stats(whichPt).(freq).(contig_text).(sec_text).eff.rel_diff_norm = rel_eff_norm;
+        
+        
+        % Save all global measures
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.all = all_sync(4,:);
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.all = all_eff(4,:);
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.all = all_trans(4,:);
 
         if doSave == 1
             save([resultsFolder,'basic_metrics/stats.mat'],'stats');
