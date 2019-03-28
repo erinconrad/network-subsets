@@ -1,8 +1,8 @@
 function compare_metrics(stats)
 
 %% Parameters
-contig_text = 'random';
-sec_text = 'sec_neg5';
+contig_text = 'random'; %usually want this
+sec_text = 'sec_0';
 freq = 'high_gamma';
 doPlots = 1;
 

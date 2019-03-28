@@ -502,8 +502,15 @@ for whichPt = whichPts
             stats(whichPt).(freq).(contig_text).(sec_text).ec.(single_text) = get_perc_elecs(most_ec(4,:),i);
             stats(whichPt).(freq).(contig_text).(sec_text).clust.(single_text) = get_perc_elecs(most_clust(4,:),i);
         end
+        
+        [~,stats(whichPt).(freq).(contig_text).(sec_text).ns.true] = max(ns);
+        [~,stats(whichPt).(freq).(contig_text).(sec_text).bc.true] = max(bc);
+        [~,stats(whichPt).(freq).(contig_text).(sec_text).ec.true] = max(ec);
+        [~,stats(whichPt).(freq).(contig_text).(sec_text).clust.true] = max(clust);
+
 
         % node strength
+        
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rel = ns_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
 

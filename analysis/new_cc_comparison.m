@@ -2,7 +2,7 @@ function new_cc_comparison(stats,pt)
 
 %% Parameters
 contig_text = 'random';
-sec_text = 'sec_neg5';
+sec_text = 'sec_0';
 freq = 'high_gamma';
 do_individ_plots = 0;
 
@@ -199,12 +199,12 @@ end
 
 %% 3 patient plot
 figure
-set(gcf,'Position',[100 100 1100 600]);
-[ha,pos] = tight_subplot(2, 3, [0.01 0.03], [0.02 0.07],[0.12 0.08]);
+set(gcf,'Position',[100 100 1100 1000]);
+[ha,pos] = tight_subplot(3, 3, [0.01 0.03], [0.02 0.07],[0.12 0.08]);
 %delete(ha(3))
 count = 0;
 
-for text = {'single','regional'}
+for text = {'ns','min_cc_elecs'}
     for i = [1 4 7]
         base = stats(i).(freq).(contig_text).(sec_text);
         count = count + 1;
@@ -220,8 +220,8 @@ for text = {'single','regional'}
         c = colormap(parula(5));
         ex_single = [];
         ex_regional = [];
-        if strcmp(text,'single') == 1
-            true1 = base.min_cc.true';
+        if strcmp(text,'ns') == 1
+            true1 = base.(text).true';
             ex_single = [ex_single;true1];
         else
             true1 = base.regional_cc.true';
