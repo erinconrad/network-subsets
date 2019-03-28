@@ -8,14 +8,14 @@ ex_pts = [1,8]; % example patients to plot correlations for
 metrics_to_plot = 1:8;%1:8;
 dist_to_plot = 2; % probably shouldn't change (this is distance from resection zone)
 
-metrics = {'rho_cc','rho_bc','rho_ns','rho_ec','rho_clust',...
-    'eff','sync','trans',...
+metrics = {'rho_cc','rho_ns','rho_bc','rho_ec','rho_clust',...
+    'sync','eff','trans',...
     'rho_cc_resec','rho_bc_resec','rho_ns_resec'};
 dists = {'dist_soz','dist_resec','overlap_soz','overlap_resec','par_removed',...
     'bc_removed'};
-metric_names = {'Control centrality','Betweenness centrality','Node strength',...
+metric_names = {'Control centrality','Node strength','Betweenness centrality',...
     'Eigenvector centrality','Clustering coefficient'...
-    'Global efficiency','Synchronizability','Transitivity',...
+    'Synchronizability','Global efficiency','Transitivity',...
     'Resection control centrality','Resection betweenness centrality',...
     'Resection node strength'};
 dist_names = {'from seizure onset zone','from resection zone',...
@@ -246,7 +246,36 @@ pause
 print(gcf,[outFolder,'box_plot_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
 close(gcf)
 
+%% Violin plot
+figure
+set(gcf,'Position',[174 207 1300 350])
+violin(M)
+hold on
+xticks(1:length(all_rho_pts))
+xticklabels(metric_names(metrics_to_plot))
+xlim([0.7 length(all_rho) + 0.3])
+title({'Association between metric accuracy and','distance of ignored electrodes from resection zone'})
+ylabel('Distance-agreement correlation');
+set(gca,'fontsize',20)
+fix_xticklabels(gca,0.1,{'FontSize',20});
+plot(get(gca,'xlim'),[0 0],'k--','linewidth',2);
+scatter(sig_locs_x + 0.15, sig_locs_y + 0.4,300,'*','k');
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left+0.01 bottom + 0.1 ax_width-0.02 ax_height-0.1];
+pause
+print(gcf,[outFolder,'violin_plot_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
+close(gcf)
+
+
 table(metrics(metrics_to_plot)',all_rho,all_t,all_p)
+
+
 
 %{
 figure
