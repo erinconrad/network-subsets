@@ -1,8 +1,12 @@
 function compare_soz_resec(soz,pt)
 
+
+
 %% Parameters
-sec_text = 'sec_neg5';
-freq = 'high_gamma';
+doPlot = 0;
+all_freq = {'high_gamma','beta'};
+all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};%fieldnames(soz(1).high_gamma.contiguous);
+contig_text = 'contiguous'; % Should only do contiguous for this
 
 ex_pts = [1,8]; % example patients to plot correlations for
 metrics_to_plot = 1:8;%1:8;
@@ -24,17 +28,34 @@ dist_names = {'from seizure onset zone','from resection zone',...
     'Average betweenness centrality of ignored electrodes'};
 global_metric = [0 0 0 0 0 1 1 1 0 0 0];
 
-
-%% Don't change
-% Should only do contiguous for this
-contig_text = 'contiguous';
-
 %% Locations
-
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'agreement_dist/'];
 
+%% Initialize cross time, freq, etc. comparisons
+t_all = nan(length(metrics_to_plot),length(all_sec),...
+    length(all_freq));
+p_all = nan(length(metrics_to_plot),length(all_sec),...
+    length(all_freq));
+t_text = cell(length(metrics_to_plot),length(all_sec),...
+    length(all_freq));
+
+
+%{
+% Should only do contiguous for this
+
+sec_text = 'sec_0';
+freq = 'high_gamma';
+    %}
+
+
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
+    
+
+sec_text = all_sec{sec_idx};
+freq = all_freq{freq_idx};
 measure_1 = [];
 measure_2 = [];
 dist_1 = [];
@@ -55,6 +76,7 @@ for dist = dist_to_plot
 
         for i = 1:length(soz)
             if isempty(soz(i).(freq)) == 1, continue; end
+            if isfield(soz(i).(freq).(contig_text),sec_text) == 0, continue; end
             base = soz(i).(freq).(contig_text).(sec_text);
             
             % Get the agreement metric. For global measures this is the
@@ -62,7 +84,7 @@ for dist = dist_to_plot
             % for nodal measures this is the SRC.
             measure = base.(metrics{metric})';
             
-            %% If it's a global metric, take absolute value
+            %% If it's a global metric, take absolute value and make negative
             % This is because I am just interested in the absolute
             % difference from the true value; negative to make it go in the
             % same direction as nodal measure (higher = more agreement)
@@ -198,19 +220,94 @@ for dist = dist_to_plot
     end
 end
 
-sig_locs_x = find(all_p < 0.05);
-sig_locs_y = 0.9*ones(length(sig_locs_x),1);
+t_all(:,sec_idx,freq_idx) = all_t;
+p_all(:,sec_idx,freq_idx) = all_p;
+for i = 1:size(all_t)
+    if all_p(i) < 0.001/length(metrics_to_plot)
+        extra = '***';
+    elseif all_p(i) < 0.01/length(metrics_to_plot)
+        extra = '**';
+    elseif all_p(i) < 0.05/length(metrics_to_plot)
+        extra = '*';
+    else
+        extra = '';
+    end
+    t_text{i,sec_idx,freq_idx} = sprintf('%1.2f%s',all_t(i),extra);
+end
 
-figure
-set(gcf,'Position',[174 207 1300 350])
-for i = 1:length(all_rho_pts)
-    scatter(i*ones(size(all_rho_pts{i},1),1)+0.05*randn(size(all_rho_pts{i},1),1)...
-        ,all_rho_pts{i},...
-       100,'MarkerEdgeColor',[0 0.4470 0.7410])
-    hold on
-    scatter(i,all_rho(i),300,'filled','d','MarkerEdgeColor',[0 0.4470 0.7410],...
-        'MarkerFaceColor',[0 0.4470 0.7410]);
+end
+end
+
+
+table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
+    char(t_text(:,4,1)),char(t_text(:,5,1)),'VariableNames',all_sec)%,...
+   % 'RowNames',metrics(1:8))
+%}
+
+% For sec_0, high_gamma, plot t scores and p values
+%{
+table(t_text(:,3,1),p_all(:,3,1),'RowNames',metrics(1:8))
+%}
+
+squeeze(t_all(:,3,:))
+squeeze(p_all(:,3,:))
+
+
+%% Set high_gamma and compare times
+
+if doPlot == 1
+
     
+    sig_locs_x = find(all_p < 0.05);
+    sig_locs_y = 0.9*ones(length(sig_locs_x),1);
+    stars = cell(length(metrics_to_plot),1);
+    for i = 1:length(stars)
+        if all_p(i) < 0.001/length(metrics_to_plot)
+            stars{i} = '***';
+        elseif all_p(i) < 0.01/length(metrics_to_plot)
+            stars{i} = '**';
+        elseif all_p(i) < 0.05/length(metrics_to_plot)
+            stars{i} = '*';
+        else
+            stars{i} = '';
+        end
+    end
+
+    %{
+    figure
+    set(gcf,'Position',[174 207 1300 350])
+    for i = 1:length(all_rho_pts)
+        scatter(i*ones(size(all_rho_pts{i},1),1)+0.05*randn(size(all_rho_pts{i},1),1)...
+            ,all_rho_pts{i},...
+           100,'MarkerEdgeColor',[0 0.4470 0.7410])
+        hold on
+        scatter(i,all_rho(i),300,'filled','d','MarkerEdgeColor',[0 0.4470 0.7410],...
+            'MarkerFaceColor',[0 0.4470 0.7410]);
+
+        xticks(1:length(all_rho_pts))
+        xticklabels(metric_names(metrics_to_plot))
+        xlim([0.7 length(all_rho) + 0.3])
+        title({'Association between metric accuracy and','distance of ignored electrodes from resection zone'})
+        ylabel('Distance-agreement correlation');
+        set(gca,'fontsize',20)
+        fix_xticklabels(gca,0.1,{'FontSize',20});
+    end
+    plot(get(gca,'xlim'),[0 0],'color',[0.8500 0.3250 0.0980],'linewidth',2);
+    for i = 1:length(stars)
+        text(i + 0.15, 0.9 + 0.01,stars{i},'fontsize',10);
+    end
+    pause
+    print(gcf,[outFolder,'all_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
+    close(gcf)
+
+    % convert all_rho_pts to matrix
+    M = cell2mat(all_rho_pts');
+
+    %% Box plot
+    figure
+    set(gcf,'Position',[174 207 1300 350])
+    boxplot(M)
+    hold on
     xticks(1:length(all_rho_pts))
     xticklabels(metric_names(metrics_to_plot))
     xlim([0.7 length(all_rho) + 0.3])
@@ -218,60 +315,45 @@ for i = 1:length(all_rho_pts)
     ylabel('Distance-agreement correlation');
     set(gca,'fontsize',20)
     fix_xticklabels(gca,0.1,{'FontSize',20});
+    plot(get(gca,'xlim'),[0 0],'color',[0.8500 0.3250 0.0980],'linewidth',2);
+    scatter(sig_locs_x + 0.15, sig_locs_y + 0.01,300,'*','k');
+    pause
+    print(gcf,[outFolder,'box_plot_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
+    close(gcf)
+%}
+
+     % convert all_rho_pts to matrix
+    M = cell2mat(all_rho_pts');
+    %% Violin plot
+    figure
+    set(gcf,'Position',[174 207 1300 350])
+    violin(M,1)
+    hold on
+    xticks(1:length(all_rho_pts))
+    xticklabels(metric_names(metrics_to_plot))
+    xlim([0.7 length(all_rho) + 0.3])
+    title({'Association between metric accuracy and','distance of ignored electrodes from resection zone'})
+    ylabel('Distance-agreement correlation');
+    set(gca,'fontsize',20)
+    fix_xticklabels(gca,0.1,{'FontSize',20});
+    plot(get(gca,'xlim'),[0 0],'k--','linewidth',2);
+    for i = 1:length(stars)
+        text(i + 0.15, 0.9 + 0.01,stars{i},'fontsize',50);
+    end
+    ax = gca;
+    outerpos = ax.OuterPosition;
+    ti = ax.TightInset; 
+    left = outerpos(1) + ti(1);
+    bottom = outerpos(2) + ti(2);
+    ax_width = outerpos(3) - ti(1) - ti(3);
+    ax_height = outerpos(4) - ti(2) - ti(4);
+    ax.Position = [left+0.01 bottom + 0.1 ax_width-0.02 ax_height-0.1];
+    pause
+    print(gcf,[outFolder,'violin_plot_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
+    print(gcf,[outFolder,'violin_plot_',freq,'_',sec_text,'_',dists{dist}],'-dpng');
+    close(gcf)
+
 end
-plot(get(gca,'xlim'),[0 0],'color',[0.8500 0.3250 0.0980],'linewidth',2);
-scatter(sig_locs_x + 0.15, sig_locs_y + 0.01,200,'*','k');
-pause
-print(gcf,[outFolder,'all_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
-close(gcf)
-
-% convert all_rho_pts to matrix
-M = cell2mat(all_rho_pts');
-
-%% Box plot
-figure
-set(gcf,'Position',[174 207 1300 350])
-boxplot(M)
-hold on
-xticks(1:length(all_rho_pts))
-xticklabels(metric_names(metrics_to_plot))
-xlim([0.7 length(all_rho) + 0.3])
-title({'Association between metric accuracy and','distance of ignored electrodes from resection zone'})
-ylabel('Distance-agreement correlation');
-set(gca,'fontsize',20)
-fix_xticklabels(gca,0.1,{'FontSize',20});
-plot(get(gca,'xlim'),[0 0],'color',[0.8500 0.3250 0.0980],'linewidth',2);
-scatter(sig_locs_x + 0.15, sig_locs_y + 0.01,300,'*','k');
-pause
-print(gcf,[outFolder,'box_plot_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
-close(gcf)
-
-%% Violin plot
-figure
-set(gcf,'Position',[174 207 1300 350])
-violin(M)
-hold on
-xticks(1:length(all_rho_pts))
-xticklabels(metric_names(metrics_to_plot))
-xlim([0.7 length(all_rho) + 0.3])
-title({'Association between metric accuracy and','distance of ignored electrodes from resection zone'})
-ylabel('Distance-agreement correlation');
-set(gca,'fontsize',20)
-fix_xticklabels(gca,0.1,{'FontSize',20});
-plot(get(gca,'xlim'),[0 0],'k--','linewidth',2);
-scatter(sig_locs_x + 0.15, sig_locs_y + 0.4,300,'*','k');
-ax = gca;
-outerpos = ax.OuterPosition;
-ti = ax.TightInset; 
-left = outerpos(1) + ti(1);
-bottom = outerpos(2) + ti(2);
-ax_width = outerpos(3) - ti(1) - ti(3);
-ax_height = outerpos(4) - ti(2) - ti(4);
-ax.Position = [left+0.01 bottom + 0.1 ax_width-0.02 ax_height-0.1];
-pause
-print(gcf,[outFolder,'violin_plot_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
-close(gcf)
-
 
 table(metrics(metrics_to_plot)',all_rho,all_t,all_p)
 

@@ -1,10 +1,21 @@
 function compare_metrics(stats)
 
+
+
 %% Parameters
+doPlots = 0;
+all_contig = {'random','contiguous'};
+all_freq = {'high_gamma','beta'};
+all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};
+
+
+%% Sub-Parameters
+%{
 contig_text = 'random'; %usually want this
 sec_text = 'sec_0';
 freq = 'high_gamma';
-doPlots = 1;
+%}
+
 
 %% Locations
 
@@ -20,6 +31,25 @@ ef = [20 40 60 80 100];
 
 np = length(stats);
 
+%% Initialize cross time, freq, etc. comparisons
+order_global = nan(length(global_metrics),length(all_sec),...
+    length(all_freq),length(all_contig));
+order_nodal = nan(length(nodal_metrics),length(all_sec),...
+    length(all_freq),length(all_contig));
+
+all_global = nan(length(global_metrics),length(all_sec),...
+    length(all_freq),length(all_contig));
+all_nodal = nan(length(nodal_metrics),length(all_sec),...
+    length(all_freq),length(all_contig));
+
+for contig_idx = 1:length(all_contig)
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
+    
+contig_text = all_contig{contig_idx};
+sec_text = all_sec{sec_idx};
+freq = all_freq{freq_idx};
+    
 names ={};
 name_nums = {};
 ag_nodal = nan(np,length(nodal_metrics),length(ef));
@@ -37,6 +67,7 @@ for i = 1:length(stats)
     [num_idx_s] = regexp(stats(i).name,'\d+');
     name_nums = [name_nums;stats(i).name(num_idx_s:end)];
 
+    if isfield(stats(i).(freq).(contig_text),sec_text) == 0, continue; end
     base = stats(i).(freq).(contig_text).(sec_text);
     
     %% Get agreement and reliability for metrics by resection size
@@ -69,13 +100,23 @@ var_global_80 = var_global(:,:,4);
 
 %% Calculate statistics for variability
 
+% Descriptive stats for global metrics, 80% retained
+for i = 1:length(global_metrics)
+    fprintf(['The mean reliability when retaining 80%% of network for %s\n'...
+        'is %1.3f\n\n'],global_metrics{i},nanmean(var_global_80(:,i)));
+end
+
 % Compare variability when 80% retained for global metrics
 [p,tbl,stats1] = friedman(var_global_80(~isnan(var_global_80(:,1)),:),1,'off');
 fprintf('Friedman test for global metrics: p = %1.1e, chi-squared = %1.1f\n',...
     p, tbl{2,5});
 
 % perform a post-hoc Dunn's test
-%c = multcompare(stats1,'CType','dunn-sidak');
+c = multcompare(stats1,'CType','dunn-sidak','Display','off');
+for i = 1:size(c,1)
+    fprintf('Dunn''s test comparing %s and %s: p = %1.3f\n\n',...
+        global_metrics{c(i,1)},global_metrics{c(i,2)},c(i,6));   
+end
 
 % compare this do doing a signed rank
 [p,~,stats1] = signrank(var_global_80(:,1),var_global_80(:,2));
@@ -90,14 +131,62 @@ fprintf('Sign rank test for sync vs transitivity: p = %1.2e, sign-rank = %d\n',.
 fprintf('Sign rank test for eff vs transitivity: p = %1.2e, sign-rank = %d\n',...
     p, stats1.signedrank);
 
+% Descriptive stats for nodal metrics, 80% retained
+for i = 1:length(nodal_metrics)
+    fprintf(['The mean reliability when retaining 80%% of network for %s\n'...
+        'is %1.2f\n\n'],nodal_metrics{i},nanmean(var_nodal_80(:,i)));
+end
+
 % Compare variability when 80% retained for nodal metrics
 [p,tbl,stats1] = friedman(var_nodal_80(~isnan(var_nodal_80(:,1)),:),1,'off');
 fprintf('Friedman test for nodal metrics: p = %1.1e, chi-squared = %1.1f\n',...
     p, tbl{2,5});
 
-%c = multcompare(stats1,'CType','dunn-sidak');
+% perform a post-hoc Dunn's test
+c = multcompare(stats1,'CType','dunn-sidak','Display','off');
+for i = 1:size(c,1)
+    fprintf('Dunn''s test comparing %s and %s: p = %1.3f\n\n',...
+        nodal_metrics{c(i,1)},nodal_metrics{c(i,2)},c(i,6));   
+end
+%% Order the nodal and global metrics
+% Calculate mean reliability
+mean_rel_global = mean(var_global_80(~isnan(var_global_80(:,1)),:),1);
+mean_rel_nodal = mean(var_nodal_80(~isnan(var_nodal_80(:,1)),:),1);
 
+[~,order_global(:,sec_idx,freq_idx,contig_idx)] = sort(mean_rel_global,'descend'); 
+[~,order_nodal(:,sec_idx,freq_idx,contig_idx)] = sort(mean_rel_nodal,'descend'); 
 
+all_global(:,sec_idx,freq_idx,contig_idx) = mean_rel_global;
+all_nodal(:,sec_idx,freq_idx,contig_idx) = mean_rel_nodal;
+
+end
+end
+end
+
+%% Determine consistency in order
+% Keep random and high gamma, vary time
+order_global(:,:,1,1)
+order_nodal(:,:,1,1)
+
+% Keep time and random, vary freq
+squeeze(order_global(:,1,:,1))
+squeeze(order_nodal(:,1,:,1))
+
+% Keep time and freq, vary random vs contig
+squeeze(order_global(:,1,1,:))
+squeeze(order_nodal(:,1,1,:))
+
+%% Tables for multiple times
+all_global(:,:,1,1)
+all_nodal(:,:,1,1)
+
+%% Tables for beta band
+all_global(:,3,2,1)
+all_nodal(:,3,2,1)
+
+%% Tables for contig removal
+all_global(:,3,1,2)
+all_nodal(:,3,1,2)
 
 %% Plot averages across patients
 if doPlots == 1

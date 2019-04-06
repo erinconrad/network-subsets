@@ -5,6 +5,8 @@ contig_text = 'random';
 sec_text = 'sec_0';
 freq = 'high_gamma';
 do_individ_plots = 0;
+which_texts = {'ns','min_cc_elecs'};
+whichPts = [1 10 21];
 
 %% Locations
 
@@ -90,7 +92,13 @@ for i = 1:length(stats)
 end
 
 %% Do stats
+if strcmp(which_texts{1},'ns') == 1
+    box_text = 'node strength';
+else
+    box_text = '???';
+end
 
+%{
 % Is the dice score for good outcome better than for bad outcome?
 [p,~,stats1] = ranksum(ds(good_outcome==1),ds(good_outcome==0));
 fprintf(['Mean dice score of good outcome is %1.2f and bad outcome %1.2f.\n'...
@@ -143,6 +151,7 @@ fprintf(['Mean number of electrodes in 95%% CI for good outcome is %1.2f and bad
 fprintf(['Mean ratio of electrodes in 95%% CI for good outcome is %1.2f and bad outcome %1.2f.\n'...
     'Wilcoxon rank sum: p = %1.2f, ranksum = %d.\n'],nanmean(mult_region_95(good_outcome==1)),...
     nanmean(mult_region_95(good_outcome==0)),p,stats1.ranksum);
+%}
 
 %% Make plots
 %% Individual plots
@@ -199,13 +208,27 @@ end
 
 %% 3 patient plot
 figure
-set(gcf,'Position',[100 100 1100 1000]);
+set(gcf,'Position',[100 100 1100 700]);
 [ha,pos] = tight_subplot(3, 3, [0.01 0.03], [0.02 0.07],[0.12 0.08]);
+del = 0.02;
+%{
+set(ha(7),'position',[pos{4}(1), pos{7}(2), pos{5}(1) - pos{4}(1) + ...
+    pos{5}(3)/2 - del, pos{7}(4)]);
+set(ha(8),'position',[pos{5}(1) + pos{5}(3)/2 + del, pos{7}(2),...
+    pos{5}(1) - pos{4}(1) + pos{5}(3)/2 - del, pos{7}(4)]);
+%}
+set(ha(7),'position',[pos{4}(1), pos{7}(2), (pos{5}(1) - pos{4}(1) + ...
+    pos{5}(3)/2)*2, pos{7}(4)]);
+delete(ha(8))
+
+delete(ha(9))
 %delete(ha(3))
 count = 0;
+text_count = 0;
 
-for text = {'ns','min_cc_elecs'}
-    for i = [1 4 7]
+for text = which_texts
+    text_count = text_count + 1;
+    for i = whichPts
         base = stats(i).(freq).(contig_text).(sec_text);
         count = count + 1;
         %if count == 3, count =  count+ 1; end
@@ -220,8 +243,8 @@ for text = {'ns','min_cc_elecs'}
         c = colormap(parula(5));
         ex_single = [];
         ex_regional = [];
-        if strcmp(text,'ns') == 1
-            true1 = base.(text).true';
+        if strcmp(text,'min_cc_elecs') == 0
+            true1 = base.(text{1}).true';
             ex_single = [ex_single;true1];
         else
             true1 = base.regional_cc.true';
@@ -234,14 +257,16 @@ for text = {'ns','min_cc_elecs'}
         
         for j = [70 80 90 95]
             new_count = new_count + 1;
-            elecs = base.min_cc_elecs.([text{1},sprintf('_%d',j)])';
-            if strcmp(text,'single') == 1
+            
+            if strcmp(text,'min_cc_elecs') == 0
+                elecs = base.(text{1}).(sprintf('single_%d',j))';
                 elecs(ismember(elecs,ex_single)) = [];
                 ex_single = [ex_single;elecs];
                 c=colormap(parula(5));
                 col_all = ones(size(elecs,1),1).*c(new_count+1,:);
                 
             else
+                elecs = base.min_cc_elecs.(sprintf('regional_%d',j))';
                 elecs(ismember(elecs,ex_regional)) = [];
                 ex_regional = [ex_regional;elecs];
                 c=colormap(parula(5));
@@ -259,35 +284,119 @@ for text = {'ns','min_cc_elecs'}
  
         end
         
-        
+        if text_count == 1, title(sprintf('%s',stats(i).name)); end
         
         pl(6) = scatter3(resec(:,1),resec(:,2),resec(:,3),15,'k','filled');
         scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k','linewidth',2);
         if count == 3
-            legend(pl,{'True','70%','80%','90%','95%','Resected'},'Position',[0.91 0.75 0.05 0.2],...
-                'box','on');
+            
         elseif count == 6
-            legend(pl,{'True','70%','80%','90%','95%','Resected'},'Position',[0.91 0.27 0.05 0.2],...
+            legend(pl,{'True','70%','80%','90%','95%','Resected'},'Position',[0.91 0.75 0.05 0.2],...
                 'box','on');
         end
 
-        
+        if count == 1 || count == 4
+            view(150,32.4);
+        elseif count == 2 || count == 5
+            view(-94,14)
+        elseif count == 3 || count == 6
+            view(-31.1,6.8)
+        end
        
         set(gca,'fontsize',20)
         xticklabels([])
         yticklabels([])
         zticklabels([])
+        
+        
+        if count == 1 
+            zlabel(sprintf('Highest\n%s',box_text));
+        elseif count == 4
+            zlabel({'Highest regional','control centrality'});
+        end
+        %}
 %}
     
     end
-
+    %{
+    %% Make the histograms
+    if text_count == 1
+        axes(ha(7))
+    else
+        axes(ha(8))
+    end
+    rat = [];
+    
+    for i = 1:length(stats)
+        if isfield(stats(i),(freq)) == 0, continue; end
+        if isempty(stats(i).(freq)) == 1, continue; end
+        base = stats(i).(freq).(contig_text).(sec_text); 
+        if strcmp(text,'min_cc_elecs') == 0
+            rat_t = length(base.(text{1}).single_95);
+            rat = [rat;rat_t];
+        else
+            if isempty(pt(i).resec) == 1, rat = [rat;nan]; continue; end
+            rat_t = length(base.min_cc_elecs.regional_95);%/length(base.regional_cc.true);
+            rat= [rat;rat_t];
+        end
+        
+    end
+    
+    bar(rat)
+    set(gca,'ylim',[0 max(rat)]);
+    xticklabels([])
+    xlabel('Which patient');
+    set(gca,'fontsize',20);
+    %}
+    
 end
- annotation('textbox',[0 0.7 0.1 0.1],'String',...
-sprintf('Most\nsynchronizing\nelectrode'),'LineStyle','none','fontsize',20);
+    
+axes(ha(7))
+all_rat = cell(6,1);
+all_mets = {'ns','bc','ec','clust','cc'};
+all_met_names = {'Node strength','Betweenness centrality',...
+    'Eigenvector centrality','Clustering coefficient',...
+    'Control centrality','Regional control centrality'};
+for i = 1:length(stats)
+    if isempty(stats(i).(freq)) == 1, continue; end
+    for metric = 1:length(all_mets)
+    
+        base = stats(i).(freq).(contig_text).(sec_text);
+        
+        all_rat{metric} = [all_rat{metric};...
+            length(base.(all_mets{metric}).single_95)];
+        
+    end
+    
+    if isempty(pt(i).resec) == 1, continue; end
+    all_rat{6} = [all_rat{6};...
+        length(base.min_cc_elecs.regional_95)/...
+        length(base.regional_cc.true)];
+end
 
-    annotation('textbox',[0 0.22 0.1 0.1],'String',...
+for i = 1:length(all_rat)
+    scatter(i*ones(size(all_rat{i},1),1)+0.05*randn(size(all_rat{i},1),1)...
+        ,all_rat{i},...
+       80,'filled','MarkerEdgeColor',[0 0.4470 0.7410],...
+       'MarkerFaceColor',[0 0.4470 0.7410])
+    hold on
+end
+xticks(1:length(all_rat))
+xticklabels(all_met_names)
+fix_xticklabels(gca,0.1,{'FontSize',20});
+ylabel({'Relative number of','electrodes in 95% CI','(all patients)'})
+
+
+
+%{
+ annotation('textbox',[0 0.75 0.1 0.1],'String',...
+sprintf('Highest\n%s\nelectrode',box_text),'LineStyle','none','fontsize',20);
+
+    annotation('textbox',[0 0.45 0.1 0.1],'String',...
 sprintf('Most\nsynchronizing\nregion'),'LineStyle','none','fontsize',20);
+%}
 
+%{
     annotation('textbox',[0.18 0.9 0.1 0.1],'String',...
 sprintf('Patient 1'),'LineStyle','none','fontsize',20);
 
@@ -297,11 +406,12 @@ sprintf('Patient 2'),'LineStyle','none','fontsize',20);
 
     annotation('textbox',[0.77 0.9 0.1 0.1],'String',...
 sprintf('Patient 3'),'LineStyle','none','fontsize',20);
+%}
 
     set(gca,'fontsize',20)
 
-print(gcf,[outFolder,'pc_95_cc_',freq,contig_text,sec_text],'-depsc');
-print(gcf,[outFolder,'pc_95_cc_',freq,contig_text,sec_text],'-dpng');
+print(gcf,[outFolder,'nodal_',freq,contig_text,sec_text],'-depsc');
+%print(gcf,[outFolder,'nodal_cc_',freq,contig_text,sec_text],'-dpng');
 
 
 

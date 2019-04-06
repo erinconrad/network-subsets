@@ -33,6 +33,7 @@ for whichPt = whichPts
     % Find the files that end in .npz
     listing = dir([adj_pt_folder,'/*multiband.npz']);
     
+    % Find smallest number
     minNum = 1000;
     for n = 1:length(listing)
         fname = listing(n).name;
@@ -45,6 +46,27 @@ for whichPt = whichPts
             which_mb_out = which_multiband;
         end
     end
+    
+    % Now find second smallest number
+    smallest = minNum;
+    minNum = 1000;
+    for n = 1:length(listing)
+        fname = listing(n).name;
+        [starti,endi] = regexp(fname,'Ictal.\d+.');
+        which_multiband = fname(starti + 6:endi-1);
+        which_mb_num = str2double(which_multiband);
+        if which_mb_num < minNum && which_mb_num > smallest
+            whichFile = n;
+            minNum = which_mb_num;
+            which_mb_out = which_multiband;
+        end
+    end
+    
+    if which_mb_num == 1000
+        fprintf('Warning, only one seizure for %s\\n',name);
+        continue;
+    end
+    
     
     fname = listing(whichFile).name;
     
