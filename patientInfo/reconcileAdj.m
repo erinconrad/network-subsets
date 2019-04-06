@@ -16,6 +16,11 @@ name = pt(whichPt).name;
 baseFolder = [mainFolder,'/data/adjacencyMatrices/',name,'/'];
 listing = dir([baseFolder,'*.mat']);
 
+if exist([baseFolder,listing(which_sz).name],'file') == 0
+    fprintf('Cannot do %s\n\n',name);
+    adj = []; out_locs = [];
+    return
+end
 
 load([baseFolder,listing(which_sz).name]);
 elecs = adj(7).data;

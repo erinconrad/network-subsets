@@ -143,6 +143,10 @@ for whichPt = whichPts
 
     %% Get adjacency matrix
     [adj,~] = reconcileAdj(pt,whichPt,which_sz);
+    if isempty(adj) == 1
+        fprintf('Cannot do %s\n\n',name);
+        continue;
+    end
 
     %% Get appropriate frequency band
     if strcmp(freq,'high_gamma') == 1
