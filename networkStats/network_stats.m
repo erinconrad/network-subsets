@@ -166,6 +166,9 @@ for whichPt = whichPts
     if ceil(size(A_all,1)/2)+which_sec <= 0, continue; end
     if ceil(size(A_all,1)/2)+which_sec > size(A_all,1), continue; end
     A = squeeze(A_all(ceil(size(A_all,1)/2)+which_sec,:,:));
+    if sum(sum(isnan(A))) == sum(sum(ones(size(A))))
+        continue
+    end
 
     %% Get true metrics
     fprintf('Getting true metrics\n');
