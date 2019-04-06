@@ -16,6 +16,8 @@ for whichPt = whichPts
     % Get name
     name = pt(whichPt).name;
     
+    fprintf('Doing %s\n',name);
+    
     % Get folder
     outputFolder = [baseFolder,name,'/'];
     
