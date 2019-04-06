@@ -70,7 +70,7 @@ for whichPt = whichPts
         fprintf('Warning, only one seizure for %s\n\n',name);
         continue;
     else
-        fprintf('Doing seizure from %s %d\n\n',which_mb_num,name);
+        fprintf('Doing seizure %d from %s\n\n',which_mb_num,name);
     end
     
     
