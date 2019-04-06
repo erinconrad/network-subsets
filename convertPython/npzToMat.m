@@ -50,6 +50,8 @@ for whichPt = whichPts
     % Now find second smallest number
     smallest = minNum;
     minNum = 1000;
+    which_mb_num = 1000;
+    
     for n = 1:length(listing)
         fname = listing(n).name;
         [starti,endi] = regexp(fname,'Ictal.\d+.');
