@@ -163,7 +163,7 @@ for whichPt = whichPts
 
     %% Get which time
     % Start with the middle and add which second
-    if ceil(size(A_all,1)/2)+which_sec < 0, continue; end
+    if ceil(size(A_all,1)/2)+which_sec <= 0, continue; end
     if ceil(size(A_all,1)/2)+which_sec > size(A_all,1), continue; end
     A = squeeze(A_all(ceil(size(A_all,1)/2)+which_sec,:,:));
 
