@@ -81,9 +81,9 @@ for whichPt = whichPts
     
     
     % Unzip it
-    if exist([outputFolder,'labels.npy'],'file') == 0
+  %  if exist([outputFolder,'labels.npy'],'file') == 0
         unzip([adj_pt_folder,fname],outputFolder);
-    end
+  %  end
 
     % Now find all the .npy files
     listing = dir([outputFolder,'*.npy']);
