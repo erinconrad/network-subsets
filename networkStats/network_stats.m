@@ -1,26 +1,17 @@
 function network_stats(whichPts,do_soz_analysis)
 
-% do 100 random and average for fake matrix
-
 %{
-
 This function takes an adjacency matrix A, calculates global and nodal
 network measures, and then randomly resamples the network, retaining
 specified fractions of electrodes, and then gets statistics on how the
 network measures change.
-
-
-To do:
-- double check all code
-- correlate nodal variability with number of electrodes
-- look at temporal sensitivity of cc
-
 %}
 
 tic
 
 
 %% Parameters
+which_sz = 2;
 doSave = 1;
 doPlots = 0;
 
@@ -52,18 +43,24 @@ addpath([bctFolder]);
 
 load([dataFolder,'structs/info.mat']);
 
+if which_sz == 1
+    extra = '';
+else
+    extra = '2';
+end
+
 
 %% Load the output structure to add more info to it
 if merge == 1
     if do_soz_analysis == 1
-        if exist([resultsFolder,'basic_metrics/soz.mat'],'file') ~= 0
-            load([resultsFolder,'basic_metrics/soz.mat']);
+        if exist([resultsFolder,'basic_metrics/soz',extra,'.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/soz',extra,'.mat']);
         else
             soz = struct;
         end
     else
-        if exist([resultsFolder,'basic_metrics/stats.mat'],'file') ~= 0
-            load([resultsFolder,'basic_metrics/stats.mat']);
+        if exist([resultsFolder,'basic_metrics/stats',extra,'.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/stats',extra,'.mat']);
         else
             stats = struct;
         end
@@ -108,9 +105,11 @@ for whichPt = whichPts
     fprintf('Doing %s\n',name);
     
     outFolder = [resultsFolder,'basic_metrics/',name,'/'];
+    %{
     if exist(outFolder,'dir') == 0
         mkdir(outFolder);
     end
+    %}
 
     if contig == 1
         contig_text = 'contiguous';
@@ -143,7 +142,7 @@ for whichPt = whichPts
     end
 
     %% Get adjacency matrix
-    [adj,~] = reconcileAdj(pt,whichPt);
+    [adj,~] = reconcileAdj(pt,whichPt,which_sz);
 
     %% Get appropriate frequency band
     if strcmp(freq,'high_gamma') == 1
@@ -559,7 +558,7 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).trans.all = all_trans(4,:);
 
         if doSave == 1
-            save([resultsFolder,'basic_metrics/stats.mat'],'stats');
+            save([resultsFolder,'basic_metrics/stats',extra,'.mat'],'stats');
         end
     elseif do_soz_analysis == 1
         %% Do the analysis of dependence of agreement on distance from important things
@@ -596,7 +595,7 @@ for whichPt = whichPts
         soz(whichPt).(freq).(contig_text).(sec_text).rho_clust_resec = rho_clust_resec;
        % soz(whichPt).(contig_text).(sec_text).rho_le_resec = rho_le_resec;
         if doSave == 1
-            save([resultsFolder,'basic_metrics/soz.mat'],'soz');
+            save([resultsFolder,'basic_metrics/soz',extra,'.mat'],'soz');
         end
     end
 

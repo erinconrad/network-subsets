@@ -1,4 +1,4 @@
-function [adj,out_locs] = reconcileAdj(pt,whichPt)
+function [adj,out_locs] = reconcileAdj(pt,whichPt,which_sz)
 
 %{
 This function gets an adjacency matrix and gets the correct locations
@@ -15,7 +15,9 @@ name = pt(whichPt).name;
 %% Load adjacency matrix
 baseFolder = [mainFolder,'/data/adjacencyMatrices/',name,'/'];
 listing = dir([baseFolder,'*.mat']);
-load([baseFolder,listing.name]);
+
+
+load([baseFolder,listing(which_sz).name]);
 elecs = adj(7).data;
 
 % Get the names of the unignored channels, should be in the same order as
