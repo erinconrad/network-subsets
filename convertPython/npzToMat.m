@@ -69,6 +69,8 @@ for whichPt = whichPts
     if which_mb_num == 1000
         fprintf('Warning, only one seizure for %s\n\n',name);
         continue;
+    else
+        fprintf('Doing seizure from %s %d\n\n',whichNum,name);
     end
     
     
