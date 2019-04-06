@@ -61,10 +61,11 @@ for whichPt = whichPts
         which_mb_num = str2double(which_multiband);
         if which_mb_num < minNum && which_mb_num > smallest
             whichFile = n;
-            minNum = which_mb_num;
+            minNum = which_mb_num
             which_mb_out = which_multiband;
         end
     end
+    
     
     if which_mb_num == 1000
         fprintf('Warning, only one seizure for %s\n\n',name);
