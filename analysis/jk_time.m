@@ -1,5 +1,12 @@
 function jk_time(stats,pt)
 
+%{
+
+This creates the supplemental figure looking at the changes in jackknife
+results for different times
+
+%}
+
 %% Parameters
 contig_text = 'random';
 freq = 'high_gamma';

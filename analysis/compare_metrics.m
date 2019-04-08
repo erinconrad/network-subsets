@@ -1,20 +1,16 @@
 function compare_metrics(stats)
 
-
+%{
+This function takes the output of the resampling script network_stats and
+compares network measure reliability
+%}
 
 %% Parameters
-doPlots = 0;
-all_contig = {'random','contiguous'};
-all_freq = {'high_gamma','beta'};
-all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};
+doPlots = 0; % plot things?
+all_contig = {'random','contiguous'}; % look at random or contiguous removal
+all_freq = {'high_gamma','beta'}; % which frequency coherence
+all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'}; % which times relative to EEC
 
-
-%% Sub-Parameters
-%{
-contig_text = 'random'; %usually want this
-sec_text = 'sec_0';
-freq = 'high_gamma';
-%}
 
 
 %% Locations
@@ -42,14 +38,17 @@ all_global = nan(length(global_metrics),length(all_sec),...
 all_nodal = nan(length(nodal_metrics),length(all_sec),...
     length(all_freq),length(all_contig));
 
+% Loop through contig vs random removal, frequencies, and times
 for contig_idx = 1:length(all_contig)
-for freq_idx = 1%:length(all_freq)
+for freq_idx = 1:length(all_freq)
 for sec_idx = 1:length(all_sec)
     
+% Get appropriate contig vs random, frequency, time
 contig_text = all_contig{contig_idx};
 sec_text = all_sec{sec_idx};
 freq = all_freq{freq_idx};
     
+% Initialize arrays
 names ={};
 name_nums = {};
 ag_nodal = nan(np,length(nodal_metrics),length(ef));
@@ -86,6 +85,8 @@ for i = 1:length(stats)
 end
 
 %% Get reliability for global metrics
+% nanstd(true_global,0,1) is the standard deviation of the global metric
+% across patients
 var_global = global_reliability(std_global,nanstd(true_global,0,1));
 
 %% Average over patients
@@ -95,6 +96,7 @@ avg_ag_global = squeeze(nanmean(ag_global,1));
 avg_var_global = squeeze(nanmean(var_global,1));
 
 %% Individual patient, 80% retained
+% These are the reliability metrics
 var_nodal_80 = var_nodal(:,:,4);
 var_global_80 = var_global(:,:,4);
 

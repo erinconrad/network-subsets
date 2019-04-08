@@ -1,10 +1,15 @@
 function all_CI(stats,pt)
 
+%{
+This function takes info about the number and identities of electrodes
+forming the nth% CI for highest metric value and plots summary stuff about
+them
+%}
+
 %% Parameters
 contig_text = 'random';
 sec_text = 'sec_0';
 freq = 'high_gamma';
-do_individ_plots = 0;
 which_texts = {'ns','min_cc_elecs'};
 which_names = {'node strength','regional control centrality'};
 whichPts = [1 10 21];
@@ -34,6 +39,9 @@ delete(ha(12))
 
 count = 0;
 text_count = 0;
+
+%% First three plots (first row) will be ns for 3 patients
+% Second three plots (2nd row) will be regional cc for 3 patients
 
 for text = which_texts
     text_count = text_count + 1;
@@ -129,6 +137,8 @@ for text = which_texts
     end
     
 end
+
+%% The 7th plot (3rd row) is violin plot of width of 95% CI for sync for all patients
 axes(ha(7))
 all_rho = zeros(100,3);
 new_count = 0;
@@ -169,6 +179,7 @@ for j = {'sync','eff','trans'}
     end
 end
 
+%% Next plot (4th row is summary stats for nodal metrics)
 axes(ha(10))
 
 fc= [0 0.4470 0.7410;
@@ -216,7 +227,7 @@ set(gca,'fontsize',20)
 
 
 
-
+%% Next plot is summary stats for global metrics)
 axes(ha(11))
 pl = zeros(size(all_95_ci_width,2),1);
 for i = 1:size(all_95_ci_width,2)

@@ -1,5 +1,10 @@
 function compare_soz_resec(soz,pt)
 
+%{
+This function takes patient-level data on agreement between original metric
+and resampled metric as a function of distance of the ignored electrodes
+from the resection zone and calculates summary statistics and does plots
+%}
 
 
 %% Parameters
@@ -9,7 +14,7 @@ all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};%fieldnames(soz(1).h
 contig_text = 'contiguous'; % Should only do contiguous for this
 
 ex_pts = [1,8]; % example patients to plot correlations for
-metrics_to_plot = 1:8;%1:8;
+metrics_to_plot = 1:8; % probably shouldn't change (all nodal and global metrics)
 dist_to_plot = 2; % probably shouldn't change (this is distance from resection zone)
 
 metrics = {'rho_cc','rho_ns','rho_bc','rho_ec','rho_clust',...
@@ -97,10 +102,10 @@ for dist = dist_to_plot
             dist_measure = base.(dists{dist})';
             
             % Correlate the agreement metric with the distance metric
-            rho =  corr(measure,dist_measure);
+            rho =  corr(measure,dist_measure,'Type','Spearman');
             
             % I am not sure why this would be the case
-            if rho == 1, continue; end
+            if rho == 1, error('what\n'); end
  
             % Aggregate the transformed rho's for each patient
             z = [z;atanh(rho)];
@@ -129,7 +134,10 @@ for dist = dist_to_plot
         
         
         all_rho = [all_rho;average_rho(rho_pts,1)];
-        [~,p,~,stats] = ttest(z);
+        
+        % two sided one sample t test to see if the transformed rho's,
+        % aggregated across patients, are different from zero
+        [~,p,~,stats] = ttest(z); 
         all_z = [all_z;nanmean(z)];
         all_p = [all_p;p];
         all_t = [all_t;stats.tstat];

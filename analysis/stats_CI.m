@@ -1,5 +1,11 @@
 function stats_CI(stats)
 
+%{
+This function takes info about the number and identities of electrodes
+forming the nth% CI for highest metric value and calculates summary stats about
+them
+%}
+
 %% Parameters
 all_contig = {'random','contiguous'};
 all_freq = {'high_gamma','beta'};
