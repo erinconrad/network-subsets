@@ -17,7 +17,7 @@ doPlot = 0; % Plot overlap of electrodes?
 % Get electrode locs
 locs = pt(whichPt).new_elecs.locs;
 
-% Get soz electroes
+% Get soz electrodes
 soz = pt(whichPt).soz.nums;
 
 % Get resected electrodes

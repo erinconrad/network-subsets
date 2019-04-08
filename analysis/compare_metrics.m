@@ -43,7 +43,7 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
     length(all_freq),length(all_contig));
 
 for contig_idx = 1:length(all_contig)
-for freq_idx = 1:length(all_freq)
+for freq_idx = 1%:length(all_freq)
 for sec_idx = 1:length(all_sec)
     
 contig_text = all_contig{contig_idx};
@@ -99,6 +99,9 @@ var_nodal_80 = var_nodal(:,:,4);
 var_global_80 = var_global(:,:,4);
 
 %% Calculate statistics for variability
+if sum(sum(isnan(var_global_80))) == sum(sum((ones(size(var_global_80)))))
+    continue;
+end
 
 % Descriptive stats for global metrics, 80% retained
 for i = 1:length(global_metrics)

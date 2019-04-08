@@ -22,6 +22,7 @@ if length(listing) < which_sz
     return
 end
 
+% Load the appropriate adjacency matrix
 load([baseFolder,listing(which_sz).name]);
 elecs = adj(7).data;
 

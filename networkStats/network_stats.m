@@ -11,11 +11,18 @@ tic
 
 
 %% Parameters
-which_sz = 2;
+
+% Which sz: if 1, the first the patient has, if 2, the second
+which_sz = 1; 
+
+% Save the output? (Should be yes)
 doSave = 1;
+
+% Do patient-specific plots (usually no)
 doPlots = 0;
 
-% add to existing stats array? Or re-write with new stats array?
+% add to existing stats array? Or re-write with new stats array? Usually
+% yes
 merge = 1;
 
 % do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis
@@ -73,20 +80,21 @@ else
     end
 end
 
-% which frequencies to do
+%% which frequencies to do
 freq_cell = {'high_gamma','beta'};
 
 %% Loop through patients, times, frequencies, and whether contig or random electrodes
 for ff = 1:length(freq_cell)
     freq = freq_cell{ff};
 for which_sec = [0 -10 -5 5 10] % 0 means EEC, -5 is 5 seconds before
-for contig = contigs 
+for contig = contigs % random or contiguous electrodes
 
     
 % Loop through patients
 for whichPt = whichPts
     
- 
+    % Skip if all electrode locations are -1 (means we don't have electrode
+    % locations)
     if unique(pt(whichPt).new_elecs.locs) == -1
         continue
     end
@@ -96,6 +104,7 @@ for whichPt = whichPts
         % through each electrode and its N nearest neighbors
         n_perm = length(pt(whichPt).new_elecs.electrodes);
     else
+        % Take 100 random permutations
         n_perm = 1e2;
     end
 
@@ -372,9 +381,9 @@ for whichPt = whichPts
             most_sync(f,i_p) = ch_most_sync;
             
             [~,most_ns(f,i_p)] = max(ns_f_p);
-            [~,most_bc(f,i_p)] = max(ns_f_p);
-            [~,most_ec(f,i_p)] = max(ns_f_p);
-            [~,most_clust(f,i_p)] = max(ns_f_p);
+            [~,most_bc(f,i_p)] = max(bc_f_p);
+            [~,most_ec(f,i_p)] = max(ec_f_p);
+            [~,most_clust(f,i_p)] = max(clust_f_p);
             
 
             %% Do Spearman rank for nodal measures

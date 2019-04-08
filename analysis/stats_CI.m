@@ -16,7 +16,7 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
 np = length(stats);
 
 for contig_idx = 1:length(all_contig)
-for freq_idx = 1:length(all_freq)
+for freq_idx = 1%:length(all_freq)
 for sec_idx = 1:length(all_sec)
     
 contig_text = all_contig{contig_idx};
