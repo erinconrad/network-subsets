@@ -1,4 +1,4 @@
-function network_stats(whichPts,do_soz_analysis)
+function network_stats(whichPts,do_soz_analysis,which_sz)
 
 %{
 This function takes an adjacency matrix A, calculates global and nodal
@@ -13,7 +13,6 @@ tic
 %% Parameters
 
 % Which sz: if 1, the first the patient has, if 2, the second
-which_sz = 1; 
 
 % Save the output? (Should be yes)
 doSave = 1;
