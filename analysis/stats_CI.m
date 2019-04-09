@@ -21,9 +21,9 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
 %% Initialize parameters
 np = length(stats);
 
-for contig_idx = 1:length(all_contig)
+for contig_idx = 1%:length(all_contig)
 for freq_idx = 1%:length(all_freq)
-for sec_idx = 1:length(all_sec)
+for sec_idx = 3%1:length(all_sec)
     
 contig_text = all_contig{contig_idx};
 sec_text = all_sec{sec_idx};

@@ -41,4 +41,12 @@ end
 
 fprintf('There are %d patients with resection info.\n\n',np_resec);
 
+%% Get electrode info
+n_elecs = [];
+for i = 1:length(stats)
+    n_elecs = [n_elecs;length(pt(i).new_elecs.electrodes)];
+end
+
+    
+
 end

@@ -55,8 +55,8 @@ freq = 'high_gamma';
     %}
 
 
-for freq_idx = 1:length(all_freq)
-for sec_idx = 1:length(all_sec)
+for freq_idx = 1%1:length(all_freq)
+for sec_idx = 3%1:length(all_sec)
     
 
 sec_text = all_sec{sec_idx};
@@ -246,10 +246,11 @@ end
 end
 end
 
-
+%% Table with different times, high gamma
+%{
 table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
-    char(t_text(:,4,1)),char(t_text(:,5,1)),'VariableNames',all_sec)%,...
-   % 'RowNames',metrics(1:8))
+    char(t_text(:,4,1)),char(t_text(:,5,1)),'VariableNames',all_sec,...
+    'RowNames',metrics(1:8))
 %}
 
 % For sec_0, high_gamma, plot t scores and p values
@@ -257,8 +258,13 @@ table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
 table(t_text(:,3,1),p_all(:,3,1),'RowNames',metrics(1:8))
 %}
 
-squeeze(t_all(:,3,:))
-squeeze(p_all(:,3,:))
+%% EEC, beta
+squeeze(t_all(:,3,2))
+squeeze(p_all(:,3,2))
+
+%% EEC, high gamma (for sz 2)
+squeeze(t_all(:,3,1))
+squeeze(p_all(:,3,1))
 
 
 %% Set high_gamma and compare times
@@ -346,7 +352,7 @@ if doPlot == 1
     fix_xticklabels(gca,0.1,{'FontSize',20});
     plot(get(gca,'xlim'),[0 0],'k--','linewidth',2);
     for i = 1:length(stars)
-        text(i + 0.15, 0.9 + 0.01,stars{i},'fontsize',50);
+        text(i + 0.15, 0.9 + 0.08,stars{i},'fontsize',50);
     end
     ax = gca;
     outerpos = ax.OuterPosition;
