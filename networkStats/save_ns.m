@@ -1,6 +1,4 @@
-function resec_stats(whichPts)
-
-% This just compares average n_s for resection zone to other areas
+function save_ns(whichPts)
 
 %% Load Stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
@@ -12,11 +10,11 @@ addpath(p1);
 addpath([bctFolder]);
 
 load([dataFolder,'structs/info.mat']);
+
+% High gamma, EEC
 freq = 'high_gamma';
 which_sec = 0;
 
-all_resec_ns = [];
-all_no_resec_ns = [];
 
 out_folder = [resultsFolder,'resec_ns/'];
 
@@ -75,21 +73,13 @@ for whichPt = whichPts
     ns = node_strength(A);
     
     %% Save ns into a struct to do more stats
+    ns(whichPt).name = name;
+    ns(whichPt).ns = ns;
+    ns(whichPt).yes_resec = yes_resec;
+    ns(whichPt).no_resec = no_resec;
     
-    
-    %{
-    %% Get average ns of resection zone versus outside it
-    ns_resec = mean(ns(yes_resec));
-    ns_no_resec = mean(ns(no_resec));
-    
-    all_resec_ns = [all_resec_ns;ns_resec];
-    all_no_resec_ns = [all_no_resec_ns;ns_no_resec];
-    %}
     
 end
 
-[h,p] = ttest(all_resec_ns,all_no_resec_ns)
-
-[all_resec_ns,all_no_resec_ns]
-
-end
+%% Save the structure
+save([out_folder,'ns.mat'],'ns');
