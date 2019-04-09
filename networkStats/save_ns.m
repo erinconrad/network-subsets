@@ -70,11 +70,11 @@ for whichPt = whichPts
     end
     
     %% Get node strength
-    ns = node_strength(A);
+    ns_temp = node_strength(A);
     
     %% Save ns into a struct to do more stats
     ns(whichPt).name = name;
-    ns(whichPt).ns = ns;
+    ns(whichPt).ns = ns_temp;
     ns(whichPt).yes_resec = yes_resec;
     ns(whichPt).no_resec = no_resec;
     
