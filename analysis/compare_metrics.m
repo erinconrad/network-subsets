@@ -39,9 +39,9 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
     length(all_freq),length(all_contig));
 
 % Loop through contig vs random removal, frequencies, and times
-for contig_idx = 1%1:length(all_contig)
-for freq_idx = 1%1:length(all_freq)
-for sec_idx = 3%1:length(all_sec)
+for contig_idx = 1:length(all_contig)
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
     
 % Get appropriate contig vs random, frequency, time
 contig_text = all_contig{contig_idx};
@@ -186,12 +186,17 @@ all_global(:,:,1,1)
 all_nodal(:,:,1,1)
 
 %% Tables for beta band
-all_global(:,3,2,1)
 all_nodal(:,3,2,1)
+all_global(:,3,2,1)
+
 
 %% Tables for contig removal
 all_global(:,3,1,2)
 all_nodal(:,3,1,2)
+
+%% Tables for EEC, high gamma, random (sz 2)
+all_global(:,3,1,1)
+all_nodal(:,3,1,1)
 
 %% Plot averages across patients
 if doPlots == 1

@@ -21,8 +21,8 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
 %% Initialize parameters
 np = length(stats);
 
-for contig_idx = 1%:length(all_contig)
-for freq_idx = 1%:length(all_freq)
+for contig_idx = 1%1:length(all_contig)
+for freq_idx = 1%1:length(all_freq)
 for sec_idx = 3%1:length(all_sec)
     
 contig_text = all_contig{contig_idx};
@@ -32,6 +32,7 @@ freq = all_freq{freq_idx};
 true_nums_nodal = nan(np,length(nodal_metrics));
 nums_nodal_95 = nan(np,length(nodal_metrics));
 global_width_95 = nan(np,length(global_metrics));
+names = cell(np,1);
 
 %% Get true numbers and 95% CI info 
 for i = 1:length(stats)
@@ -39,6 +40,8 @@ for i = 1:length(stats)
     if isempty(stats(i).name) == 1, continue; end
     if isfield(stats(i).(freq).(contig_text),sec_text) == 0, continue; end
     base = stats(i).(freq).(contig_text).(sec_text);
+    
+    names{i} = stats(i).name;
     
     % Get all nodal metrics other than regional cc
     for j = 1:length(nodal_metrics)-1
@@ -91,6 +94,16 @@ end
 all_global(:,sec_idx,freq_idx,contig_idx) = nanmedian(global_width_95,1);
 all_nodal(:,sec_idx,freq_idx,contig_idx) = nanmedian(nums_nodal_95,1);
 
+
+%% Table to probe nodal measures
+table(names,nums_nodal_95(:,1),nums_nodal_95(:,2),nums_nodal_95(:,3),...
+    nums_nodal_95(:,4),nums_nodal_95(:,5),nums_nodal_95(:,6),'VariableNames',...
+    {'names',nodal_metrics{1},nodal_metrics{2},nodal_metrics{3},nodal_metrics{4},...
+    nodal_metrics{5},nodal_metrics{6}})
+
+%% Table to probe global measures
+table(names,global_width_95(:,1),global_width_95(:,2),global_width_95(:,3))
+
 end
 end
 end
@@ -106,6 +119,10 @@ all_global(:,3,2,1)
 %% Contig
 all_nodal(:,3,1,2)
 all_global(:,3,1,2)
+
+%% EEC, high gamma, random (sz 2)
+all_nodal(:,3,1,1)
+all_global(:,3,1,1)
 
 
 end

@@ -55,8 +55,8 @@ freq = 'high_gamma';
     %}
 
 
-for freq_idx = 1%1:length(all_freq)
-for sec_idx = 3%1:length(all_sec)
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
     
 
 sec_text = all_sec{sec_idx};
@@ -247,7 +247,7 @@ end
 end
 
 %% Table with different times, high gamma
-%{
+%
 table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
     char(t_text(:,4,1)),char(t_text(:,5,1)),'VariableNames',all_sec,...
     'RowNames',metrics(1:8))

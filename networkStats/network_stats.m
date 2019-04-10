@@ -15,7 +15,7 @@ tic
 % Which sz: if 1, the first the patient has, if 2, the second
 
 % Save the output? (Should be yes)
-doSave = 1;
+doSave = 0;
 
 % Do patient-specific plots (usually no)
 doPlots = 0;
@@ -92,6 +92,8 @@ for contig = contigs % random or contiguous electrodes
 % Loop through patients
 for whichPt = whichPts
     
+    tic
+    
     % Skip if all electrode locations are -1 (means we don't have electrode
     % locations)
     if unique(pt(whichPt).new_elecs.locs) == -1
@@ -142,7 +144,7 @@ for whichPt = whichPts
                     if isfield(stats(whichPt).(freq).(contig_text),(sec_text)) == 1
 
                         fprintf('Did %s, skipping\n',name);
-                        continue
+                       % continue
                     end
                 end 
             end
@@ -761,6 +763,9 @@ for whichPt = whichPts
      
         end
     end
+    
+   t = toc;
+    fprintf('Elapsed time for %s was %1.3f\n\n.',name,t); 
     
 end
 
