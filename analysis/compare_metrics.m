@@ -6,7 +6,7 @@ compares network measure reliability
 %}
 
 %% Parameters
-doPlots = 0; % plot things?
+doPlots = 1; % plot things?
 all_contig = {'random','contiguous'}; % look at random or contiguous removal
 all_freq = {'high_gamma','beta'}; % which frequency coherence
 all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'}; % which times relative to EEC
@@ -39,9 +39,9 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
     length(all_freq),length(all_contig));
 
 % Loop through contig vs random removal, frequencies, and times
-for contig_idx = 1:length(all_contig)
-for freq_idx = 1:length(all_freq)
-for sec_idx = 1:length(all_sec)
+for contig_idx = 1%1:length(all_contig)
+for freq_idx = 1%1:length(all_freq)
+for sec_idx = 3%1:length(all_sec)
     
 % Get appropriate contig vs random, frequency, time
 contig_text = all_contig{contig_idx};
@@ -60,7 +60,7 @@ true_global = nan(np,length(global_metrics));
 % Loop through patients
 for i = 1:length(stats)
     
-    if isempty(stats(i).name) == 1, names = [names;'nan']; continue; end
+    if isempty(stats(i).name) == 1, continue; end
     %% Extract just numbers from name (for plotting)
     names = [names;stats(i).name];
     [num_idx_s] = regexp(stats(i).name,'\d+');
@@ -307,13 +307,18 @@ if doPlots == 1
     %}
     
     %% Just reliability
+    
+    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
+        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;...
+        0.6350 0.0780 0.1840;0.75 0.5 0.5];
+    
     figure
     set(gcf,'Position',[174 207 1300 850])
     pos_f = get(gcf,'Position');
-    [ha, pos] = tight_subplot(3, 2, [0.15 0.04], [-0.05 0.04],[0.05 0.02]);
+    [ha, pos] = tight_subplot(3, 2, [0.15 0.04], [-0.02 0.04],[0.05 0.02]);
     set(ha(3),'Position',[pos{3}(1) pos{3}(2)+0.02 ...
         pos{4}(1) + pos{4}(3) - pos{3}(1) pos{3}(4)]);
-    set(ha(5),'Position',[pos{5}(1) pos{5}(2)+0.12 ...
+    set(ha(5),'Position',[pos{5}(1) pos{5}(2)+0.14 ...
         pos{6}(1) + pos{6}(3) - pos{5}(1) pos{5}(4)]);
     delete((ha(4)))
     delete((ha(6)))
@@ -322,7 +327,7 @@ if doPlots == 1
     axes(ha(1))
     nd = zeros(size(avg_ag_nodal,1),1);
     for j = 1:size(avg_ag_nodal,1)
-       nd(j) = scatter(ef,avg_var_nodal(j,:),200,'filled');
+       nd(j) = scatter(ef,avg_var_nodal(j,:),200,cols(j,:),'filled');
          hold on
     end
     %{
@@ -346,7 +351,7 @@ if doPlots == 1
     gl = zeros(size(avg_ag_global,1),1);
     axes(ha(2))
     for j = 1:size(avg_ag_global,1)
-         gl(j) = scatter(ef,avg_var_global(j,:),200,'filled');
+         gl(j) = scatter(ef,avg_var_global(j,:),200,cols(j+5,:),'filled');
          hold on
     end
     %{
@@ -380,9 +385,14 @@ if doPlots == 1
 
     %% Plot 80% for all patients
 
-    
+    %{
     cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
         0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330];
+    %}
+    
+    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
+        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;...
+        0.6350 0.0780 0.1840;0.75 0.5 0.5];
 
     % Nodal metrics
     axes(ha(3))
@@ -400,7 +410,8 @@ if doPlots == 1
         'Eigenvector centrality','Clustering coefficient','location',...
         'southeast');
     legend boxoff
-    xticks(1:length(names))
+    %xticks(1:length(names))
+    xticklabels([])
     %xlabel('Which patient')
     ylabel('Reliability')
     set(gca,'ylim',[0 1])
@@ -416,7 +427,7 @@ if doPlots == 1
         if isempty(stats(i).name) == 1, continue; end
         count = count + 1;
         for j = 1:size(var_global_80,2)
-            scatter(count,var_global_80(i,j),200,cols(j,:),'filled');
+            scatter(count,var_global_80(i,j),200,cols(j+5,:),'filled');
             hold on
         end
     end
@@ -424,6 +435,8 @@ if doPlots == 1
         'southeast');
     legend boxoff
     xticks(1:length(names))
+    xticklabels(names);
+    xtickangle(90)
     xlabel('Which patient')
     ylabel('Reliability')
     set(gca,'ylim',[0.7 1])
@@ -440,13 +453,13 @@ if doPlots == 1
         l2.EntryContainer.NodeChildren(i).Icon.Transform.Children.Children.Size = 14;
     end
     
-    annotation('textbox',[0.02 0.86 0.1 0.1],'String',...
+    annotation('textbox',[0 0.88 0.1 0.1],'String',...
         'A','FontSize',35,'linestyle','none');
-    annotation('textbox',[0.5 0.86 0.1 0.1],'String',...
+    annotation('textbox',[0.5 0.88 0.1 0.1],'String',...
         'B','FontSize',35,'linestyle','none');
-    annotation('textbox',[0.02 0.49 0.1 0.1],'String',...
+    annotation('textbox',[0 0.52 0.1 0.1],'String',...
         'C','FontSize',35,'linestyle','none');
-    annotation('textbox',[0.02 0.2 0.1 0.1],'String',...
+    annotation('textbox',[0 0.26 0.1 0.1],'String',...
         'D','FontSize',35,'linestyle','none');
     
     pause

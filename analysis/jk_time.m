@@ -93,13 +93,19 @@ for text = 1:length(which_texts)
         if count == 1 || count == 6
             zlabel(sprintf('%s',which_names{text}));
         elseif count == 10
-            legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.94 0.58 0.03 0.10],...
+           l1= legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.94 0.58 0.03 0.10],...
             'box','on');
+            pause(1)
+            for k = 1:length(l1.EntryContainer.NodeChildren)
+                l1.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 14;
+            end
         end
         
         if ismember(count,[1:5]) == 1
             title(sprintf('%s',sec_texts{count}));
         end
+        
+        
                 
         view(150,32.4);
         set(gca,'fontsize',20)
@@ -132,6 +138,16 @@ for gl_idx = 1:2
     ylabel(sprintf('%s',global_names_all{gl_idx}));
     set(gca,'fontsize',20)
 end
+
+%% Add annotations
+annotation('textbox',[0 0.87 0.1 0.1],'String',...
+    'A','FontSize',35,'linestyle','none');
+annotation('textbox',[0 0.55 0.1 0.1],'String',...
+    'B','FontSize',35,'linestyle','none');
+annotation('textbox',[0 0.25 0.1 0.1],'String',...
+    'C','FontSize',35,'linestyle','none');
+annotation('textbox',[0.5 0.25 0.1 0.1],'String',...
+    'D','FontSize',35,'linestyle','none');
 
 print(gcf,[outFolder,'time_sens'],'-depsc');
 print(gcf,[outFolder,'time_sens'],'-dpng');

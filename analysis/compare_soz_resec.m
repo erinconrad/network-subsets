@@ -8,7 +8,7 @@ from the resection zone and calculates summary statistics and does plots
 
 
 %% Parameters
-doPlot = 0;
+doPlot = 1;
 all_freq = {'high_gamma','beta'};
 all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};%fieldnames(soz(1).high_gamma.contiguous);
 contig_text = 'contiguous'; % Should only do contiguous for this
@@ -55,8 +55,8 @@ freq = 'high_gamma';
     %}
 
 
-for freq_idx = 1:length(all_freq)
-for sec_idx = 1:length(all_sec)
+for freq_idx = 1%1:length(all_freq)
+for sec_idx = 3%1:length(all_sec)
     
 
 sec_text = all_sec{sec_idx};
@@ -245,7 +245,7 @@ end
 
 end
 end
-
+%{
 %% Table with different times, high gamma
 %
 table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
@@ -258,6 +258,7 @@ table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
 table(t_text(:,3,1),p_all(:,3,1),'RowNames',metrics(1:8))
 %}
 
+%{
 %% EEC, beta
 squeeze(t_all(:,3,2))
 squeeze(p_all(:,3,2))
@@ -265,6 +266,7 @@ squeeze(p_all(:,3,2))
 %% EEC, high gamma (for sz 2)
 squeeze(t_all(:,3,1))
 squeeze(p_all(:,3,1))
+%}
 
 
 %% Set high_gamma and compare times
@@ -286,17 +288,23 @@ if doPlot == 1
             stars{i} = '';
         end
     end
+    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
+        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;...
+        0.6350 0.0780 0.1840;0.75 0.5 0.5];
 
-    %{
+    
     figure
     set(gcf,'Position',[174 207 1300 350])
     for i = 1:length(all_rho_pts)
         scatter(i*ones(size(all_rho_pts{i},1),1)+0.05*randn(size(all_rho_pts{i},1),1)...
             ,all_rho_pts{i},...
-           100,'MarkerEdgeColor',[0 0.4470 0.7410])
+           100,'MarkerEdgeColor',cols(i,:),'MarkerFaceColor',cols(i,:))
         hold on
+        %{
         scatter(i,all_rho(i),300,'filled','d','MarkerEdgeColor',[0 0.4470 0.7410],...
             'MarkerFaceColor',[0 0.4470 0.7410]);
+        %}
+        plot([i-0.3,i + 0.3],[all_rho(i),all_rho(i)],'color',cols(i,:),'linewidth',3);
 
         xticks(1:length(all_rho_pts))
         xticklabels(metric_names(metrics_to_plot))
@@ -306,9 +314,9 @@ if doPlot == 1
         set(gca,'fontsize',20)
         fix_xticklabels(gca,0.1,{'FontSize',20});
     end
-    plot(get(gca,'xlim'),[0 0],'color',[0.8500 0.3250 0.0980],'linewidth',2);
+    plot(get(gca,'xlim'),[0 0],'k--','linewidth',2);
     for i = 1:length(stars)
-        text(i + 0.15, 0.9 + 0.01,stars{i},'fontsize',10);
+        text(i + 0.15, 0.82,stars{i},'fontsize',50);
     end
     pause
     print(gcf,[outFolder,'all_',freq,'_',sec_text,'_',dists{dist}],'-depsc');

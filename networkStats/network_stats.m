@@ -15,10 +15,7 @@ tic
 % Which sz: if 1, the first the patient has, if 2, the second
 
 % Save the output? (Should be yes)
-doSave = 0;
-
-% Do patient-specific plots (usually no)
-doPlots = 0;
+doSave = 1;
 
 % add to existing stats array? Or re-write with new stats array? Usually
 % yes
@@ -144,7 +141,7 @@ for whichPt = whichPts
                     if isfield(stats(whichPt).(freq).(contig_text),(sec_text)) == 1
 
                         fprintf('Did %s, skipping\n',name);
-                       % continue
+                        continue
                     end
                 end 
             end
@@ -617,7 +614,8 @@ for whichPt = whichPts
     end
 
     %% Plots
-  
+    % Do patient-specific plots (usually no)
+    doPlots = 0;
     if doPlots == 1
         
         if do_soz_analysis == 1

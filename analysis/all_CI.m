@@ -108,8 +108,12 @@ for text = which_texts
         if count == 3
             
         elseif count == 6
-            legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.92 0.75 0.03 0.10],...
+           l1 = legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.92 0.72 0.03 0.10],...
                 'box','on');
+            pause(1)
+            for k = 1:length(l1.EntryContainer.NodeChildren)
+                l1.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 14;
+            end
         end
 
         if count == 1 || count == 4
@@ -138,7 +142,7 @@ for text = which_texts
     
 end
 
-%% The 7th plot (3rd row) is violin plot of width of 95% CI for sync for all patients
+%% The 7th plot (3rd row) is violin plot of sync distributions for all patients
 axes(ha(7))
 all_rho = zeros(100,3);
 new_count = 0;
@@ -182,18 +186,24 @@ end
 %% Next plot (4th row is summary stats for nodal metrics)
 axes(ha(10))
 
+%{
 fc= [0 0.4470 0.7410;
     0.8500 0.3250 0.0980;
     0.9290 0.6940 0.1250;
     0.4940 0.1840 0.5560;
     0.4660 0.6740 0.1880;
     0.3010 0.7450 0.9330];
+%}
+
+fc = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
+        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;...
+        0.6350 0.0780 0.1840;0.75 0.5 0.5];
 
 all_rat = cell(6,1);
-all_mets = {'ns','bc','ec','clust','cc'};
-all_met_names = {'Node strength','Betweenness centrality',...
+all_mets = {'cc','ns','bc','ec','clust'};
+all_met_names = {'Control centrality','Node strength','Betweenness centrality',...
     'Eigenvector centrality','Clustering coefficient',...
-    'Control centrality','Regional control centrality'};
+    'Regional control centrality'};
 for i = 1:length(stats)
     if isempty(stats(i).(freq)) == 1, continue; end
     for metric = 1:length(all_mets)
@@ -219,7 +229,11 @@ for i = 1:length(all_rat)
     hold on
 end
 xticklabels([]);
-legend(pl,all_met_names,'position',[0.17 0.11 0.1 0.1],'fontsize',18);
+l2 = legend(pl,all_met_names,'position',[0.27 0.12 0.1 0.1],'fontsize',18);
+pause(1);
+for k = 1:length(l2.EntryContainer.NodeChildren)
+    l2.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 12;
+end
 legend boxoff
 ylabel({'Relative #', 'of electrodes','in 95% CI'})
 %ylim([1,20])
@@ -233,14 +247,18 @@ pl = zeros(size(all_95_ci_width,2),1);
 for i = 1:size(all_95_ci_width,2)
     pl(i) = scatter(i*ones(size(all_95_ci_width,1),1)+0.05*randn(size(all_95_ci_width,1),1)...
         ,all_95_ci_width(:,i),...
-       60,'filled','MarkerEdgeColor',fc(i,:),...
-       'MarkerFaceColor',fc(i,:));
+       60,'filled','MarkerEdgeColor',fc(i+5,:),...
+       'MarkerFaceColor',fc(i+5,:));
     hold on
     
 end
 xticklabels([]);
-legend(pl,global_names_all,'location','northeast','fontsize',18);
+l3 = legend(pl,global_names_all,'location','northeast','fontsize',18);
 legend boxoff
+pause(1)
+for k = 1:length(l3.EntryContainer.NodeChildren)
+    l3.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 12;
+end
 ylabel({'95% CI width', 'for metric'})
 set(gca,'fontsize',20)
 
