@@ -1,4 +1,4 @@
-function compare_metrics(stats)
+function compare_metrics(pt,stats)
 
 %{
 This function takes the output of the resampling script network_stats and
@@ -6,7 +6,7 @@ compares network measure reliability
 %}
 
 %% Parameters
-doPlots = 1; % plot things?
+doPlots = 0; % plot things?
 all_contig = {'random','contiguous'}; % look at random or contiguous removal
 all_freq = {'high_gamma','beta'}; % which frequency coherence
 all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'}; % which times relative to EEC
@@ -56,11 +56,17 @@ var_nodal = nan(np,length(nodal_metrics),length(ef));
 ag_global = nan(np,length(global_metrics),length(ef));
 std_global = nan(np,length(global_metrics),length(ef));
 true_global = nan(np,length(global_metrics));
+n_elecs = nan(np,1);
 
 % Loop through patients
 for i = 1:length(stats)
     
-    if isempty(stats(i).name) == 1, continue; end
+    if isempty(stats(i).name) == 1, names = [names;nan]; continue; end
+    
+    %% Get number of electrodes
+    if strcmp(pt(i).name,stats(i).name) == 0, error('what\n'); end
+    n_elecs(i) = length(pt(i).new_elecs.electrodes);
+    
     %% Extract just numbers from name (for plotting)
     names = [names;stats(i).name];
     [num_idx_s] = regexp(stats(i).name,'\d+');
@@ -163,6 +169,40 @@ mean_rel_nodal = mean(var_nodal_80(~isnan(var_nodal_80(:,1)),:),1);
 
 all_global(:,sec_idx,freq_idx,contig_idx) = mean_rel_global;
 all_nodal(:,sec_idx,freq_idx,contig_idx) = mean_rel_nodal;
+
+%% Correlate reliability with number of electrodes
+% global reliability
+rho_global = zeros(3,1);
+for i = 1:size(var_global_80,2)
+    [rho,~] = corr(var_global_80(~isnan(var_global_80(:,1)),i),n_elecs(~isnan(var_global_80(:,1))),'Type','Spearman'); 
+    rho_global(i) = rho;
+    
+    if 1==0
+        scatter(var_global_80(:,i),n_elecs)
+        text(0.9,50,sprintf('%1.2f',rho),'fontsize',20)
+        pause
+        close(gcf)
+    end
+end
+rho_global_avg = average_rho(rho_global,1);
+fprintf(['The correlation coefficient between global reliability and\n'...
+    'electrode number is %1.2f\n'],rho_global_avg);
+
+% nodal reliability
+rho_nodal = zeros(5,1);
+for i = 1:size(var_nodal_80,2)
+    [rho,~] = corr(var_nodal_80(~isnan(var_nodal_80(:,1)),i),n_elecs(~isnan(var_nodal_80(:,1))),'Type','Spearman'); 
+    rho_nodal(i) = rho;
+    if 1==0
+        scatter(var_nodal_80(:,i),n_elecs)
+        text(0.9,50,sprintf('%1.2f',rho),'fontsize',20)
+        pause
+        close(gcf)
+    end
+end
+rho_nodal_avg = average_rho(rho_nodal,1);
+fprintf(['The correlation coefficient between nodal reliability and\n'...
+    'electrode number is %1.2f\n'],rho_nodal_avg);
 
 end
 end

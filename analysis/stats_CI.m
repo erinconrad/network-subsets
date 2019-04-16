@@ -21,9 +21,9 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
 %% Initialize parameters
 np = length(stats);
 
-for contig_idx = 1%1:length(all_contig)
-for freq_idx = 1%1:length(all_freq)
-for sec_idx = 3%1:length(all_sec)
+for contig_idx = 1:length(all_contig)
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
     
 contig_text = all_contig{contig_idx};
 sec_text = all_sec{sec_idx};
@@ -94,7 +94,7 @@ end
 all_global(:,sec_idx,freq_idx,contig_idx) = nanmedian(global_width_95,1);
 all_nodal(:,sec_idx,freq_idx,contig_idx) = nanmedian(nums_nodal_95,1);
 
-
+%{
 %% Table to probe nodal measures
 table(names,nums_nodal_95(:,1),nums_nodal_95(:,2),nums_nodal_95(:,3),...
     nums_nodal_95(:,4),nums_nodal_95(:,5),nums_nodal_95(:,6),'VariableNames',...
@@ -103,7 +103,7 @@ table(names,nums_nodal_95(:,1),nums_nodal_95(:,2),nums_nodal_95(:,3),...
 
 %% Table to probe global measures
 table(names,global_width_95(:,1),global_width_95(:,2),global_width_95(:,3))
-
+%}
 end
 end
 end

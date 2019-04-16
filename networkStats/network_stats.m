@@ -7,7 +7,8 @@ specified fractions of electrodes, and then gets statistics on how the
 network measures change.
 %}
 
-tic
+total_time = 0;
+rng('default')
 
 
 %% Parameters
@@ -102,8 +103,8 @@ for whichPt = whichPts
         % through each electrode and its N nearest neighbors
         n_perm = length(pt(whichPt).new_elecs.electrodes);
     else
-        % Take 100 random permutations
-        n_perm = 1e2;
+        % Take 1000 random permutations
+        n_perm = 1e3;
     end
 
     % Make result folder
@@ -302,7 +303,7 @@ for whichPt = whichPts
         overlap_resec,dist_resec,elecs_min,...
         all_par,all_trans,avg_par_removed,avg_bc_removed,...
         all_sync_norm,all_eff_norm,all_trans_norm,all_ec,...
-        all_clust,all_le,cc_reg] = ...
+        all_clust,all_le,cc_reg,dist_nearest_resec] = ...
         resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
 
     %% Initialize arrays to compare old to new metrics
@@ -599,6 +600,7 @@ for whichPt = whichPts
         soz(whichPt).(freq).(contig_text).(sec_text).overlap_resec = overlap_resec;
         soz(whichPt).(freq).(contig_text).(sec_text).par_removed = avg_par_removed;
         soz(whichPt).(freq).(contig_text).(sec_text).bc_removed = avg_bc_removed;
+        soz(whichPt).(freq).(contig_text).(sec_text).dist_nearest_resec = dist_nearest_resec;
         
         % Agreement of nodal measures for electrodes in resection zone
         soz(whichPt).(freq).(contig_text).(sec_text).rho_cc_resec = rho_cc_resec;
@@ -763,7 +765,8 @@ for whichPt = whichPts
     end
     
    t = toc;
-    fprintf('Elapsed time for %s was %1.3f\n\n.',name,t); 
+   fprintf('Elapsed time for %s was %1.2f minutes.\n\n',name,t/60); 
+   total_time =  total_time + t;
     
 end
 
@@ -771,21 +774,6 @@ end
 end
 end
 
-
-toc
-
-end
-
-% No longer used
-function rel_std = rel_std_nodal(perm_metric,true_metric)
-    
-    % The average across electrodes of the std across permutations
-    std_across_perm = nanmean(squeeze(nanstd(perm_metric,0,3)),1);
-        
-    % Std across electrodes of the true metric
-    std_across_ch = nanstd(true_metric,0,1);
-
-    % Relative std
-    rel_std = std_across_perm./std_across_ch;
+fprintf('The total time was %1.2f hours.\n\n',total_time/3600);
 
 end

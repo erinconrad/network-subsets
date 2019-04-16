@@ -1,6 +1,7 @@
 function resec_stats
 
 % This just compares average n_s for resection zone to other areas
+doPlot = 0;
 
 %% Load Stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
@@ -10,6 +11,7 @@ addpath(p1);
 
 %% Load ns structure
 load([resultsFolder,'resec_ns/ns.mat']);
+load([dataFolder,'structs/info.mat']);
 
 all_resec_ns = [];
 all_no_resec_ns = [];
@@ -21,6 +23,18 @@ for i = 1:length(ns)
     ns_temp = ns(i).ns;
     yes_resec = ns(i).yes_resec;
     no_resec = ns(i).no_resec;
+    
+    %% Plot
+    if doPlot == 1
+        locs = pt(i).new_elecs.locs;
+        scatter3(locs(:,1),locs(:,2),locs(:,3),200,'k');
+        hold on
+        scatter3(locs(:,1),locs(:,2),locs(:,3),200,ns_temp,'filled');
+        scatter3(locs(yes_resec,1),locs(yes_resec,2),locs(yes_resec,3),70,'k','filled');
+        colorbar
+        pause
+        close(gcf)
+    end
     
     %% Get average ns of resection zone versus outside it
     ns_resec = mean(ns_temp(yes_resec));

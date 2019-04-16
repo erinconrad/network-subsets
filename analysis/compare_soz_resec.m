@@ -8,7 +8,7 @@ from the resection zone and calculates summary statistics and does plots
 
 
 %% Parameters
-doPlot = 1;
+doPlot = 0;
 all_freq = {'high_gamma','beta'};
 all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};%fieldnames(soz(1).high_gamma.contiguous);
 contig_text = 'contiguous'; % Should only do contiguous for this

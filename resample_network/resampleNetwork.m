@@ -1,7 +1,7 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
     avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm,...
-    all_ec,all_clust,all_le,cc_reg] = ...
+    all_ec,all_clust,all_le,cc_reg,dist_nearest_resec] = ...
     resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
 
 %{
@@ -93,6 +93,7 @@ dist_soz = nan(n_f,n_perm);
 % resected channels
 overlap_resec = nan(n_f,n_perm);
 dist_resec = nan(n_f,n_perm);
+dist_nearest_resec = nan(n_f,n_perm);
 
 % Initialize array representing electrodes in most synchronizig region
 elecs_min = [];
@@ -134,26 +135,27 @@ for f = 1:n_f
         end
         
         %% Compare electrodes to SOZ and resection zone
-        [overlap_soz_t,dist_soz_t] = compare_elecs(which_elecs,soz,locs,doPlot);
+        [overlap_soz_t,dist_soz_t,~] = compare_elecs(which_elecs,soz,locs,doPlot);
         % Get distance from SOZ and overlap with SOZ
         
         if isempty(resec) == 0
-            [overlap_resec_t,dist_resec_t] = compare_elecs(which_elecs,resec,locs,doPlot);
+            [overlap_resec_t,dist_resec_t,dist_nearest_resec_t] = compare_elecs(which_elecs,resec,locs,doPlot);
             % Get distance from resection zone and overlap with resection
             % zone
         else
-            overlap_resec_t = nan; dist_resec_t = nan;
+            overlap_resec_t = nan; dist_resec_t = nan; dist_nearest_resec_t = nan;
         end
         
         % Note that dist_resec(f,i_p) tells us the average distance between
         % the e_n nearest neighbors to channel i_p (because in the SOZ
         % analysis n_perm is the number of channels and we are looping
         % though each channel one by one) and the resection zone. We are
-        % ignoring those e_n channels
+        % ignoring those e_n channels  
         overlap_soz(f,i_p) = overlap_soz_t;
         dist_soz(f,i_p) = dist_soz_t;
         overlap_resec(f,i_p) = overlap_resec_t;
         dist_resec(f,i_p) = dist_resec_t;
+        dist_nearest_resec(f,i_p) = dist_nearest_resec_t;
         
         %% Get bc and pc of removed electrodes
         avg_par_removed(f,i_p) = mean(true_par(which_elecs));

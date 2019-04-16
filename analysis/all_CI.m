@@ -110,7 +110,7 @@ for text = which_texts
         elseif count == 6
            l1 = legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.92 0.72 0.03 0.10],...
                 'box','on');
-            pause(1)
+            pause(1) % do not delete
             for k = 1:length(l1.EntryContainer.NodeChildren)
                 l1.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 14;
             end
@@ -230,7 +230,7 @@ for i = 1:length(all_rat)
 end
 xticklabels([]);
 l2 = legend(pl,all_met_names,'position',[0.27 0.12 0.1 0.1],'fontsize',18);
-pause(1);
+pause(1); % do not delete
 for k = 1:length(l2.EntryContainer.NodeChildren)
     l2.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 12;
 end
@@ -255,7 +255,7 @@ end
 xticklabels([]);
 l3 = legend(pl,global_names_all,'location','northeast','fontsize',18);
 legend boxoff
-pause(1)
+pause(1) % do not delete
 for k = 1:length(l3.EntryContainer.NodeChildren)
     l3.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 12;
 end
@@ -271,7 +271,7 @@ annotation('textbox',[0 0.37 0.1 0.1],'String',...
     'C','FontSize',35,'linestyle','none');
 annotation('textbox',[0 0.16 0.1 0.1],'String',...
     'D','FontSize',35,'linestyle','none');
-annotation('textbox',[0.52 0.16 0.1 0.1],'String',...
+annotation('textbox',[0.59 0.16 0.1 0.1],'String',...
     'E','FontSize',35,'linestyle','none');
 
 print(gcf,[outFolder,'all_',freq,contig_text,sec_text],'-depsc');
