@@ -5,6 +5,9 @@ This function takes an adjacency matrix A, calculates global and nodal
 network measures, and then randomly resamples the network, retaining
 specified fractions of electrodes, and then gets statistics on how the
 network measures change.
+
+
+for whichPts, should put in 1:33 to do the whole run
 %}
 
 total_time = 0;
@@ -26,7 +29,9 @@ merge = 1;
 % e_f: What fraction of nodes to retain
 % contigs: 1 means contiguous set of electrodes, 0 means random electrodes
 if do_soz_analysis == 1
-    e_f = 0.8;
+    %e_f = 0.8; % old way, systematically remove electrode and its N
+    %nearest neighbors, amounting to 20% of total number of electrodes
+    e_f = 999; % new way, we are just removing single channel
     contigs = 1;
 else
     e_f = [0.2 0.4 0.6 0.8 1];

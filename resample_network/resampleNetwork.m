@@ -126,12 +126,17 @@ for f = 1:n_f
         if contig == 0 % random electrodes
             which_elecs = randperm(nch,e_n(f));
         elseif contig == 1 
+            %{
+            OLD APPROACH
             % the e_n nearest neighbors, NOT RANDOM AT ALL because I am not
             % adding jitter and I am looping through channel by channel
             
             which_elecs = pickConChs(locs,e_n(f),0,0,i_p);
+            %}
             
-            
+            % NEW APPROACH
+            % Take just the individual channel
+            which_elecs = i_p;
         end
         
         %% Compare electrodes to SOZ and resection zone
