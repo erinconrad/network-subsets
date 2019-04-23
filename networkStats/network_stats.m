@@ -155,6 +155,7 @@ for whichPt = whichPts
     end
 
     %% Get adjacency matrix
+    error('look\n');
     [adj,~] = reconcileAdj(pt,whichPt,which_sz);
     if isempty(adj) == 1
         fprintf('Cannot do %s\n\n',name);
