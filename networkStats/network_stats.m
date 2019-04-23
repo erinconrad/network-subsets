@@ -155,8 +155,7 @@ for whichPt = whichPts
     end
 
     %% Get adjacency matrix
-    error('look\n');
-    [adj,~] = reconcileAdj(pt,whichPt,which_sz);
+    [adj,~,sz_num] = reconcileAdj(pt,whichPt,which_sz);
     if isempty(adj) == 1
         fprintf('Cannot do %s\n\n',name);
         continue;
@@ -310,7 +309,7 @@ for whichPt = whichPts
         all_par,all_trans,avg_par_removed,avg_bc_removed,...
         all_sync_norm,all_eff_norm,all_trans_norm,all_ec,...
         all_clust,all_le,cc_reg,dist_nearest_resec,sz_soz_dist] = ...
-        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,which_sz);
+        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,sz_num);
 
     %% Initialize arrays to compare old to new metrics
 

@@ -1,4 +1,4 @@
-function [adj,out_locs] = reconcileAdj(pt,whichPt,which_sz)
+function [adj,out_locs,sz_num] = reconcileAdj(pt,whichPt,which_sz)
 
 %{
 This function gets an adjacency matrix and gets the correct locations
@@ -25,8 +25,10 @@ end
 % Load the appropriate adjacency matrix
 load([baseFolder,listing(which_sz).name]);
 elecs = adj(7).data;
+s = regexp(listing(which_sz).name,'\d');
+sz_num = str2num(listing(which_sz).name(s));
 
-error('look\n');
+fprintf('This is seizure %d\n.',sz_num);
 
 % Get the names of the unignored channels, should be in the same order as
 % the rows in the adjacency matrix

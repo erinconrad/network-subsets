@@ -2,7 +2,7 @@ function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
     avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm,...
     all_ec,all_clust,all_le,cc_reg,dist_nearest_resec,sz_soz_dist] = ...
-    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,which_sz)
+    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,sz_num)
 
 %{
 This function resamples the network by removing a fraction of nodes and then
@@ -19,7 +19,7 @@ locs = pt(whichPt).new_elecs.locs;
 
 % Get soz electrodes
 soz = pt(whichPt).soz.nums;
-sz_soz = pt(whichPt).sz(which_sz).nums;
+sz_soz = pt(whichPt).sz(sz_num).nums;
 
 % Get resected electrodes
 if isempty(pt(whichPt).resec) == 0
