@@ -24,17 +24,19 @@ pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'cc_comparison/'];
 
 figure
-set(gcf,'Position',[100 0 1100 1000]);
-[ha,pos] = tight_subplot(4, 3, [0.01 0.03], [0.02 0.07],[0.09 0.02]);
+set(gcf, 'PaperPosition', [0 0 1100 1100])    
+set(gcf, 'PaperSize', [1100 1100])   
+set(gcf,'Position',[100 0 1100 1100]);
+[ha,pos] = tight_subplot(4, 3, [0.08 0.03], [0.02 0.07],[0.09 0.02]);
 set(ha(7),'position',[pos{4}(1), pos{7}(2), (pos{5}(1) - pos{4}(1) + ...
-    pos{5}(3)/2)*2, pos{7}(4)-0.05]);
+    pos{5}(3)/2)*2, pos{7}(4)]);
 delete(ha(8))
 delete(ha(9))
 set(ha(10),'position',[pos{4}(1)+0.01, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
-    pos{5}(3)/2-0.01), pos{10}(4)-0.02]);
+    pos{5}(3)/2-0.01), pos{10}(4)]);
 set(ha(11),'position',[pos{4}(1) + (pos{5}(1) - pos{4}(1) + ...
     pos{5}(3)/2) + 0.12, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
-    pos{5}(3)/2) - 0.12, pos{10}(4)-0.02]);
+    pos{5}(3)/2) - 0.12, pos{10}(4)]);
 delete(ha(12))
 
 count = 0;
@@ -144,18 +146,18 @@ end
 
 %% The 7th plot (3rd row) is violin plot of sync distributions for all patients
 axes(ha(7))
-all_rho = zeros(100,3);
+all_rho = zeros(1000,3);
 new_count = 0;
 all_95_ci_width = zeros(29,3);
 for j = {'sync','eff','trans'}
     new_count = new_count + 1;
     true = zeros(29,1);
-    all_perm = zeros(29,100);
+    all_perm = zeros(29,1000);
     
     for i = 1:length(stats)    
         if isempty(stats(i).name) ==1
             true(i) = nan;
-            all_perm(i,:) = nan(1,100);
+            all_perm(i,:) = nan(1,1000);
             continue; 
         end
 

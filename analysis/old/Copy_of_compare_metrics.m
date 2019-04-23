@@ -6,7 +6,7 @@ compares network measure reliability
 %}
 
 %% Parameters
-doPlots = 1; % plot things?
+doPlots = 0; % plot things?
 all_contig = {'random','contiguous'}; % look at random or contiguous removal
 all_freq = {'high_gamma','beta'}; % which frequency coherence
 all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'}; % which times relative to EEC
@@ -39,9 +39,9 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
     length(all_freq),length(all_contig));
 
 % Loop through contig vs random removal, frequencies, and times
-for contig_idx = 1%1:length(all_contig)
-for freq_idx = 1%1:length(all_freq)
-for sec_idx = 3%1:length(all_sec)
+for contig_idx = 1:length(all_contig)
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
     
 % Get appropriate contig vs random, frequency, time
 contig_text = all_contig{contig_idx};
@@ -358,22 +358,22 @@ if doPlots == 1
         0.6350 0.0780 0.1840;0.75 0.5 0.5];
     
     figure
-    set(gcf,'Position',[174 207 1300 660])
-    [ha, pos] = tight_subplot(2, 1, [0.1 0.04], [0.09 0.05],[0.05 0.02]);
+    set(gcf,'Position',[174 207 1300 850])
+    pos_f = get(gcf,'Position');
+    [ha, pos] = tight_subplot(3, 2, [0.15 0.04], [-0.02 0.04],[0.05 0.02]);
+    set(ha(3),'Position',[pos{3}(1) pos{3}(2)+0.02 ...
+        pos{4}(1) + pos{4}(3) - pos{3}(1) pos{3}(4)]);
+    set(ha(5),'Position',[pos{5}(1) pos{5}(2)+0.14 ...
+        pos{6}(1) + pos{6}(3) - pos{5}(1) pos{5}(4)]);
+    delete((ha(4)))
+    delete((ha(6)))
     
-    
-    % Nodal reliability
+    % Variability
     axes(ha(1))
     nd = zeros(size(avg_ag_nodal,1),1);
     for j = 1:size(avg_ag_nodal,1)
-        std_rel = squeeze(nanstd(var_nodal,1));
-       errorbar(100-ef+j*2-4,avg_var_nodal(j,:),std_rel(j,:),...
-           'o','MarkerSize',15,'MarkerEdgeColor',cols(j,:),...
-           'MarkerFaceColor',cols(j,:),'Color',cols(j,:),'linewidth',2);
+       nd(j) = scatter(ef,avg_var_nodal(j,:),200,cols(j,:),'filled');
          hold on
-        nd(j) = plot(100-ef+j*2-4,avg_var_nodal(j,:),'o','MarkerSize',15,...
-            'MarkerEdgeColor',cols(j,:),...
-           'MarkerFaceColor',cols(j,:));
     end
     %{
     legend('Control centrality','Regional control centrality',...
@@ -381,51 +381,134 @@ if doPlots == 1
         'Eigenvector centrality','Clustering coefficient',...
         'location','northeastoutside');
     %}
-   % xlabel('Percent nodes removed');
+    xlabel('Percent nodes retained');
     ylabel({'Reliability'})
-    title('Nodal reliability');
-    xticks(sort(100-ef))
    % title('Reliability by subsample size','Position',[0.1 0.1 0.1 0.1]);
     set(gca,'Fontsize',20);
     
    % axes(ha(3))
-   legend(nd,{'Control centrality',...
+   l1 = legend(nd,{'Control centrality',...
         'Node strength','Betweenness centrality',...
         'Eigenvector centrality','Clustering coefficient'},'Location',...
-        'southwest');
+        'southeast');
     legend boxoff
     
     gl = zeros(size(avg_ag_global,1),1);
     axes(ha(2))
     for j = 1:size(avg_ag_global,1)
-         std_rel = squeeze(nanstd(var_global,1));
-         errorbar(100-ef+j*2-2,avg_var_global(j,:),std_rel(j,:),...
-           'o','MarkerSize',15,'MarkerEdgeColor',cols(j+5,:),...
-           'MarkerFaceColor',cols(j+5,:),'Color',cols(j+5,:),'linewidth',2);
+         gl(j) = scatter(ef,avg_var_global(j,:),200,cols(j+5,:),'filled');
          hold on
-        gl(j) = plot(100-ef+j*2-2,avg_var_global(j,:),'o','MarkerSize',15,...
-            'MarkerEdgeColor',cols(j+5,:),...
-           'MarkerFaceColor',cols(j+5,:));
     end
     %{
     legend('Synchronizability','Global efficiency','Transitivity',...
         'location','northeastoutside');
     %}
-    xlabel('Percent nodes removed');
-    ylabel({'Reliability'})
-    title('Global reliability');
-    xticks(sort(100-ef))
+    xlabel('Percent nodes retained');
+   % ylabel({'Reliability'})
     %title('Variability by subsample size');
     set(gca,'Fontsize',20);
     
    % axes(ha(6))
-   legend(gl,{'Synchronizability','Global efficiency','Transitivity'},'Location',...
-        'southwest');
+   l2 = legend(gl,{'Synchronizability','Global efficiency','Transitivity'},'Location',...
+        'southeast');
     legend boxoff
+    annotation('textbox',[0.40 0.91 0.1 0.1],'String',...
+        'Reliability by subsample size','FontSize',25,'linestyle','none',...
+        'fontweight','bold');
     
+    for i = 1:length(l1.EntryContainer.NodeChildren)
+        l1.EntryContainer.NodeChildren(i).Icon.Transform.Children.Children.Size = 14;
+    end
+    
+    % Necessary voodoo
+    pause(1)
+    
+    for i = 1:length(l2.EntryContainer.NodeChildren)
+        l2.EntryContainer.NodeChildren(i).Icon.Transform.Children.Children.Size = 14;
+    end
+    
+
+    %% Plot 80% for all patients
+
+    %{
+    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
+        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330];
+    %}
+    
+    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
+        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;...
+        0.6350 0.0780 0.1840;0.75 0.5 0.5];
+
+    % Nodal metrics
+    axes(ha(3))
+    count = 0;
+    for i = 1:size(var_nodal_80,1)
+        if isempty(stats(i).name) == 1, continue; end
+        count = count + 1;
+        for j = 1:size(var_nodal_80,2)
+            scatter(count,var_nodal_80(i,j),200,cols(j,:),'filled');
+            hold on
+        end
+    end
+   l1 =  legend('Control centrality',...
+        'Node strength','Betweenness centrality',...
+        'Eigenvector centrality','Clustering coefficient','location',...
+        'southeast');
+    legend boxoff
+    %xticks(1:length(names))
+    xticklabels([])
+    %xlabel('Which patient')
+    ylabel('Reliability')
+    set(gca,'ylim',[0 1])
+    set(gca,'fontsize',20)
+    title('Reliability of metric when 20% of network removed','fontsize',25);
+    %xticklabels(name_nums)
+
+
+    % Global metrics
+    axes(ha(5))
+    count = 0;
+    for i = 1:size(var_global_80,1)
+        if isempty(stats(i).name) == 1, continue; end
+        count = count + 1;
+        for j = 1:size(var_global_80,2)
+            scatter(count,var_global_80(i,j),200,cols(j+5,:),'filled');
+            hold on
+        end
+    end
+   l2 =  legend('Synchronizability','Global efficiency','Transitivity','location',...
+        'southeast');
+    legend boxoff
+    xticks(1:length(names))
+    xticklabels(names);
+    xtickangle(90)
+    xlabel('Which patient')
+    ylabel('Reliability')
+    set(gca,'ylim',[0.7 1])
+    set(gca,'fontsize',20)
+    
+    for i = 1:length(l1.EntryContainer.NodeChildren)
+        l1.EntryContainer.NodeChildren(i).Icon.Transform.Children.Children.Size = 14;
+    end
+    
+    % Necessary voodoo
+    pause(1)
+    
+    for i = 1:length(l2.EntryContainer.NodeChildren)
+        l2.EntryContainer.NodeChildren(i).Icon.Transform.Children.Children.Size = 14;
+    end
+    
+    annotation('textbox',[0 0.88 0.1 0.1],'String',...
+        'A','FontSize',35,'linestyle','none');
+    annotation('textbox',[0.5 0.88 0.1 0.1],'String',...
+        'B','FontSize',35,'linestyle','none');
+    annotation('textbox',[0 0.52 0.1 0.1],'String',...
+        'C','FontSize',35,'linestyle','none');
+    annotation('textbox',[0 0.26 0.1 0.1],'String',...
+        'D','FontSize',35,'linestyle','none');
     
     pause
-    print(gcf,[outFolder,'new_all_fig2_',freq,contig_text,sec_text],'-depsc');
+    print(gcf,[outFolder,'all_fig2_',freq,contig_text,sec_text],'-depsc');
     close(gcf)
 
 end

@@ -26,6 +26,8 @@ end
 load([baseFolder,listing(which_sz).name]);
 elecs = adj(7).data;
 
+error('look\n');
+
 % Get the names of the unignored channels, should be in the same order as
 % the rows in the adjacency matrix
 out_names = elecs.labels(elecs.ignore == 0)';
