@@ -29,9 +29,9 @@ merge = 1;
 % e_f: What fraction of nodes to retain
 % contigs: 1 means contiguous set of electrodes, 0 means random electrodes
 if do_soz_analysis == 1
-    %e_f = 0.8; % old way, systematically remove electrode and its N
+    e_f = 0.8; % primary way, systematically remove electrode and its N
     %nearest neighbors, amounting to 20% of total number of electrodes
-    e_f = 999; % new way, we are just removing single channel
+   % e_f = 999; % other way, we are just removing single channel
     contigs = 1;
 else
     e_f = [0.2 0.4 0.6 0.8 1];
@@ -308,8 +308,8 @@ for whichPt = whichPts
         overlap_resec,dist_resec,elecs_min,...
         all_par,all_trans,avg_par_removed,avg_bc_removed,...
         all_sync_norm,all_eff_norm,all_trans_norm,all_ec,...
-        all_clust,all_le,cc_reg,dist_nearest_resec] = ...
-        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj);
+        all_clust,all_le,cc_reg,dist_nearest_resec,sz_soz_dist] = ...
+        resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,which_sz);
 
     %% Initialize arrays to compare old to new metrics
 
@@ -599,6 +599,7 @@ for whichPt = whichPts
         soz(whichPt).(freq).(contig_text).(sec_text).trans = rel_trans;
         
         % Distance from/overlap with SOZ/resection zone
+        soz(whichPt).(freq).(contig_text).(sec_text).sz_soz_dist = sz_soz_dist;
         soz(whichPt).(freq).(contig_text).(sec_text).dist_soz = dist_soz;
         soz(whichPt).(freq).(contig_text).(sec_text).dist_resec = dist_resec;
         soz(whichPt).(freq).(contig_text).(sec_text).overlap_soz = overlap_soz;

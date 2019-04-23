@@ -1,8 +1,8 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
     avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm,...
-    all_ec,all_clust,all_le,cc_reg,dist_nearest_resec] = ...
-    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj)
+    all_ec,all_clust,all_le,cc_reg,dist_nearest_resec,sz_soz_dist] = ...
+    resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,which_sz)
 
 %{
 This function resamples the network by removing a fraction of nodes and then
@@ -19,6 +19,7 @@ locs = pt(whichPt).new_elecs.locs;
 
 % Get soz electrodes
 soz = pt(whichPt).soz.nums;
+sz_soz = pt(whichPt).sz(which_sz).nums;
 
 % Get resected electrodes
 if isempty(pt(whichPt).resec) == 0
@@ -88,6 +89,7 @@ all_clust = nan(nch,n_f,n_perm);
 % Get arrays representing overlap and distance between removed channels and soz
 overlap_soz = nan(n_f,n_perm);
 dist_soz = nan(n_f,n_perm);
+sz_soz_dist = nan(n_f,n_perm);
 
 % Get arrays representing overlap and distance between removed channels and
 % resected channels
@@ -127,20 +129,21 @@ for f = 1:n_f
             which_elecs = randperm(nch,e_n(f));
         elseif contig == 1 
             %{
-            OLD APPROACH
+            PRIMARY APPROACH
             % the e_n nearest neighbors, NOT RANDOM AT ALL because I am not
             % adding jitter and I am looping through channel by channel
-            
-            which_elecs = pickConChs(locs,e_n(f),0,0,i_p);
             %}
+            which_elecs = pickConChs(locs,e_n(f),0,0,i_p);
             
-            % NEW APPROACH
+            
+            % ALTERNATIVE APPROACH
             % Take just the individual channel
-            which_elecs = i_p;
+            % which_elecs = i_p;
         end
         
         %% Compare electrodes to SOZ and resection zone
         [overlap_soz_t,dist_soz_t,~] = compare_elecs(which_elecs,soz,locs,doPlot);
+        [~,sz_soz_dist_t,~] = compare_elecs(which_elecs,sz_soz,locs,doPlot);
         % Get distance from SOZ and overlap with SOZ
         
         if isempty(resec) == 0
@@ -161,6 +164,7 @@ for f = 1:n_f
         overlap_resec(f,i_p) = overlap_resec_t;
         dist_resec(f,i_p) = dist_resec_t;
         dist_nearest_resec(f,i_p) = dist_nearest_resec_t;
+        sz_soz_dist(f,i_p) = sz_soz_dist_t;
         
         %% Get bc and pc of removed electrodes
         avg_par_removed(f,i_p) = mean(true_par(which_elecs));

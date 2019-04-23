@@ -39,9 +39,9 @@ all_nodal = nan(length(nodal_metrics),length(all_sec),...
     length(all_freq),length(all_contig));
 
 % Loop through contig vs random removal, frequencies, and times
-for contig_idx = 1%1:length(all_contig)
-for freq_idx = 1%1:length(all_freq)
-for sec_idx = 3%1:length(all_sec)
+for contig_idx = 1:length(all_contig)
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
     
 % Get appropriate contig vs random, frequency, time
 contig_text = all_contig{contig_idx};
@@ -61,7 +61,12 @@ n_elecs = nan(np,1);
 % Loop through patients
 for i = 1:length(stats)
     
-    if isempty(stats(i).name) == 1, names = [names;nan]; continue; end
+    if isempty(stats(i).name) == 1
+        if doPlots == 0
+            names = [names;nan]; 
+        end
+        continue; 
+    end
     
     %% Get number of electrodes
     if strcmp(pt(i).name,stats(i).name) == 0, error('what\n'); end
