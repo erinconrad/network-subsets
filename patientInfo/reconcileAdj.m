@@ -18,7 +18,7 @@ listing = dir([baseFolder,'*.mat']);
 
 if length(listing) < which_sz
     fprintf('Cannot do %s\n\n',name);
-    adj = []; out_locs = [];
+    adj = []; out_locs = []; sz_num = [];
     return
 end
 
