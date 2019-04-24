@@ -26,9 +26,15 @@ end
 load([baseFolder,listing(which_sz).name]);
 elecs = adj(7).data;
 s = regexp(listing(which_sz).name,'\d');
-sz_num = str2num(listing(which_sz).name(s));
+if whichPt == 20
+    sz_num = which_sz;
+    fprintf('Since %s, doing sz %d.\n',name,sz_num);
+else
+    sz_num = str2num(listing(which_sz).name(s));
+    fprintf('This is seizure %d.\n',sz_num);
+end
 
-fprintf('This is seizure %d\n.',sz_num);
+
 
 % Get the names of the unignored channels, should be in the same order as
 % the rows in the adjacency matrix
