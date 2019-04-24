@@ -25,7 +25,10 @@ end
 % Load the appropriate adjacency matrix
 load([baseFolder,listing(which_sz).name]);
 elecs = adj(7).data;
+sz_num = which_sz;
+%{
 s = regexp(listing(which_sz).name,'\d');
+
 if whichPt == 20
     sz_num = which_sz;
     fprintf('Since %s, doing sz %d.\n',name,sz_num);
@@ -33,6 +36,7 @@ else
     sz_num = str2num(listing(which_sz).name(s));
     fprintf('This is seizure %d.\n',sz_num);
 end
+%}
 
 
 
