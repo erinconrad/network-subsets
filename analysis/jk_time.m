@@ -26,12 +26,12 @@ outFolder = [resultsFolder,'cc_comparison/'];
 locs = pt(whichPt).new_elecs.locs;
 
 figure
-set(gcf,'Position',[50 0 1400 900]);
-[ha,pos] = tight_subplot(3, 5, [0 0.01], [0.05 0.04],[0.045 0.02]);
+set(gcf,'Position',[50 0 1200 900]);
+[ha,pos] = tight_subplot(3, 5, [0.02 0.01], [0.05 0.04],[0.06 0.02]);
 set(ha(11),'position',[pos{11}(1), pos{11}(2), ...
-    (pos{5}(1)+pos{5}(3)-pos{1}(1))/2-0.03, pos{11}(4)-0.02]);
-set(ha(12),'position',[pos{11}(1)+(pos{5}(1)+pos{5}(3)-pos{1}(1))/2+0.03,...
-    pos{11}(2),(pos{5}(1)+pos{5}(3)-pos{1}(1))/2-0.03, pos{11}(4)-0.02]);
+    (pos{5}(1)+pos{5}(3)-pos{1}(1))/2-0.05, pos{11}(4)-0.02]);
+set(ha(12),'position',[pos{11}(1)+(pos{5}(1)+pos{5}(3)-pos{1}(1))/2+0.05,...
+    pos{11}(2),(pos{5}(1)+pos{5}(3)-pos{1}(1))/2-0.05, pos{11}(4)-0.02]);
 delete(ha(13))
 delete(ha(14))
 delete(ha(15))
@@ -93,7 +93,7 @@ for text = 1:length(which_texts)
         if count == 1 || count == 6
             zlabel(sprintf('%s',which_names{text}));
         elseif count == 10
-           l1= legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.94 0.58 0.03 0.10],...
+           l1= legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.94 0.60 0.03 0.10],...
             'box','on');
             pause(1)
             for k = 1:length(l1.EntryContainer.NodeChildren)
@@ -123,7 +123,7 @@ for gl_idx = 1:2
 
     % Get global for each
     true = zeros(length(all_sec),1);
-    all_perm = zeros(length(all_sec),100);
+    all_perm = zeros(length(all_sec),1000);
     for i = 1:length(all_sec)
 
         base = stats(whichPt).(freq).(contig_text).(all_sec{i});
@@ -146,7 +146,7 @@ annotation('textbox',[0 0.55 0.1 0.1],'String',...
     'B','FontSize',35,'linestyle','none');
 annotation('textbox',[0 0.25 0.1 0.1],'String',...
     'C','FontSize',35,'linestyle','none');
-annotation('textbox',[0.5 0.25 0.1 0.1],'String',...
+annotation('textbox',[0.53 0.25 0.1 0.1],'String',...
     'D','FontSize',35,'linestyle','none');
 
 print(gcf,[outFolder,'time_sens'],'-depsc');

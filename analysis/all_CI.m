@@ -23,11 +23,9 @@ global_names_all = {'Synchronizability','Global efficiency','Transitivity'};
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'cc_comparison/'];
 
-figure
-set(gcf, 'PaperPosition', [0 0 1100 1100])    
-set(gcf, 'PaperSize', [1100 1100])   
-set(gcf,'Position',[100 0 1100 1100]);
-[ha,pos] = tight_subplot(4, 3, [0.08 0.03], [0.02 0.07],[0.09 0.02]);
+figure  
+set(gcf,'Position',[100 0 900 1100]);
+[ha,pos] = tight_subplot(4, 3, [0.07 0.03], [0.01 0.04],[0.11 0.02]);
 set(ha(7),'position',[pos{4}(1), pos{7}(2), (pos{5}(1) - pos{4}(1) + ...
     pos{5}(3)/2)*2, pos{7}(4)]);
 delete(ha(8))
@@ -231,8 +229,8 @@ for i = 1:length(all_rat)
     hold on
 end
 xticklabels([]);
-l2 = legend(pl,all_met_names,'position',[0.27 0.12 0.1 0.1],'fontsize',18);
-pause(1); % do not delete
+l2 = legend(pl,all_met_names,'position',[0.31 0.13 0.1 0.1],'fontsize',18);
+pause(1); % DO NOT DELETE
 for k = 1:length(l2.EntryContainer.NodeChildren)
     l2.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 12;
 end
@@ -265,15 +263,15 @@ ylabel({'95% CI width', 'for metric'})
 set(gca,'fontsize',20)
 
 
-annotation('textbox',[0 0.86 0.1 0.1],'String',...
+annotation('textbox',[0 0.88 0.1 0.1],'String',...
     'A','FontSize',35,'linestyle','none');
 annotation('textbox',[0 0.63 0.1 0.1],'String',...
     'B','FontSize',35,'linestyle','none');
-annotation('textbox',[0 0.37 0.1 0.1],'String',...
+annotation('textbox',[0 0.38 0.1 0.1],'String',...
     'C','FontSize',35,'linestyle','none');
-annotation('textbox',[0 0.16 0.1 0.1],'String',...
+annotation('textbox',[0 0.13 0.1 0.1],'String',...
     'D','FontSize',35,'linestyle','none');
-annotation('textbox',[0.59 0.16 0.1 0.1],'String',...
+annotation('textbox',[0.59 0.13 0.1 0.1],'String',...
     'E','FontSize',35,'linestyle','none');
 
 print(gcf,[outFolder,'all_',freq,contig_text,sec_text],'-depsc');

@@ -8,7 +8,7 @@ from the resection zone and calculates summary statistics and does plots
 
 
 %% Parameters
-doPlot = 1;
+doPlot = 0;
 dist_to_plot = 3;
 %1 if looking at distance to nearest resec zone elec;
 %2 if looking at distance to centroid of resection zone
@@ -60,8 +60,8 @@ freq = 'high_gamma';
     %}
 
 
-for freq_idx = 1%1:length(all_freq)
-for sec_idx = 3%1:length(all_sec)
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
     
 
 sec_text = all_sec{sec_idx};

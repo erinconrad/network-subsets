@@ -124,14 +124,14 @@ end
 
 % Compare variability when 80% retained for global metrics
 [p,tbl,stats1] = friedman(var_global_80(~isnan(var_global_80(:,1)),:),1,'off');
-fprintf('Friedman test for global metrics: p = %1.1e, chi-squared = %1.1f\n',...
-    p, tbl{2,5});
+fprintf('Friedman test for global metrics: p = %1.1e, chi-squared = %1.1f, dof = %d\n',...
+    p, tbl{2,5},tbl{3,3});
 
 % perform a post-hoc Dunn's test
-c = multcompare(stats1,'CType','dunn-sidak','Display','off');
+[c,~,~,~,t] = multcompare_erin(stats1,'CType','dunn-sidak','Display','off');
 for i = 1:size(c,1)
-    fprintf('Dunn''s test comparing %s and %s: p = %1.3f\n\n',...
-        global_metrics{c(i,1)},global_metrics{c(i,2)},c(i,6));   
+    fprintf('Dunn''s test comparing %s and %s: t = %1.2f, p = %1.3f\n\n',...
+        global_metrics{c(i,1)},global_metrics{c(i,2)},t(i),c(i,6));   
 end
 
 % compare this do doing a signed rank
@@ -155,14 +155,14 @@ end
 
 % Compare variability when 80% retained for nodal metrics
 [p,tbl,stats1] = friedman(var_nodal_80(~isnan(var_nodal_80(:,1)),:),1,'off');
-fprintf('Friedman test for nodal metrics: p = %1.1e, chi-squared = %1.1f\n',...
-    p, tbl{2,5});
+fprintf('Friedman test for nodal metrics: p = %1.1e, chi-squared = %1.1f, dof = %d\n',...
+    p, tbl{2,5},tbl{3,3});
 
 % perform a post-hoc Dunn's test
-c = multcompare(stats1,'CType','dunn-sidak','Display','off');
+[c,~,~,~,t] = multcompare_erin(stats1,'CType','dunn-sidak','Display','off');
 for i = 1:size(c,1)
-    fprintf('Dunn''s test comparing %s and %s: p = %1.3f\n\n',...
-        nodal_metrics{c(i,1)},nodal_metrics{c(i,2)},c(i,6));   
+    fprintf('Dunn''s test comparing %s and %s: t = %1.2f, p = %1.3f\n\n',...
+        nodal_metrics{c(i,1)},nodal_metrics{c(i,2)},t(i),c(i,6));   
 end
 %% Order the nodal and global metrics
 % Calculate mean reliability
@@ -175,11 +175,20 @@ mean_rel_nodal = mean(var_nodal_80(~isnan(var_nodal_80(:,1)),:),1);
 all_global(:,sec_idx,freq_idx,contig_idx) = mean_rel_global;
 all_nodal(:,sec_idx,freq_idx,contig_idx) = mean_rel_nodal;
 
+mean_rel_global_all_removal_perc = squeeze(nanmean(var_global,1));
+mean_rel_nodal_all_removal_perc = squeeze(nanmean(var_nodal,1));
+
 %% Correlate reliability with number of electrodes
 % global reliability
 rho_global = zeros(3,1);
 for i = 1:size(var_global_80,2)
-    [rho,~] = corr(var_global_80(~isnan(var_global_80(:,1)),i),n_elecs(~isnan(var_global_80(:,1))),'Type','Spearman'); 
+    [rho,pval] = corr(var_global_80(~isnan(var_global_80(:,1)),i),n_elecs(~isnan(var_global_80(:,1))),'Type','Spearman'); 
+    
+    fprintf(['Spearman rank correlation between %s reliability and'...
+        'electrode number:\n rho = %1.2f, df = %d, p = %1.3f\n.'],...
+        global_metrics{i},rho,length(n_elecs(~isnan(var_global_80(:,1))))-2,...
+        pval);
+    
     rho_global(i) = rho;
     
     if 1==0
@@ -196,8 +205,12 @@ fprintf(['The correlation coefficient between global reliability and\n'...
 % nodal reliability
 rho_nodal = zeros(5,1);
 for i = 1:size(var_nodal_80,2)
-    [rho,~] = corr(var_nodal_80(~isnan(var_nodal_80(:,1)),i),n_elecs(~isnan(var_nodal_80(:,1))),'Type','Spearman'); 
+    [rho,pval] = corr(var_nodal_80(~isnan(var_nodal_80(:,1)),i),n_elecs(~isnan(var_nodal_80(:,1))),'Type','Spearman'); 
     rho_nodal(i) = rho;
+    fprintf(['Spearman rank correlation between %s reliability and'...
+        'electrode number:\n rho = %1.2f, df = %d, p = %1.3f\n.'],...
+        nodal_metrics{i},rho,length(n_elecs(~isnan(var_nodal_80(:,1))))-2,...
+        pval);
     if 1==0
         scatter(var_nodal_80(:,i),n_elecs)
         text(0.9,50,sprintf('%1.2f',rho),'fontsize',20)
@@ -208,6 +221,12 @@ end
 rho_nodal_avg = average_rho(rho_nodal,1);
 fprintf(['The correlation coefficient between nodal reliability and\n'...
     'electrode number is %1.2f\n'],rho_nodal_avg);
+
+
+%% Reliability for multiple removal percentages
+mean_rel_nodal_all_removal_perc
+mean_rel_global_all_removal_perc
+
 
 end
 end
@@ -227,19 +246,23 @@ squeeze(order_global(:,1,1,:))
 squeeze(order_nodal(:,1,1,:))
 
 %% Tables for multiple times
+fprintf('Multiple times:\n');
 all_global(:,:,1,1)
 all_nodal(:,:,1,1)
 
 %% Tables for beta band
+fprintf('EEC, beta band:\n');
 all_nodal(:,3,2,1)
 all_global(:,3,2,1)
 
 
 %% Tables for contig removal
+fprintf('EEC, contig removal:\n')
 all_global(:,3,1,2)
 all_nodal(:,3,1,2)
 
 %% Tables for EEC, high gamma, random (sz 2)
+fprintf('EEC, high gamma, random:\n');
 all_global(:,3,1,1)
 all_nodal(:,3,1,1)
 
@@ -367,11 +390,11 @@ if doPlots == 1
     nd = zeros(size(avg_ag_nodal,1),1);
     for j = 1:size(avg_ag_nodal,1)
         std_rel = squeeze(nanstd(var_nodal,1));
-       errorbar(100-ef+j*2-4,avg_var_nodal(j,:),std_rel(j,:),...
+       errorbar(100-ef+j*2-6,avg_var_nodal(j,:),std_rel(j,:),...
            'o','MarkerSize',15,'MarkerEdgeColor',cols(j,:),...
            'MarkerFaceColor',cols(j,:),'Color',cols(j,:),'linewidth',2);
          hold on
-        nd(j) = plot(100-ef+j*2-4,avg_var_nodal(j,:),'o','MarkerSize',15,...
+        nd(j) = plot(100-ef+j*2-6,avg_var_nodal(j,:),'o','MarkerSize',15,...
             'MarkerEdgeColor',cols(j,:),...
            'MarkerFaceColor',cols(j,:));
     end
@@ -384,6 +407,7 @@ if doPlots == 1
    % xlabel('Percent nodes removed');
     ylabel({'Reliability'})
     title('Nodal reliability');
+    xlim([-6 86])
     xticks(sort(100-ef))
    % title('Reliability by subsample size','Position',[0.1 0.1 0.1 0.1]);
     set(gca,'Fontsize',20);
@@ -399,11 +423,11 @@ if doPlots == 1
     axes(ha(2))
     for j = 1:size(avg_ag_global,1)
          std_rel = squeeze(nanstd(var_global,1));
-         errorbar(100-ef+j*2-2,avg_var_global(j,:),std_rel(j,:),...
+         errorbar(100-ef+j*2-4,avg_var_global(j,:),std_rel(j,:),...
            'o','MarkerSize',15,'MarkerEdgeColor',cols(j+5,:),...
            'MarkerFaceColor',cols(j+5,:),'Color',cols(j+5,:),'linewidth',2);
          hold on
-        gl(j) = plot(100-ef+j*2-2,avg_var_global(j,:),'o','MarkerSize',15,...
+        gl(j) = plot(100-ef+j*2-4,avg_var_global(j,:),'o','MarkerSize',15,...
             'MarkerEdgeColor',cols(j+5,:),...
            'MarkerFaceColor',cols(j+5,:));
     end
@@ -414,6 +438,7 @@ if doPlots == 1
     xlabel('Percent nodes removed');
     ylabel({'Reliability'})
     title('Global reliability');
+    xlim([-6 86])
     xticks(sort(100-ef))
     %title('Variability by subsample size');
     set(gca,'Fontsize',20);
@@ -422,6 +447,11 @@ if doPlots == 1
    legend(gl,{'Synchronizability','Global efficiency','Transitivity'},'Location',...
         'southwest');
     legend boxoff
+    
+    annotation('textbox',[0 0.89 0.1 0.1],'String',...
+        'A','FontSize',35,'linestyle','none');
+    annotation('textbox',[0 0.40 0.1 0.1],'String',...
+        'B','FontSize',35,'linestyle','none');
     
     
     pause
