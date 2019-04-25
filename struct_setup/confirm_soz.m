@@ -26,7 +26,11 @@ for whichPt = 1:length(pt)
                     end
                     
                     if pt(whichPt).sz(j).onset == sz.SeizureEEC
-                        pt(whichPt).sz(j).adj_num = str2num(sz.EMU_Report_Event_Number);
+                        
+                        s = regexp(sz.FILE,'-\d.mat');
+                        s = sz.FILE(s+1);
+                        pt(whichPt).sz(j).adj_num = str2num(s);
+                        
                         if isequal(pt(whichPt).sz(j).electrodes,...
                                 sz.SEIZURE_ONSET_ELECTRODES) == 0
                             error('what\n');
