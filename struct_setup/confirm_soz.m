@@ -35,6 +35,7 @@ for whichPt = 1:length(pt)
                                 sz.SEIZURE_ONSET_ELECTRODES) == 0
                             error('what\n');
                         end
+                        break
                     end
                 end
             end
