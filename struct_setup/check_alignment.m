@@ -12,7 +12,8 @@ for whichPt = whichPts
     listing = dir([baseFolder,'*.mat']);
     
     for i = 1:length(listing)
-        s = str2num(regexp(listing(i).name,'\d'));
+        s = (regexp(listing(i).name,'\d'));
+        s = str2num(listing(i).name(s));
         if s ~= pt(whichPt).sz(i).adj_num
             error('what\n');
         end
