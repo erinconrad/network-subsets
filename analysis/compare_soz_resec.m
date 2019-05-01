@@ -24,7 +24,7 @@ metrics_to_plot = 1:8; % probably shouldn't change (all nodal and global metrics
 metrics = {'rho_cc','rho_ns','rho_bc','rho_ec','rho_clust',...
     'sync','eff','trans',...
     'rho_cc_resec','rho_bc_resec','rho_ns_resec'};
-dists = {'dist_nearest_resec','dist_resec','dist_soz',...
+dists = {'dist_nearest_resec','dist_resec','sz_soz_dist',...
     'overlap_soz','overlap_resec','par_removed',...
     'bc_removed'};
 metric_names = {'Control centrality','Node strength','Betweenness centrality',...
@@ -60,8 +60,8 @@ freq = 'high_gamma';
     %}
 
 
-for freq_idx = 1:length(all_freq)
-for sec_idx = 1:length(all_sec)
+for freq_idx = 1%1:length(all_freq)
+for sec_idx = 3%1:length(all_sec)
     
 
 sec_text = all_sec{sec_idx};
@@ -125,7 +125,7 @@ for dist = dist_to_plot
                 measure_2 = measure;
                 dist_2 = dist_measure;
             end
-            if 1 == 0
+            if 0
             figure
             scatter(dist_measure,measure)
             title(metrics{metric});
@@ -250,12 +250,17 @@ end
 
 end
 end
-%{
+
 %% Table with different times, high gamma
-%
+%{
 table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
     char(t_text(:,4,1)),char(t_text(:,5,1)),'VariableNames',all_sec,...
     'RowNames',metrics(1:8))
+
+
+fprintf('\nSame table but without row names\n');
+table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
+    char(t_text(:,4,1)),char(t_text(:,5,1)),'VariableNames',all_sec)
 %}
 
 % For sec_0, high_gamma, plot t scores and p values
@@ -314,7 +319,7 @@ if doPlot == 1
         xticks(1:length(all_rho_pts))
         xticklabels(metric_names(metrics_to_plot))
         xlim([0.7 length(all_rho) + 0.3])
-        title({'Association between metric accuracy and','distance of ignored electrodes from resection zone'})
+        title({'Association between metric accuracy and','distance of ignored electrodes from seizure onset zone'})
         ylabel('Distance-agreement correlation');
         set(gca,'fontsize',20)
         fix_xticklabels(gca,0.1,{'FontSize',20});
@@ -338,7 +343,7 @@ if doPlot == 1
     xticks(1:length(all_rho_pts))
     xticklabels(metric_names(metrics_to_plot))
     xlim([0.7 length(all_rho) + 0.3])
-    title({'Association between metric accuracy and','distance of ignored electrodes from resection zone'})
+    title({'Association between metric accuracy and','distance of ignored electrodes from seizure onset zone'})
     ylabel('Distance-agreement correlation');
     set(gca,'fontsize',20)
     fix_xticklabels(gca,0.1,{'FontSize',20});

@@ -29,7 +29,7 @@ merge = 1;
 % e_f: What fraction of nodes to retain
 % contigs: 1 means contiguous set of electrodes, 0 means random electrodes
 if do_soz_analysis == 1
-    e_f = 0.8; % primary way, systematically remove electrode and its N
+    e_f = [0.2 0.4 0.6 0.8 1]; % JUST CHANGED THIS primary way, systematically remove electrode and its N
     %nearest neighbors, amounting to 20% of total number of electrodes
    % e_f = 999; % other way, we are just removing single channel
     contigs = 1;
