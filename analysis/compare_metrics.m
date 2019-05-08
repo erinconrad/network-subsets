@@ -125,7 +125,7 @@ end
 % Compare variability when 80% retained for global metrics
 [p,tbl,stats1] = friedman(var_global_80(~isnan(var_global_80(:,1)),:),1,'off');
 fprintf('Friedman test for global metrics: p = %1.1e, chi-squared = %1.1f, dof = %d\n',...
-    p, tbl{2,5},tbl{3,3});
+    p, tbl{2,5},tbl{2,3});
 
 % perform a post-hoc Dunn's test
 [c,~,~,~,t] = multcompare_erin(stats1,'CType','dunn-sidak','Display','off');

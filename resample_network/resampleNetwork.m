@@ -1,7 +1,8 @@
 function [all_c_c,all_ns,all_bc,all_sync,all_eff,overlap_soz,dist_soz,...
     overlap_resec,dist_resec,elecs_min,all_par,all_trans,...
     avg_par_removed,avg_bc_removed,all_sync_norm,all_eff_norm,all_trans_norm,...
-    all_ec,all_clust,all_le,cc_reg,dist_nearest_resec,sz_soz_dist] = ...
+    all_ec,all_clust,all_le,cc_reg,dist_nearest_resec,sz_soz_dist,...
+    all_cc_norm,all_ns_norm,all_bc_norm,all_ec_norm,all_clust_norm] = ...
     resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,sz_num)
 
 %{
@@ -60,14 +61,17 @@ end
 % each fraction and permutation
 all_c_c = nan(nch,n_f,n_perm);
 cc_reg = nan(nch,n_f,n_perm);
+all_cc_norm = nan(nch,n_f,n_perm);
 
 % Initialize cell array for each channel of the node strengths for each
 % fraction and permutation
 all_ns = nan(nch,n_f,n_perm);
+all_ns_norm = nan(nch,n_f,n_perm);
 
 % Initialize cell array for each channel of the betweenness centralities
 % for each fraction and permutation
 all_bc = nan(nch,n_f,n_perm);
+all_bc_norm = nan(nch,n_f,n_perm);
 
 % Initialize array for synhronizability for each fraction and permutation
 all_sync = nan(n_f,n_perm);
@@ -79,12 +83,14 @@ all_eff_norm = nan(n_f,n_perm);
 
 % Initialize array for eigenvector centrality
 all_ec = nan(nch,n_f,n_perm);
+all_ec_norm = nan(nch,n_f,n_perm);
 
 % Initialize array for local efficiency
 all_le = nan(nch,n_f,n_perm);
 
 % Initialize array for clustering coefficient
 all_clust = nan(nch,n_f,n_perm);
+all_clust_norm = nan(nch,n_f,n_perm);
 
 % Get arrays representing overlap and distance between removed channels and soz
 overlap_soz = nan(n_f,n_perm);
@@ -183,15 +189,44 @@ for f = 1:n_f
         % Get new control centrality of remaining electrodes in the new
         % network
         c_c = control_centrality(A_temp);
+        if i_p == 1
+            cc_fake = nan(100,1);
+            for i = 1:100
+                cc_fake(i) = mean(control_centrality(generate_fake_graph(A_temp)));
+            end
+            m_cc_fake = mean(cc_fake);
+        end
+        
         
         % Get new node strength
         ns = node_strength(A_temp);
+        if i_p == 1
+            ns_fake = nan(100,1);
+            for i = 1:100
+                ns_fake(i) = mean(node_strength(generate_fake_graph(A_temp)));
+            end
+            m_ns_fake = mean(ns_fake);
+        end
         
         % Get new clustering coefficient
         clust = clustering_coef_wu(A_temp);
+        if i_p == 1
+            clust_fake = nan(100,1);
+            for i = 1:100
+                clust_fake(i) = mean(clustering_coef_wu(generate_fake_graph(A_temp)));
+            end
+            m_clust_fake = mean(clust_fake);
+        end
         
         % Get new betweenness centrality
         bc = betweenness_centrality(A_temp,1);
+        if i_p == 1
+            bc_fake = nan(100,1);
+            for i = 1:100
+                bc_fake(i) = mean(betweenness_centrality(generate_fake_graph(A_temp),1));
+            end
+            m_bc_fake = mean(bc_fake);
+        end
         
         % Get new participation coefficient
         [Ci,~]=modularity_und(A_temp);
@@ -239,6 +274,13 @@ for f = 1:n_f
         
         % get new eigenvector centrality
         ec = eigenvector_centrality_und(A_temp);
+        if i_p == 1
+            ec_fake = nan(100,1);
+            for i = 1:100
+                ec_fake(i) = mean(eigenvector_centrality_und(generate_fake_graph(A_temp)));
+            end
+            m_ec_fake = mean(ec_fake);
+        end
         
         % new regional control centrality
         if isempty(pt(whichPt).resec) == 0 && e_f(f) > 0.2
@@ -286,6 +328,12 @@ for f = 1:n_f
             all_clust(ch_ids(i),f,i_p) = clust(i);
             cc_reg(ch_ids(i),f,i_p) = cc_regional(i);
             %all_le(ch_ids(i),f,i_p) = le(i);
+            
+            all_cc_norm(ch_ids(i),f,i_p) = c_c(i)./m_cc_fake;
+            all_ns_norm(ch_ids(i),f,i_p) = ns(i)./m_ns_fake;
+            all_bc_norm(ch_ids(i),f,i_p) = bc(i)./m_bc_fake;
+            all_ec_norm(ch_ids(i),f,i_p) = ec(i)./m_ec_fake;
+            all_clust_norm(ch_ids(i),f,i_p) = clust(i)./m_clust_fake;
         end
         
         

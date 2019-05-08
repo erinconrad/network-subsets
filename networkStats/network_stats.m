@@ -189,6 +189,13 @@ for whichPt = whichPts
     %% Control centrality
     c_c = control_centrality(A);
     
+    cc_fake = nan(100,1);
+    for i = 1:100
+        cc_fake(i) = mean(control_centrality(generate_fake_graph(A)));
+    end
+    m_cc_fake = mean(cc_fake);
+    cc_norm = c_c./m_cc_fake;
+    
     % Get identity of node with lowest control centrality
     [~,min_cc_true] = min(c_c);
     
@@ -264,18 +271,42 @@ for whichPt = whichPts
 
     %% Get true betweenness centrality
     bc = betweenness_centrality(A,1);
+    bc_fake = nan(100,1);
+    for i = 1:100
+        bc_fake(i) = mean(betweenness_centrality(generate_fake_graph(A),1));
+    end
+    m_bc_fake = mean(bc_fake);
+    bc_norm = bc./m_bc_fake;
     
     %% Get true eigenvector centrality
     ec = eigenvector_centrality_und(A);
+    ec_fake = nan(100,1);
+    for i = 1:100
+        ec_fake(i) = mean(eigenvector_centrality_und(generate_fake_graph(A)));
+    end
+    m_ec_fake = mean(ec_fake);
+    ec_norm = ec./m_ec_fake;
     
     %% Get true clustering coefficient
     clust = clustering_coef_wu(A);
+    clust_fake = nan(100,1);
+    for i = 1:100
+        clust_fake(i) = mean(clustering_coef_wu(generate_fake_graph(A)));
+    end
+    m_clust_fake = mean(clust_fake);
+    clust_norm = clust./m_clust_fake;
     
     %% Get local efficiency
    % le = efficiency_wei(A,1);
 
     %% Get true node strength
     ns = node_strength(A);
+    ns_fake = nan(100,1);
+    for i = 1:100
+        ns_fake(i) = mean(node_strength(generate_fake_graph(A)));
+    end
+    m_ns_fake = mean(ns_fake);
+    ns_norm = ns./m_ns_fake;
     
     %% Get true participation coefficient
     [Ci,~] = modularity_und(A);
@@ -308,7 +339,8 @@ for whichPt = whichPts
         overlap_resec,dist_resec,elecs_min,...
         all_par,all_trans,avg_par_removed,avg_bc_removed,...
         all_sync_norm,all_eff_norm,all_trans_norm,all_ec,...
-        all_clust,all_le,cc_reg,dist_nearest_resec,sz_soz_dist] = ...
+        all_clust,all_le,cc_reg,dist_nearest_resec,sz_soz_dist,...
+        all_cc_norm,all_ns_norm,all_bc_norm,all_ec_norm,all_clust_norm] = ...
         resampleNetwork(A,n_perm,e_f,contig,pt,whichPt,adj,sz_num);
 
     %% Initialize arrays to compare old to new metrics
@@ -477,6 +509,21 @@ for whichPt = whichPts
         clust_rel = reliability_nodal(all_clust,clust);
         cc_reg_rel = reliability_nodal(cc_reg,cc_regional);
         
+        cc_rel_norm = reliability_nodal(all_cc_norm,cc_norm);
+        ns_rel_norm = reliability_nodal(all_ns_norm,ns_norm);
+        bc_rel_norm = reliability_nodal(all_bc_norm,bc_norm);
+        ec_rel_norm = reliability_nodal(all_ec_norm,ec_norm);
+        clust_rel_norm = reliability_nodal(all_clust_norm,clust_norm);
+        
+        % Alternate reliability
+        cc_rel_alt = alt_rel_nodal(all_c_c);
+        ns_rel_alt = alt_rel_nodal(all_ns);
+        bc_rel_alt = alt_rel_nodal(all_bc);
+        par_rel_alt = alt_rel_nodal(all_par);
+        ec_rel_alt = alt_rel_nodal(all_ec);
+        clust_rel_alt = alt_rel_nodal(all_clust);
+        cc_reg_rel_alt = alt_rel_nodal(cc_reg);
+        
         %% Global measures
         % Global measures: we will do global reliability so for now store
         % the std across permutations
@@ -488,11 +535,14 @@ for whichPt = whichPts
         % control centrality
         stats(whichPt).(freq).(contig_text).(sec_text).cc.true = c_c;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rel = cc_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_alt = cc_rel_alt;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_norm = cc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
         
         % regional control centrality
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.true = cc_regional;
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel = cc_reg_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel_alt = cc_reg_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rho_mean = rho_mean_cc_reg;
         
         % Most synchronizing electrode
@@ -531,18 +581,25 @@ for whichPt = whichPts
         % node strength
         
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rel = ns_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_alt = ns_rel_alt;
+        stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_norm = ns_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
 
         % betweenness centrality
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rel = bc_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_alt = bc_rel_alt;
+        stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_norm = bc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
         
         % Participation coeff
         stats(whichPt).(freq).(contig_text).(sec_text).par.rel = par_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).par.rel_alt = par_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).par.rho_mean = rho_mean_par;
         
         % Eigenvector centrality
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rel = ec_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_alt = ec_rel_alt;
+        stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_norm = ec_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rho_mean = rho_mean_ec;
         
         % Local efficiency
@@ -551,22 +608,27 @@ for whichPt = whichPts
         
         % clustering coefficient
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rel = clust_rel;
+        stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_alt = clust_rel_alt;
+        stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_norm = clust_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rho_mean = rho_mean_clust;
 
         % synchronizability
         stats(whichPt).(freq).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.std_norm = std(all_sync_norm,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).sync.true = sync;
         stats(whichPt).(freq).(contig_text).(sec_text).sync.rel_diff = rel_sync;
         stats(whichPt).(freq).(contig_text).(sec_text).sync.rel_diff_norm = rel_sync_norm;
         
         % transitivity
         stats(whichPt).(freq).(contig_text).(sec_text).trans.std = std(all_trans,0,2);
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.std_norm = std(all_trans_norm,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).trans.true = trans;
         stats(whichPt).(freq).(contig_text).(sec_text).trans.rel_diff = rel_trans;
         stats(whichPt).(freq).(contig_text).(sec_text).trans.rel_diff_norm = rel_trans_norm;
 
         % efficiency
         stats(whichPt).(freq).(contig_text).(sec_text).eff.std = std(all_eff,0,2);
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.std_norm = std(all_eff_norm,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).eff.true = eff;
         stats(whichPt).(freq).(contig_text).(sec_text).eff.rel_diff = rel_eff;
         stats(whichPt).(freq).(contig_text).(sec_text).eff.rel_diff_norm = rel_eff_norm;
@@ -576,6 +638,10 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).sync.all = all_sync(4,:);
         stats(whichPt).(freq).(contig_text).(sec_text).eff.all = all_eff(4,:);
         stats(whichPt).(freq).(contig_text).(sec_text).trans.all = all_trans(4,:);
+        
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.all_norm = all_sync_norm(4,:);
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.all_norm = all_eff_norm(4,:);
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.all_norm = all_trans_norm(4,:);
 
         if doSave == 1
             save([resultsFolder,'basic_metrics/stats',extra,'.mat'],'stats');

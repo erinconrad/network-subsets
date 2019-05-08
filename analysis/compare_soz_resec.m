@@ -8,6 +8,7 @@ from the resection zone and calculates summary statistics and does plots
 
 
 %% Parameters
+which_removal_perc = 1; %1 = 80%, 2 = 60%, 3 = 40%, 4 = 20%, 5 = 0% (4 is standard)
 doPlot = 0;
 dist_to_plot = 3;
 %1 if looking at distance to nearest resec zone elec;
@@ -60,8 +61,8 @@ freq = 'high_gamma';
     %}
 
 
-for freq_idx = 1%1:length(all_freq)
-for sec_idx = 3%1:length(all_sec)
+for freq_idx = 1:length(all_freq)
+for sec_idx = 1:length(all_sec)
     
 
 sec_text = all_sec{sec_idx};
@@ -93,6 +94,7 @@ for dist = dist_to_plot
             % relative difference (which could be positive or negative) and
             % for nodal measures this is the SRC.
             measure = base.(metrics{metric})';
+            measure = measure(:,which_removal_perc);
             
             %% If it's a global metric, take absolute value and make negative
             % This is because I am just interested in the absolute
@@ -105,6 +107,7 @@ for dist = dist_to_plot
             % Get the measure of distance (usually doing distance from
             % resection zone)
             dist_measure = base.(dists{dist})';
+            dist_measure = dist_measure(:,which_removal_perc);
             
             % Correlate the agreement metric with the distance metric
             rho =  corr(measure,dist_measure,'Type','Spearman');
@@ -272,11 +275,12 @@ table(t_text(:,3,1),p_all(:,3,1),'RowNames',metrics(1:8))
 %% EEC, beta
 squeeze(t_all(:,3,2))
 squeeze(p_all(:,3,2))
+%}
 
-%% EEC, high gamma (for sz 2)
+%% EEC, high gamma (for sz 2 or multiple removal percentages)
 squeeze(t_all(:,3,1))
 squeeze(p_all(:,3,1))
-%}
+
 
 
 %% Set high_gamma and compare times
