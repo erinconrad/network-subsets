@@ -616,6 +616,7 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).sync.std_norm = std(all_sync_norm,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).sync.true = sync;
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.true_norm = sync_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).sync.rel_diff = rel_sync;
         stats(whichPt).(freq).(contig_text).(sec_text).sync.rel_diff_norm = rel_sync_norm;
         
@@ -623,6 +624,7 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).trans.std = std(all_trans,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).trans.std_norm = std(all_trans_norm,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).trans.true = trans;
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.true_norm = trans_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).trans.rel_diff = rel_trans;
         stats(whichPt).(freq).(contig_text).(sec_text).trans.rel_diff_norm = rel_trans_norm;
 
@@ -630,6 +632,7 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).eff.std = std(all_eff,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).eff.std_norm = std(all_eff_norm,0,2);
         stats(whichPt).(freq).(contig_text).(sec_text).eff.true = eff;
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.true_norm = eff_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).eff.rel_diff = rel_eff;
         stats(whichPt).(freq).(contig_text).(sec_text).eff.rel_diff_norm = rel_eff_norm;
         

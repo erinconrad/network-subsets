@@ -82,13 +82,13 @@ for i = 1:length(stats)
     
     %% Get agreement and reliability for metrics by resection size
     for j = 1:length(nodal_metrics)
-        var_nodal(i,j,:) = base.(nodal_metrics{j}).rel;
+        var_nodal(i,j,:) = base.(nodal_metrics{j}).rel_norm;
         ag_nodal(i,j,:) = base.(nodal_metrics{j}).rho_mean';
     end
     
     %% Get agreement and variability for global metrics by resection size
     for j = 1:length(global_metrics)
-        std_global(i,j,:) = base.(global_metrics{j}).std';
+        std_global(i,j,:) = base.(global_metrics{j}).std_norm';
         ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff_norm,2);
         true_global(i,j,:) = base.(global_metrics{j}).true;
     end
