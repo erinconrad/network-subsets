@@ -193,7 +193,7 @@ for whichPt = whichPts
     for i = 1:100
         cc_fake(i) = mean(control_centrality(generate_fake_graph(A)));
     end
-    m_cc_fake = mean(cc_fake);
+    m_cc_fake = mean(control_centrality(generate_fake_graph(A)));
     cc_norm = c_c./m_cc_fake;
     
     % Get identity of node with lowest control centrality
@@ -485,6 +485,13 @@ for whichPt = whichPts
     
         %% Doing the main analysis (not dependence on distance from SOZ/resection zone)
         % For this, we need measures of variability AND agreement
+        
+        %% Get alternate norm
+        other_cc_norm = all_c_c./squeeze(nanmean(nanmean(all_c_c,3),1));
+        other_bc_norm = all_bc./squeeze(nanmean(nanmean(all_bc,3),1));
+        other_ns_norm = all_ns./squeeze(nanmean(nanmean(all_ns,3),1));
+        other_ec_norm = all_ec./squeeze(nanmean(nanmean(all_ec,3),1));
+        other_clust_norm = all_clust./squeeze(nanmean(nanmean(all_clust,3),1));
        
         %% Nodal measure of variability
         % Nodal measure: relative std (std across permuations divided by
@@ -500,6 +507,8 @@ for whichPt = whichPts
        % le_rel_std = rel_std_nodal(all_le,le);
         %}
         
+       
+        
         % Reliability
         cc_rel = reliability_nodal(all_c_c,c_c);
         ns_rel = reliability_nodal(all_ns,ns);
@@ -514,6 +523,13 @@ for whichPt = whichPts
         bc_rel_norm = reliability_nodal(all_bc_norm,bc_norm);
         ec_rel_norm = reliability_nodal(all_ec_norm,ec_norm);
         clust_rel_norm = reliability_nodal(all_clust_norm,clust_norm);
+        
+        other_cc_rel_norm = reliability_nodal(other_cc_norm,cc_norm);
+        other_ns_rel_norm = reliability_nodal(other_ns_norm,ns_norm);
+        other_bc_rel_norm = reliability_nodal(other_bc_norm,bc_norm);
+        other_ec_rel_norm = reliability_nodal(other_ec_norm,ec_norm);
+        other_clust_rel_norm = reliability_nodal(other_clust_norm,clust_norm);
+        
         
         % Alternate reliability
         cc_rel_alt = alt_rel_nodal(all_c_c);
@@ -537,6 +553,7 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rel = cc_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_alt = cc_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_norm = cc_rel_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.other_rel_norm = other_cc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
         
         % regional control centrality
@@ -583,12 +600,14 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rel = ns_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_alt = ns_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_norm = ns_rel_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).ns.other_rel_norm = other_ns_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
 
         % betweenness centrality
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rel = bc_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_alt = bc_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_norm = bc_rel_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).bc.other_rel_norm = other_bc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
         
         % Participation coeff
@@ -600,6 +619,7 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rel = ec_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_alt = ec_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_norm = ec_rel_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).ec.other_rel_norm = other_ec_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rho_mean = rho_mean_ec;
         
         % Local efficiency
@@ -610,6 +630,7 @@ for whichPt = whichPts
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rel = clust_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_alt = clust_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_norm = clust_rel_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).clust.other_rel_norm = other_clust_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rho_mean = rho_mean_clust;
 
         % synchronizability
@@ -638,13 +659,13 @@ for whichPt = whichPts
         
         
         % Save all global measures
-        stats(whichPt).(freq).(contig_text).(sec_text).sync.all = all_sync(4,:);
-        stats(whichPt).(freq).(contig_text).(sec_text).eff.all = all_eff(4,:);
-        stats(whichPt).(freq).(contig_text).(sec_text).trans.all = all_trans(4,:);
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.all = all_sync;
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.all = all_eff;
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.all = all_trans;
         
-        stats(whichPt).(freq).(contig_text).(sec_text).sync.all_norm = all_sync_norm(4,:);
-        stats(whichPt).(freq).(contig_text).(sec_text).eff.all_norm = all_eff_norm(4,:);
-        stats(whichPt).(freq).(contig_text).(sec_text).trans.all_norm = all_trans_norm(4,:);
+        stats(whichPt).(freq).(contig_text).(sec_text).sync.all_norm = all_sync_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).eff.all_norm = all_eff_norm;
+        stats(whichPt).(freq).(contig_text).(sec_text).trans.all_norm = all_trans_norm;
 
         if doSave == 1
             save([resultsFolder,'basic_metrics/stats',extra,'.mat'],'stats');

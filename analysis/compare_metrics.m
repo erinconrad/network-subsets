@@ -82,15 +82,16 @@ for i = 1:length(stats)
     
     %% Get agreement and reliability for metrics by resection size
     for j = 1:length(nodal_metrics)
-        var_nodal(i,j,:) = base.(nodal_metrics{j}).rel_norm;
+        var_nodal(i,j,:) = base.(nodal_metrics{j}).rel_alt;
         ag_nodal(i,j,:) = base.(nodal_metrics{j}).rho_mean';
     end
     
     %% Get agreement and variability for global metrics by resection size
     for j = 1:length(global_metrics)
-        std_global(i,j,:) = base.(global_metrics{j}).std_norm';
+        std_global(i,j,:) = base.(global_metrics{j}).std';
         ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff_norm,2);
         true_global(i,j,:) = base.(global_metrics{j}).true;
+        all_global(i,j,:) = base.(global_metrics{j}).all;
     end
    
 end
@@ -98,7 +99,8 @@ end
 %% Get reliability for global metrics
 % nanstd(true_global,0,1) is the standard deviation of the global metric
 % across patients
-var_global = global_reliability(std_global,nanstd(true_global,0,1));
+%var_global = global_reliability(std_global,nanstd(true_global,0,1));
+var_global = alt_global_reliability(
 
 %% Average over patients
 avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
