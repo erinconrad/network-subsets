@@ -49,7 +49,7 @@ for whichPt = whichPts
     adj1 = reconcileAdj(pt,whichPt,1);
     adj2 = reconcileAdj(pt,whichPt,2);
     if isempty(adj1) == 1 || isempty(adj2) == 1
-        fprintf('Cannot do %s\n\n',name);
+        fprintf('Cannot do %s\n\n',pt(whichPt).name);
         continue;
     end
     
