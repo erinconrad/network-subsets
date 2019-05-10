@@ -18,7 +18,7 @@ addpath([bctFolder]);
 load([dataFolder,'structs/info.mat']);
 
 if exist([resultsFolder,'sz_comp.mat'],'file') ~= 0
-    stats = load([resultsFolder,'sz_comp.mat'],'file');
+    stats = load([resultsFolder,'sz_comp.mat']);
     stats = stats.stats;
 else
     stats = struct;
