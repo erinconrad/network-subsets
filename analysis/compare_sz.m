@@ -49,7 +49,7 @@ for whichPt = 1:npatients
             
             % rho is agreement measure - get rho between each perm and true
             all_rhos_perm = nan(2,nf,np);
-            for f = 2:nf
+            for f = 4
                 for p = 1:np
                     all_rhos_perm(1,f,p) = corr(squeeze(sz1.perm(f,p,...
                         ~isnan(sz1.perm(f,p,:))&~isnan(sz1.perm(f,1,:)))),...
