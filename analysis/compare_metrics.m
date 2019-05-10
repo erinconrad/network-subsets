@@ -55,6 +55,7 @@ ag_nodal = nan(np,length(nodal_metrics),length(ef));
 var_nodal = nan(np,length(nodal_metrics),length(ef));
 ag_global = nan(np,length(global_metrics),length(ef));
 std_global = nan(np,length(global_metrics),length(ef));
+global_all = nan(np,length(global_metrics),length(ef),1000);
 true_global = nan(np,length(global_metrics));
 n_elecs = nan(np,1);
 
@@ -91,7 +92,7 @@ for i = 1:length(stats)
         std_global(i,j,:) = base.(global_metrics{j}).std';
         ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff_norm,2);
         true_global(i,j,:) = base.(global_metrics{j}).true;
-        all_global(i,j,:) = base.(global_metrics{j}).all;
+        global_all(i,j,:,:) = base.(global_metrics{j}).all;
     end
    
 end
@@ -100,7 +101,7 @@ end
 % nanstd(true_global,0,1) is the standard deviation of the global metric
 % across patients
 %var_global = global_reliability(std_global,nanstd(true_global,0,1));
-var_global = alt_global_reliability(
+var_global = alt_global_reliability(global_all);
 
 %% Average over patients
 avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
@@ -283,17 +284,19 @@ if doPlots == 1
          scatter(ef,avg_ag_nodal(j,:),200,'filled');
          hold on
     end
-    %{
+    
     legend('Control centrality','Regional control centrality',...
         'Node strength','Betweenness centrality',...
         'Eigenvector centrality','Clustering coefficient',...
         'location','southeast');
-    %}
+    
     %xlabel('Percent nodes retained');
     ylabel({'NODAL METRICS','','Spearman rank correlation',...
         'with original'})
     title('Average agreement by subsample size');
     set(gca,'Fontsize',20);
+    
+
 
     % Variability
     axes(ha(2))
