@@ -394,7 +394,7 @@ if doPlots == 1
     axes(ha(1))
     nd = zeros(size(avg_ag_nodal,1),1);
     for j = 1:size(avg_ag_nodal,1)
-        std_rel = squeeze(nanstd(var_nodal,1));
+        std_rel = squeeze(nanstd(var_nodal,0,1));
        errorbar(100-ef+j*2-6,avg_var_nodal(j,:),std_rel(j,:),...
            'o','MarkerSize',15,'MarkerEdgeColor',cols(j,:),...
            'MarkerFaceColor',cols(j,:),'Color',cols(j,:),'linewidth',2);
