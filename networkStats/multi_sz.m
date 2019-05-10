@@ -58,6 +58,7 @@ for whichPt = whichPts
     A2 = adj2(freq).data;
     
     %% Get EEC
+    A = [];
     A1 = squeeze(A1(ceil(size(A1,1)/2)+which_sec,:,:));
     A2 = squeeze(A2(ceil(size(A2,1)/2)+which_sec,:,:));
     A(1,:,:) = A1;
