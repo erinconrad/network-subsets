@@ -125,7 +125,7 @@ for contig = contigs % random or contiguous electrodes
         n_perm = length(pt(whichPt).new_elecs.electrodes);
     elseif contig == 0 || contig == 2
         % Take 1000 random permutations
-        n_perm = 2;
+        n_perm = 1e3;
     elseif contig == 3
         n_perm = 1;
     end
