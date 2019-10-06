@@ -24,11 +24,11 @@ offset = [-3 27 7.7653]; % HUP078
 %offset = [-1.0029,2.3087,28.9465]; %HUP068
 
 % Load adj
-[adj,~] = reconcileAdj(pt,whichPt);
+[adj,~] = reconcileAdj(pt,whichPt,1);
 A_all = adj(4).data;
 A = squeeze(A_all(ceil(size(A_all,1)/2)-5,:,:));
 cc = control_centrality(A);
-all_cc = resampleNetwork(A,1,0.8,0,pt,whichPt,adj);
+all_cc = resampleNetwork(A,1,0.8,0,pt,whichPt,adj,1);
 cc_diff = (all_cc-cc)./cc;
 
 figure

@@ -37,9 +37,6 @@ if do_soz_analysis == 1
 elseif do_soz_analysis == 0
     e_f = [0.2 0.4 0.6 0.8 1];
     contigs = [0 1];
-elseif do_soz_analysis == 2
-    contigs = [2 3];
-    e_f = nan;
 end
 n_f = length(e_f);
 
@@ -71,26 +68,18 @@ if merge == 1
         else
             soz = struct;
         end
-    elseif do_soz_analysis == 0
+    else
         if exist([resultsFolder,'basic_metrics/stats',extra,'.mat'],'file') ~= 0
             load([resultsFolder,'basic_metrics/stats',extra,'.mat']);
         else
             stats = struct;
         end
-    elseif do_soz_analysis == 2
-        if exist([resultsFolder,'basic_metrics/soz_overlap',extra,'.mat'],'file') ~= 0
-            load([resultsFolder,'basic_metrics/soz_overlap',extra,'.mat']);
-        else
-            soz_overlap = struct;
-        end
     end
 else
     if do_soz_analysis == 1
         soz = struct;
-    elseif do_soz_analysis == 0
+    else
         stats = struct;
-    elseif do_soz_analysis == 2
-        soz_overlap = struct;
     end
 end
 
@@ -119,11 +108,9 @@ for whichPt = whichPts
         % Here, not taking random samples, but rather systematically going
         % through each electrode and its N nearest neighbors
         n_perm = length(pt(whichPt).new_elecs.electrodes);
-    elseif contig == 0 || contig == 2
+    else
         % Take 1000 random permutations
-        n_perm = 25;
-    elseif contig == 3
-        n_perm = 1;
+        n_perm = 1e3;
     end
 
     % Make result folder
@@ -140,12 +127,8 @@ for whichPt = whichPts
 
     if contig == 1
         contig_text = 'contiguous';
-    elseif contig == 0
+    else
         contig_text = 'random';
-    elseif contig == 2
-        contig_text = 'not_soz';
-    elseif contig == 3
-        contig_text = 'soz';
     end
     
     if which_sec < 0
@@ -158,8 +141,6 @@ for whichPt = whichPts
     if merge == 1
         if do_soz_analysis == 1
             stats = soz;
-        elseif do_soz_analysis == 2
-            stats = soz_overlap;
         end
         if length(stats) >= whichPt
             if isfield(stats(whichPt),(freq)) == 1
@@ -690,7 +671,7 @@ for whichPt = whichPts
         if doSave == 1
             save([resultsFolder,'basic_metrics/stats',extra,'.mat'],'stats');
         end
-    elseif do_soz_analysis == 1 || do_soz_analysis == 2
+    elseif do_soz_analysis == 1
         %% Do the analysis of dependence of agreement on distance from important things
        
         % Nodal
@@ -726,13 +707,8 @@ for whichPt = whichPts
         soz(whichPt).(freq).(contig_text).(sec_text).rho_ec_resec = rho_ec_resec;
         soz(whichPt).(freq).(contig_text).(sec_text).rho_clust_resec = rho_clust_resec;
        % soz(whichPt).(contig_text).(sec_text).rho_le_resec = rho_le_resec;
-        if doSave == 1 
-            if do_soz_analysis == 1
-                save([resultsFolder,'basic_metrics/soz',extra,'.mat'],'soz');
-            elseif do_soz_analysis == 2
-                soz_overlap = soz;
-                save([resultsFolder,'basic_metrics/soz_overlap',extra,'.mat'],'soz_overlap');
-            end
+        if doSave == 1
+            save([resultsFolder,'basic_metrics/soz',extra,'.mat'],'soz');
         end
     end
 

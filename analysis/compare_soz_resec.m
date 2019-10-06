@@ -8,7 +8,7 @@ from the resection zone and calculates summary statistics and does plots
 
 
 %% Parameters
-which_removal_perc = 1; %1 = 80%, 2 = 60%, 3 = 40%, 4 = 20%, 5 = 0% (4 is standard)
+which_removal_perc = 3; %1 = 80%, 2 = 60%, 3 = 40%, 4 = 20%, 5 = 0% (4 is standard)
 doPlot = 0;
 dist_to_plot = 3;
 %1 if looking at distance to nearest resec zone elec;
@@ -323,7 +323,7 @@ if doPlot == 1
         xticks(1:length(all_rho_pts))
         xticklabels(metric_names(metrics_to_plot))
         xlim([0.7 length(all_rho) + 0.3])
-        title({'Association between metric accuracy and','distance of ignored electrodes from seizure onset zone'})
+        title({'Association between metric agreement and','distance of ignored electrodes from seizure onset zone'})
         ylabel('Distance-agreement correlation');
         set(gca,'fontsize',20)
         fix_xticklabels(gca,0.1,{'FontSize',20});

@@ -92,7 +92,8 @@ for i = 1:length(stats)
         std_global(i,j,:) = base.(global_metrics{j}).std';
         ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff_norm,2);
         true_global(i,j,:) = base.(global_metrics{j}).true;
-        global_all(i,j,:,:) = base.(global_metrics{j}).all;
+        global_all(i,j,1:size(base.(global_metrics{j}).all,1),...
+            1:size(base.(global_metrics{j}).all,2)) = base.(global_metrics{j}).all;
     end
    
 end

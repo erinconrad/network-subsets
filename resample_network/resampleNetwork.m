@@ -145,6 +145,23 @@ for f = 1:n_f
             % ALTERNATIVE APPROACH
             % Take just the individual channel
             % which_elecs = i_p;
+        elseif contig == 2
+            % Here I will take a random sample of all electrodes NOT
+            % forming the SOZ, equal in number to number of SOZ elecs
+            
+            % Find non-soz electrodes
+            n_soz = length(soz);
+            soz_binary = ismember(1:nch,soz);
+            not_soz = find(~soz_binary);
+            
+            % pick random sample equal in size to soz
+            which_elecs = randsample(not_soz,n_soz);
+            
+        elseif contig == 3
+            
+            % just take soz
+            which_elecs = soz;
+            
         end
         
         %% Compare electrodes to SOZ and resection zone

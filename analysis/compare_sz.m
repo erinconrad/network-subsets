@@ -4,6 +4,13 @@ function compare_sz(stats)
 This function looks at the correlation in network metrics from seizure to
 seizure and compares this correlation to the correlation from permutation
 to permutation
+
+
+DB idea: It would be really interesting to report intra-class correlation 
+coefficients for these network metrics over multiple seizures from the 
+same patient. Is the variability within a patient using different 
+seizures smaller than or larger than the variability within that 
+same patient when resampling?
 %}
 
 %% Parameters
@@ -38,6 +45,9 @@ for whichPt = 1:npatients
         continue; 
     end
     
+    fprintf('Doing %d of %d\n',whichPt,npatients);
+    
+    
     for m = 1:length(all_metrics)
         curr_metric = all_metrics{m};
         base = stats(whichPt).(curr_metric);
@@ -47,10 +57,25 @@ for whichPt = 1:npatients
         
         if ismember(curr_metric,nodal_metrics) == 1
             
-            % rho is agreement measure - get rho between each perm and true
+            % rho is agreement measure - get rho between each perm and
+            % true
             all_rhos_perm = nan(2,nf,np);
             for f = 4
                 for p = 1:np
+                    
+                    all_rhos_perm(1,f,p) = corr(squeeze(sz1.perm(f,p,...
+                        ~isnan(sz1.perm(f,p,:)))),...
+                        squeeze(sz1.true(...
+                        ~isnan(sz1.perm(f,p,:)))),...
+                        'Type','Spearman');
+                    
+                    all_rhos_perm(2,f,p) = corr(squeeze(sz2.perm(f,p,...
+                        ~isnan(sz2.perm(f,p,:)))),...
+                        squeeze(sz2.true(...
+                        ~isnan(sz2.perm(f,p,:)))),...
+                        'Type','Spearman');
+                    
+                    %{
                     all_rhos_perm(1,f,p) = corr(squeeze(sz1.perm(f,p,...
                         ~isnan(sz1.perm(f,p,:))&~isnan(sz1.perm(f,1,:)))),...
                         squeeze(sz1.perm(f,1,...
@@ -62,6 +87,7 @@ for whichPt = 1:npatients
                         squeeze(sz2.perm(f,1,...
                         ~isnan(sz2.perm(f,p,:))&~isnan(sz2.perm(f,1,:)))),...
                         'Type','Spearman');
+                    %}
                 end
                 
                 
@@ -82,12 +108,20 @@ for whichPt = 1:npatients
             all_aggs_perm = nan(2,nf,np);
             for f = 1:nf
                 for p = 1:np
-            
+                    
+                    all_aggs_perm(1,f,p) = -abs((squeeze(sz1.perm(f,p))-...
+                        squeeze(sz1.true))/squeeze(sz1.true));
+                    
+                    all_aggs_perm(2,f,p) = -abs((squeeze(sz2.perm(f,p))-...
+                        squeeze(sz2.true))/squeeze(sz2.true));
+                
+                    %{
                     all_aggs_perm(1,f,p) = -abs((squeeze(sz1.perm(f,p))-...
                         squeeze(sz1.perm(f,1)))/squeeze(sz1.perm(f,1)));
                     
                     all_aggs_perm(2,f,p) = -abs((squeeze(sz2.perm(f,p))-...
                         squeeze(sz2.perm(f,1)))/squeeze(sz2.perm(f,1)));
+                    %}
             
                 end
                 
@@ -165,5 +199,6 @@ ylabel('Negative relative difference')
 title('Global metric agreement')
 set(gca,'fontsize',20)
 print(gcf,[outFolder,'thing'],'-depsc')
+close(gcf)
 
 end
