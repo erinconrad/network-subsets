@@ -104,12 +104,13 @@ for ff = 1:length(freq_cell)
     fprintf('Doing %s\n',freq);
 for which_sec = [0 -10 -5 5 10] % 0 means EEC, -5 is 5 seconds before
     fprintf('Doing %d second\n',which_sec);
-for contig = contigs % random or contiguous electrodes
-    fprintf('Doing contig %d\n',contig);
+
     
 % Loop through patients
 for whichPt = whichPts
-    
+
+for contig = contigs % random or contiguous electrodes
+    fprintf('Doing contig %d\n',contig);
     tic
     
     % Skip if all electrode locations are -1 (means we don't have electrode
@@ -124,7 +125,7 @@ for whichPt = whichPts
         n_perm = length(pt(whichPt).new_elecs.electrodes);
     elseif contig == 0 || contig == 2
         % Take 1000 random permutations
-        n_perm = 1e3;
+        n_perm = 2;
     elseif contig == 3
         n_perm = 1;
     end
