@@ -696,7 +696,10 @@ for contig = contigs % random or contiguous electrodes
         end
     elseif do_soz_analysis == 1 || do_soz_analysis == 2
         %% Do the analysis of dependence of agreement on distance from important things
-       
+        if do_soz_analysis == 2
+            soz = soz_overlap;
+        end
+        
         % Nodal
         soz(whichPt).(freq).(contig_text).(sec_text).rho_cc = rho_cc;
         soz(whichPt).(freq).(contig_text).(sec_text).rho_bc = rho_bc;
