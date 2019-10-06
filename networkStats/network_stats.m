@@ -101,9 +101,11 @@ freq_cell = {'high_gamma','beta'};
 %% Loop through patients, times, frequencies, and whether contig or random electrodes
 for ff = 1:length(freq_cell)
     freq = freq_cell{ff};
+    fprintf('Doing %s\n',freq);
 for which_sec = [0 -10 -5 5 10] % 0 means EEC, -5 is 5 seconds before
+    fprintf('Doing %d second\n',which_sec);
 for contig = contigs % random or contiguous electrodes
-
+    fprintf('Doing contig %d\n',contig);
     
 % Loop through patients
 for whichPt = whichPts
