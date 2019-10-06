@@ -1,4 +1,4 @@
-function soz_overlap_analysis(soz_overlap,pt)
+function soz_overlap_analysis(soz_overlap)
 
 %% Parameters
 metrics = {'rho_cc','rho_ns','rho_bc','rho_ec','rho_clust',...
@@ -69,15 +69,34 @@ for metric = 1:n_metrics
         end
         
         
-        
+        if 0
         %% Rank sum
         % Comparing single rho from when we only remove soz to all rhos
         % when we randomly remove something that is not the soz
+        
+        % The reason this is bad is because the group of
+        % not_soz_rm_measures are not independent. For instance, there is
+        % one patient where the soz electrodes comprise more than half of
+        % the electrodes. And so I just take the remainder of the
+        % electrodes to remove for not_soz_rm_measure. And I take that same
+        % set 1,000 times. And so even a teeny tiny difference will become
+        % significant because rank sum assumes that each of the 1,000
+        % measures is significant
+        
         if exist('soz_rm_measure','var') == 0, continue; end
         [p,h,stats] = ranksum(soz_rm_measure,not_soz_rm_measure);
         
         % Get the z-score
         z = stats.zval;
+        
+        elseif 1
+        %% Difference in means
+        % I think this is the only way to directly compare
+        if exist('soz_rm_measure','var') == 0, continue; end
+        if exist('not_soz_rm_measure','var') == 0, continue; end
+        z = (mean(not_soz_rm_measure)-soz_rm_measure);
+            
+        end
         
         soz_test(metric).name = metrics{metric};
         soz_test(metric).z = [soz_test(metric).z;z];
@@ -88,11 +107,13 @@ for metric = 1:n_metrics
     
     if isempty(soz_test(metric).z) == 1, continue; end
     
+    
     %% T test on the z scores
     [~,p,~,stats] = ttest(soz_test(metric).z);
     soz_test(metric).stats.p = p;
     soz_test(metric).stats.t = tstat;
     soz_test(metric).stats.df = df;
+    
     
     % Add to array for plotting
     all_p = [all_p;p];
