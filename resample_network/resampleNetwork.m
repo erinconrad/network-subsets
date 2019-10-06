@@ -155,7 +155,7 @@ for f = 1:n_f
             not_soz = find(~soz_binary);
             
             % pick random sample equal in size to soz
-            which_elecs = randsample(not_soz,n_soz);
+            which_elecs = randsample(not_soz,min(n_soz,length(not_soz)));
             
         elseif contig == 3
             
