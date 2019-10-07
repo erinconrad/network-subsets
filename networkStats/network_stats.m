@@ -302,6 +302,9 @@ for contig = contigs % random or contiguous electrodes
     m_bc_fake = mean(bc_fake);
     bc_norm = bc./m_bc_fake;
     
+    % Get identity of node with highest betweenness centrality
+    [~,max_bc_true] = max(bc);
+    
     %% Get true eigenvector centrality
     ec = eigenvector_centrality_und(A);
     ec_fake = nan(100,1);
@@ -311,6 +314,9 @@ for contig = contigs % random or contiguous electrodes
     m_ec_fake = mean(ec_fake);
     ec_norm = ec./m_ec_fake;
     
+    % Get identity of node with highest eigenvector centrality
+    [~,max_ec_true] = max(ec);
+    
     %% Get true clustering coefficient
     clust = clustering_coef_wu(A);
     clust_fake = nan(100,1);
@@ -319,6 +325,9 @@ for contig = contigs % random or contiguous electrodes
     end
     m_clust_fake = mean(clust_fake);
     clust_norm = clust./m_clust_fake;
+    
+    % Get identity of node with highest clustering coefficient
+    [~,max_clust_true] = max(clust);
     
     %% Get local efficiency
    % le = efficiency_wei(A,1);
@@ -331,6 +340,9 @@ for contig = contigs % random or contiguous electrodes
     end
     m_ns_fake = mean(ns_fake);
     ns_norm = ns./m_ns_fake;
+    
+    % Get identity of node with highest node strength
+    [~,max_ns_true] = max(ns);
     
     %% Get true participation coefficient
     [Ci,~] = modularity_und(A);
@@ -407,6 +419,13 @@ for contig = contigs % random or contiguous electrodes
     rho_clust_resec = zeros(n_f,n_perm);
     rho_le_resec = zeros(n_f,n_perm);
     
+    % Changing identity of the hub electrode
+    same_most_ns = zeros(n_f,n_perm);
+    same_most_clust = zeros(n_f,n_perm);
+    same_most_ec = zeros(n_f,n_perm);
+    same_most_bc = zeros(n_f,n_perm);
+    same_most_sync = zeros(n_f,n_perm);
+    
     %% Loop over each fraction and get various stats
     for f = 1:n_f
 
@@ -445,6 +464,27 @@ for contig = contigs % random or contiguous electrodes
             [~,most_ec(f,i_p)] = max(ec_f_p);
             [~,most_clust(f,i_p)] = max(clust_f_p);
             
+            % Decide if this hub is the same as in the original network
+            if most_ns(f,i_p) == max_ns_true
+                same_most_ns(f,i_p) = 1;
+            end
+            
+            if most_bc(f,i_p) == max_bc_true
+                same_most_bc(f,i_p) = 1;
+            end
+            
+            if most_ec(f,i_p) == max_ec_true
+                same_most_ec(f,i_p) = 1;
+            end
+                
+            if most_clust(f,i_p) == max_clust_true
+                same_most_clust(f,i_p) = 1;
+            end
+            
+            if most_sync(f,i_p) == min_cc_true
+                same_most_sync(f,i_p) = 1;
+            end
+            
 
             %% Do Spearman rank for nodal measures
             [rho_cc(f,i_p),~] = doStats(c_c,c_c_f_p);
@@ -478,6 +518,13 @@ for contig = contigs % random or contiguous electrodes
                 
 
         end
+        
+        %% Average over all permutations the percentage of times the hub changes
+        same_most_ns = mean(same_most_ns,2);
+        same_most_bc = mean(same_most_bc,2);
+        same_most_ec = mean(same_most_ec,2);
+        same_most_clust = mean(same_most_clust,2);
+        same_most_sync = mean(same_most_sync,2);
 
     end
 
@@ -579,6 +626,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_norm = cc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.other_rel_norm = other_cc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.same_hub = same_most_sync;
         
         % regional control centrality
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.true = cc_regional;
@@ -626,6 +674,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_norm = ns_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.other_rel_norm = other_ns_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
+        stats(whichPt).(freq).(contig_text).(sec_text).ns.same_hub = same_most_ns;
 
         % betweenness centrality
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rel = bc_rel;
@@ -633,6 +682,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_norm = bc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.other_rel_norm = other_bc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
+        stats(whichPt).(freq).(contig_text).(sec_text).bc.same_hub = same_most_bc;
         
         % Participation coeff
         stats(whichPt).(freq).(contig_text).(sec_text).par.rel = par_rel;
@@ -645,6 +695,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_norm = ec_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.other_rel_norm = other_ec_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rho_mean = rho_mean_ec;
+        stats(whichPt).(freq).(contig_text).(sec_text).ec.same_hub = same_most_ec;
         
         % Local efficiency
        % stats(whichPt).(contig_text).(sec_text).le.rel_std = le_rel_std;
@@ -656,6 +707,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_norm = clust_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.other_rel_norm = other_clust_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rho_mean = rho_mean_clust;
+        stats(whichPt).(freq).(contig_text).(sec_text).clust.same_hub = same_most_clust;
 
         % synchronizability
         stats(whichPt).(freq).(contig_text).(sec_text).sync.std = std(all_sync,0,2);
@@ -699,6 +751,13 @@ for contig = contigs % random or contiguous electrodes
         if do_soz_analysis == 2
             soz = soz_overlap;
         end
+        
+        % Change hub
+        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.ec = same_most_ec;
+        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.bc = same_most_bc;
+        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.ns = same_most_ns;
+        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.clust = same_most_clust;
+        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.cc = same_most_sync;
         
         % Nodal
         soz(whichPt).(freq).(contig_text).(sec_text).rho_cc = rho_cc;

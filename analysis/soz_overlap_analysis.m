@@ -15,10 +15,10 @@ pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'soz_overlap/'];
 
 % Loop over frequencies and times
-for freq_idx = 1:length(all_freq)
+for freq_idx = 1%1:length(all_freq)
 freq = all_freq{freq_idx};
 
-for sec_idx = 1:length(all_sec)
+for sec_idx = 3%1:length(all_sec)
 
     
 sec_text = all_sec{sec_idx};
@@ -111,8 +111,8 @@ for metric = 1:n_metrics
     %% T test on the z scores
     [~,p,~,stats] = ttest(soz_test(metric).z);
     soz_test(metric).stats.p = p;
-    soz_test(metric).stats.t = tstat;
-    soz_test(metric).stats.df = df;
+    soz_test(metric).stats.t = stats.tstat;
+    soz_test(metric).stats.df = stats.df;
     
     
     % Add to array for plotting
