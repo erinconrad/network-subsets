@@ -18,7 +18,7 @@ outFolder = [resultsFolder,'soz_overlap/'];
 for freq_idx = 1%1:length(all_freq)
 freq = all_freq{freq_idx};
 
-for sec_idx = 3%1:length(all_sec)
+for sec_idx = 1%1:length(all_sec)
 
     
 sec_text = all_sec{sec_idx};
@@ -156,8 +156,8 @@ for i = 1:length(all_z_pts)
     xticks(1:length(all_z_pts))
     xticklabels((metrics))
     xlim([0.7 length(all_z_pts) + 0.3])
-    title({'Association between metric agreement and','distance of ignored electrodes from seizure onset zone'})
-    ylabel('Distance-agreement correlation');
+    title({'Difference in agreement when ignored electrodes','are seizure onset zone vs non-seizure onset zone'})
+    ylabel('Difference in agreement');
     set(gca,'fontsize',20)
     fix_xticklabels(gca,0.1,{'FontSize',20});
 end
