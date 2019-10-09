@@ -125,7 +125,7 @@ for contig = contigs % random or contiguous electrodes
         n_perm = length(pt(whichPt).new_elecs.electrodes);
     elseif contig == 0 || contig == 2
         % Take 1000 random permutations
-        n_perm = 1e1;
+        n_perm = 1e3;
     elseif contig == 3
         n_perm = 1;
     end
@@ -747,11 +747,11 @@ for contig = contigs % random or contiguous electrodes
         end
         
         % Change hub
-        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.ec = same_most_ec;
-        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.bc = same_most_bc;
-        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.ns = same_most_ns;
-        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.clust = same_most_clust;
-        soz(whichPt).(freq).(contig_text).(sec_text).change_hub.cc = same_most_sync;
+        soz(whichPt).(freq).(contig_text).(sec_text).same_hub.ec = same_most_ec;
+        soz(whichPt).(freq).(contig_text).(sec_text).same_hub.bc = same_most_bc;
+        soz(whichPt).(freq).(contig_text).(sec_text).same_hub.ns = same_most_ns;
+        soz(whichPt).(freq).(contig_text).(sec_text).same_hub.clust = same_most_clust;
+        soz(whichPt).(freq).(contig_text).(sec_text).same_hub.cc = same_most_sync;
         
         % Nodal
         soz(whichPt).(freq).(contig_text).(sec_text).rho_cc = rho_cc;
