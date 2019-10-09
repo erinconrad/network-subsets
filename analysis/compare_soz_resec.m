@@ -104,6 +104,8 @@ for dist = dist_to_plot
                 measure = -abs(measure);
             end
             
+            %% Get 
+            
             % Get the measure of distance (usually doing distance from
             % resection zone)
             dist_measure = base.(dists{dist})';

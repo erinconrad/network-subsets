@@ -519,12 +519,6 @@ for contig = contigs % random or contiguous electrodes
 
         end
         
-        %% Average over all permutations the percentage of times the hub changes
-        same_most_ns = mean(same_most_ns,2);
-        same_most_bc = mean(same_most_bc,2);
-        same_most_ec = mean(same_most_ec,2);
-        same_most_clust = mean(same_most_clust,2);
-        same_most_sync = mean(same_most_sync,2);
 
     end
 
