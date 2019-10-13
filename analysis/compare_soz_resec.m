@@ -25,6 +25,7 @@ metrics_to_plot = 1:8; % probably shouldn't change (all nodal and global metrics
 metrics = {'rho_cc','rho_ns','rho_bc','rho_ec','rho_clust',...
     'sync','eff','trans',...
     'rho_cc_resec','rho_bc_resec','rho_ns_resec'};
+hub_metric_names = {'cc','ns','bc','ec','clust'};
 dists = {'dist_nearest_resec','dist_resec','sz_soz_dist',...
     'overlap_soz','overlap_resec','par_removed',...
     'bc_removed'};
@@ -104,7 +105,14 @@ for dist = dist_to_plot
                 measure = -abs(measure);
             end
             
-            %% Get 
+           
+            
+            % Get whether the hub changed identity
+            %{
+            if metric <= 5
+                hub_same = base.same_hub.(hub_metric_names{metric});
+            end
+            %}
             
             % Get the measure of distance (usually doing distance from
             % resection zone)
@@ -137,6 +145,20 @@ for dist = dist_to_plot
             pause
             close(gcf)
             end
+            
+            %% Do changing hub analysis
+            %{
+            if metric <=5
+            % Logistic binary regression for whether distance from SOZ
+            % predicts whether hub changes
+            
+                mdl = fitglm(dist_measure,hub_same,'linear','distribution','binomial');
+            end
+            %}
+            
+            if i == 21, error('what'); end
+            
+            
         end
         
         

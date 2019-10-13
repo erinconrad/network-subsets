@@ -1,8 +1,15 @@
-function soz_overlap_analysis(soz_overlap)
+function soz_overlap_analysis(soz_overlap,pt)
 
 %% Parameters
+do_plot = 0;
+save_plot = 0;
 metrics = {'rho_cc','rho_ns','rho_bc','rho_ec','rho_clust',...
     'sync','eff','trans'};
+hub_metrics = {'cc','ns','bc','ec','clust'};
+metric_names = {'Control centrality','Node strength','Betweenness centrality',...
+    'Eigenvector centrality','Clustering coefficient'...
+    'Synchronizability','Global efficiency','Transitivity'};
+
 n_metrics = length(metrics);
 global_metric = [0 0 0 0 0 1 1 1];
 all_freq = {'high_gamma','beta'};
@@ -13,20 +20,39 @@ all_contig = {'not_soz','soz'};
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'soz_overlap/'];
+if exist('outFolder','dir') == 0
+    mkdir(outFolder)
+end
+
+%% Initialize cross time comparisons
+t_text = cell(length(metrics),length(all_sec),...
+    length(all_freq));
 
 % Loop over frequencies and times
-for freq_idx = 1%1:length(all_freq)
+for freq_idx = 1:length(all_freq)
 freq = all_freq{freq_idx};
 
-for sec_idx = 1%1:length(all_sec)
+for sec_idx = 1:length(all_sec)
 
     
 sec_text = all_sec{sec_idx};
 
-% loop over metrics
+% Initialize arrays
 all_p = [];
 all_z_pts = {};
+all_t = [];
+all_df = [];
+
+% Initialize arrays for transitivity
+all_p_trans = [];
+all_t_trans = [];
+
+% loop over metrics
 for metric = 1:n_metrics
+    
+    if metric == 8
+        soz_test(metric).trans.values = [];
+    end
     
     % Initialize some variables
     soz_test(metric).z = [];
@@ -51,6 +77,16 @@ for metric = 1:n_metrics
 
             % Get agreement metric
             measure = base.(metrics{metric})';
+            
+            % Test to probe the direction of the semi-significant findings
+            % for transitivity. Look at signed relative difference
+            if metric == 8 % transitivity
+                if contig_idx == 2
+                    signed_trans_target = measure;
+                elseif contig_idx == 1
+                    signed_trans_spare = measure;
+                end
+            end
 
             % If it's a global metric, take absolute value and make negative
             % This is because I am just interested in the absolute
@@ -60,14 +96,47 @@ for metric = 1:n_metrics
                 measure = -abs(measure);
             end
             
+            
+            % No measure if soz empty
+            if isempty(pt(i).soz.nums) == 1
+                measure = nan;
+                if metric == 8
+                    signed_trans_target = nan;
+                    signed_trans_spare = nan;
+                end
+            end
+            
             if contig_idx == 2
                 soz_rm_measure = measure;
             elseif contig_idx == 1
                 not_soz_rm_measure = measure;
             end
+
+            
+            
+            % Get if hub stays same
+            if metric <= 5
+                same_hub = base.same_hub.(hub_metrics{metric});
+            end
+            
         
         end
         
+        if soz_rm_measure== 1
+            error('what');
+        end
+        
+        % Plot the distribution of agreement measures for the non-soz
+        % removal and the agreement measure for the soz removal
+        if 0 && metric == 8
+            figure 
+            plot(signed_trans_spare,'o')
+            hold on
+            xl = get(gca,'xlim');
+            plot([xl(1) xl(2)],[signed_trans_target signed_trans_target])
+            pause
+            close(gcf)
+        end
         
         if 0
         %% Rank sum
@@ -90,11 +159,11 @@ for metric = 1:n_metrics
         z = stats.zval;
         
         elseif 1
-        %% Difference in means
+        %% Take means
         % I think this is the only way to directly compare
         if exist('soz_rm_measure','var') == 0, continue; end
         if exist('not_soz_rm_measure','var') == 0, continue; end
-        z = (mean(not_soz_rm_measure)-soz_rm_measure);
+        z = [mean(not_soz_rm_measure),soz_rm_measure];
             
         end
         
@@ -102,25 +171,86 @@ for metric = 1:n_metrics
         soz_test(metric).z = [soz_test(metric).z;z];
         soz_test(metric).rm_soz = [soz_test(metric).rm_soz;soz_rm_measure];
         soz_test(metric).rm_not_soz{i} = not_soz_rm_measure;
+        
+        % add the transitivity signed relative differences
+        if metric == 8
+            soz_test(metric).trans.values = [soz_test(metric).trans.values;...
+                mean(signed_trans_spare),signed_trans_target];
+        end
 
     end
     
     if isempty(soz_test(metric).z) == 1, continue; end
     
     
-    %% T test on the z scores
-    [~,p,~,stats] = ttest(soz_test(metric).z);
+    %% Paired T test on the "z scores" (in this case, the agreements)
+    [~,p,~,stats] = ttest(soz_test(metric).z(:,1),soz_test(metric).z(:,2));
     soz_test(metric).stats.p = p;
     soz_test(metric).stats.t = stats.tstat;
     soz_test(metric).stats.df = stats.df;
     
-    
     % Add to array for plotting
+    all_df = [all_df;stats.df];
+    all_t = [all_t;stats.tstat];
     all_p = [all_p;p];
-    all_z_pts{metric} = soz_test(metric).z;
-
+    all_z_pts{metric} = soz_test(metric).z(:,1)-soz_test(metric).z(:,2);
+    
+    %% Paired T test for transitivity
+    if metric == 8
+        [~,p,~,stats] = ttest(soz_test(metric).trans.values(:,1),soz_test(metric).trans.values(:,2)); 
+        soz_test(metric).trans.stats.p = p;
+        soz_test(metric).trans.stats.t = stats.tstat;
+        soz_test(metric).trans.stats.df = stats.df;
+        soz_test(metric).trans.stats.means = [nanmean(soz_test(metric).trans.values(:,1)),...
+            nanmean(soz_test(metric).trans.values(:,2))];
+        all_p_trans = [all_p_trans;p];
+        all_t_trans = [all_t_trans;stats.tstat];
+        
+        fprintf(['For time %s and %s frequency, mean relative difference in transitivity is\n'...
+            '%1.2f when we spare the SOZ and %1.2f when we target the SOZ\n'...
+            'tstat = %1.2f, p = %1.3f\n'],...
+            all_sec{sec_idx},all_freq{freq_idx},nanmean(soz_test(metric).trans.values(:,1)),...
+            nanmean(soz_test(metric).trans.values(:,2)),stats.tstat,p);
+    end
 end
- 
+
+
+%% Table
+if 0
+    fprintf(['For time %s and %s frequency, table of p-values and t-statistics for\n'...
+        'whether agreement is higher when removing non-soz electrodes is:\n'],all_sec{sec_idx},...
+        all_freq{freq_idx});
+
+    table(metrics',all_t,all_df,all_p,'VariableNames',{'Metric','Tstat','df','p'})
+end
+
+for i = 1:size(all_t)
+    t_text{i,sec_idx,freq_idx} = pretty_tstat(all_t(i),all_p(i),length(metrics));
+end
+
+
+for i = 1:size(all_t_trans)
+    trans_text{i,sec_idx,freq_idx} = pretty_tstat(all_t_trans(i),all_p_trans(i),length(metrics));
+end
+%{
+for i = 1:size(all_t)
+    if all_p(i) < 0.001/length(metrics)
+        extra = '***';
+    elseif all_p(i) < 0.01/length(metrics)
+        extra = '**';
+    elseif all_p(i) < 0.05/length(metrics)
+        extra = '*';
+    else
+        extra = '';
+    end
+    t_text{i,sec_idx,freq_idx} = sprintf('%1.2f%s',all_t(i),extra);
+end
+%}
+
+%table(char(t_text(:,sec_idx,freq_idx)))
+
+
+if do_plot == 1
 %% Figure
 if isempty(all_p) == 1, continue; end
 stars = cell(length(metrics),1);
@@ -151,12 +281,12 @@ for i = 1:length(all_z_pts)
     scatter(i,all_rho(i),300,'filled','d','MarkerEdgeColor',[0 0.4470 0.7410],...
         'MarkerFaceColor',[0 0.4470 0.7410]);
     %}
-    plot([i-0.3,i + 0.3],[mean(all_z_pts{i}),mean(all_z_pts{i})],'color',cols(i,:),'linewidth',3);
+    plot([i-0.3,i + 0.3],[nanmean(all_z_pts{i}),nanmean(all_z_pts{i})],'color',cols(i,:),'linewidth',3);
 
     xticks(1:length(all_z_pts))
-    xticklabels((metrics))
+    xticklabels((metric_names))
     xlim([0.7 length(all_z_pts) + 0.3])
-    title({'Difference in agreement when ignored electrodes','are seizure onset zone vs non-seizure onset zone'})
+    title({'Difference in metric agreement between seizure onset zone-sparing','and seizure onset zone-targeted resampling'})
     ylabel('Difference in agreement');
     set(gca,'fontsize',20)
     fix_xticklabels(gca,0.1,{'FontSize',20});
@@ -165,10 +295,29 @@ plot(get(gca,'xlim'),[0 0],'k--','linewidth',2);
 for i = 1:length(stars)
     text(i + 0.15, 0.82,stars{i},'fontsize',50);
 end
+if save_plot == 1
+    print(gcf,[outFolder,'soz_overlap_',freq,'_',sec_text],'-depsc');
+end
+end
 
 
 end
 
 end
+
+fprintf('Main table:\n');
+table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
+    char(t_text(:,4,1)),char(t_text(:,5,1)),char(t_text(:,3,2)),'VariableNames',...
+    {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
+
+
+
+fprintf('Trans table:\n');
+% Positive t statistics mean that the transitivity is HIGHER when we spare
+% the SOZ than when we remove the SOZ
+table((trans_text(:,1,1)),(trans_text(:,2,1)),(trans_text(:,3,1)),...
+    (trans_text(:,4,1)),(trans_text(:,5,1)),(trans_text(:,3,2)),'VariableNames',...
+    {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
+
 end
 
