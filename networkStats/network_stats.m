@@ -174,7 +174,7 @@ for contig = contigs % random or contiguous electrodes
     if merge == 1
         if do_soz_analysis == 1
             stats = soz;
-        elseif do_soz_analysis == 2
+        elseif do_soz_analysis == 2 || do_soz_analysis == 3
             stats = soz_overlap;
         end
         if length(stats) >= whichPt
