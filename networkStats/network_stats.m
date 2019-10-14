@@ -87,7 +87,7 @@ if merge == 1
         else
             soz_overlap = struct;
         end
-    elseif do_soz_analysis == 2
+    elseif do_soz_analysis == 3
         if exist([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat'],'file') ~= 0
             fprintf('Found existing file, loading...\n');
             load([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat']);
