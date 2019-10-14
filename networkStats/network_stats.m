@@ -133,7 +133,7 @@ for contig = contigs % random or contiguous electrodes
         % Here, not taking random samples, but rather systematically going
         % through each electrode and its N nearest neighbors
         n_perm = length(pt(whichPt).new_elecs.electrodes);
-    elseif contig == 0 || contig == 2
+    elseif contig == 0 || contig == 2 || contig == 4
         % Take 1000 random permutations
         n_perm = 1e3;
     elseif contig == 3
