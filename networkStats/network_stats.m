@@ -37,8 +37,11 @@ if do_soz_analysis == 1
 elseif do_soz_analysis == 0
     e_f = [0.2 0.4 0.6 0.8 1];
     contigs = [0 1];
-elseif do_soz_analysis == 2
+elseif do_soz_analysis == 2 % compare targeting soz to sparing soz
     contigs = [2 3];
+    e_f = nan;
+elseif do_soz_analysis == 3 % compare targeting soz to random
+    contigs = [4 3];
     e_f = nan;
 end
 n_f = length(e_f);
@@ -84,13 +87,20 @@ if merge == 1
         else
             soz_overlap = struct;
         end
+    elseif do_soz_analysis == 2
+        if exist([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat'],'file') ~= 0
+            fprintf('Found existing file, loading...\n');
+            load([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat']);
+        else
+            soz_overlap = struct;
+        end
     end
 else
     if do_soz_analysis == 1
         soz = struct;
     elseif do_soz_analysis == 0
         stats = struct;
-    elseif do_soz_analysis == 2
+    elseif do_soz_analysis == 2 || do_soz_analysis == 3
         soz_overlap = struct;
     end
 end
@@ -150,6 +160,8 @@ for contig = contigs % random or contiguous electrodes
         contig_text = 'not_soz';
     elseif contig == 3
         contig_text = 'soz';
+    elseif contig == 4
+        contig_text = 'random';
     end
     
     if which_sec < 0
@@ -740,9 +752,9 @@ for contig = contigs % random or contiguous electrodes
         if doSave == 1
             save([resultsFolder,'basic_metrics/stats',extra,'.mat'],'stats');
         end
-    elseif do_soz_analysis == 1 || do_soz_analysis == 2
+    elseif do_soz_analysis == 1 || do_soz_analysis == 2 || do_soz_analysis == 3
         %% Do the analysis of dependence of agreement on distance from important things
-        if do_soz_analysis == 2
+        if do_soz_analysis == 2 || do_soz_analysis == 3
             soz = soz_overlap;
         end
         
@@ -792,6 +804,9 @@ for contig = contigs % random or contiguous electrodes
             elseif do_soz_analysis == 2
                 soz_overlap = soz;
                 save([resultsFolder,'basic_metrics/soz_overlap',extra,'.mat'],'soz_overlap');
+            elseif do_soz_analysis == 3
+                soz_overlap = soz;
+                save([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat'],'soz_overlap');
             end
         end
     end

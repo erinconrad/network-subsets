@@ -161,6 +161,12 @@ for f = 1:n_f
             
             % just take soz
             which_elecs = soz;
+        
+        elseif contig == 4
+            % Take random sample of ALL electrodes, equal in number to
+            % number of soz elecs
+            n_soz = length(soz);
+            which_elecs = randperm(nch,n_soz);
             
         end
         
