@@ -1,5 +1,11 @@
 function soz_overlap_analysis(soz_overlap,pt)
 
+
+%{
+This is the analysis we added for Network Neuroscience. It compares metrics
+when we target vs spare the SOZ for removal
+%}
+
 %% Parameters
 do_plot = 0;
 save_plot = 0;
@@ -47,6 +53,10 @@ all_df = [];
 all_p_trans = [];
 all_t_trans = [];
 
+% Initialize arrays for hub stability
+all_p_hub = [];
+all_t_hub = [];
+
 % loop over metrics
 for metric = 1:n_metrics
     
@@ -58,6 +68,7 @@ for metric = 1:n_metrics
     soz_test(metric).z = [];
     soz_test(metric).rm_soz = [];
     soz_test(metric).rm_not_soz = {};
+    soz_test(metric).hub.means = [];
 
     % loop over patients
     for i = 1:length(soz_overlap)
@@ -66,7 +77,7 @@ for metric = 1:n_metrics
         
         
         
-        for contig_idx = [1,2]
+        for contig_idx = [1,2] % 1 is spare soz, 2 is remove soz
             contig_text = all_contig{contig_idx};
             if isfield(soz_overlap(i).(freq),contig_text) == 0, continue; end
 
@@ -96,6 +107,19 @@ for metric = 1:n_metrics
                 measure = -abs(measure);
             end
             
+            % Get if hub stays same
+            if metric <= 5
+                same_hub = base.same_hub.(hub_metrics{metric});
+                if isempty(pt(i).soz.nums) == 1
+                    same_hub = nan;
+                end
+                if contig_idx == 2
+                    soz_rm_hub_same = same_hub;
+                elseif contig_idx == 1
+                    not_soz_rm_hub_same = mean(same_hub);
+                end
+            end
+            
             
             % No measure if soz empty
             if isempty(pt(i).soz.nums) == 1
@@ -111,14 +135,7 @@ for metric = 1:n_metrics
             elseif contig_idx == 1
                 not_soz_rm_measure = measure;
             end
-
-            
-            
-            % Get if hub stays same
-            if metric <= 5
-                same_hub = base.same_hub.(hub_metrics{metric});
-            end
-            
+      
         
         end
         
@@ -171,6 +188,9 @@ for metric = 1:n_metrics
         soz_test(metric).z = [soz_test(metric).z;z];
         soz_test(metric).rm_soz = [soz_test(metric).rm_soz;soz_rm_measure];
         soz_test(metric).rm_not_soz{i} = not_soz_rm_measure;
+        if metric <= 5
+        soz_test(metric).hub.means = [soz_test(metric).hub.means;not_soz_rm_hub_same,soz_rm_hub_same];
+        end
         
         % add the transitivity signed relative differences
         if metric == 8
@@ -184,19 +204,39 @@ for metric = 1:n_metrics
     
     
     %% Paired T test on the "z scores" (in this case, the agreements)
+    
+    % the first column is when we spare the soz, the second column is when
+    % we target the soz, and so a positive t-statistic means that the
+    % agreement is higher when we spare the SOZ (so network more affected
+    % when we target the soz)
     [~,p,~,stats] = ttest(soz_test(metric).z(:,1),soz_test(metric).z(:,2));
     soz_test(metric).stats.p = p;
     soz_test(metric).stats.t = stats.tstat;
     soz_test(metric).stats.df = stats.df;
-    
-    % Add to array for plotting
     all_df = [all_df;stats.df];
     all_t = [all_t;stats.tstat];
     all_p = [all_p;p];
     all_z_pts{metric} = soz_test(metric).z(:,1)-soz_test(metric).z(:,2);
     
+    %% Paired t-test on hub stability
+    if metric <= 5
+    
+    [~,p,~,stats] = ttest(soz_test(metric).hub.means(:,1),soz_test(metric).hub.means(:,2));
+    soz_test(metric).hub.stats.p = p;
+    soz_test(metric).hub.stats.t = stats.tstat;
+    soz_test(metric).hub.stats.df = stats.df;
+    all_p_hub = [all_p_hub;p];
+    all_t_hub = [all_t_hub;stats.tstat];
+    end
+    
     %% Paired T test for transitivity
     if metric == 8
+        % The first column is spare soz and second is remove soz, and so a
+        % positive t statistic means that the change in the transitivity is 
+        % more positive (it goes up more) when we spare the soz. I end up
+        % seeing negative t stats, meaning transitivity goes up more when
+        % we target the soz, suggesting that the SOZ was acting to LOWER
+        % transitivity.
         [~,p,~,stats] = ttest(soz_test(metric).trans.values(:,1),soz_test(metric).trans.values(:,2)); 
         soz_test(metric).trans.stats.p = p;
         soz_test(metric).trans.stats.t = stats.tstat;
@@ -231,6 +271,10 @@ end
 
 for i = 1:size(all_t_trans)
     trans_text{i,sec_idx,freq_idx} = pretty_tstat(all_t_trans(i),all_p_trans(i),length(metrics));
+end
+
+for i = 1:size(all_t_hub)
+    hub_text{i,sec_idx,freq_idx} = pretty_tstat(all_t_hub(i),all_p_hub(i),5);
 end
 %{
 for i = 1:size(all_t)
@@ -317,6 +361,13 @@ fprintf('Trans table:\n');
 % the SOZ than when we remove the SOZ
 table((trans_text(:,1,1)),(trans_text(:,2,1)),(trans_text(:,3,1)),...
     (trans_text(:,4,1)),(trans_text(:,5,1)),(trans_text(:,3,2)),'VariableNames',...
+    {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
+
+fprintf('Hub table:\n');
+% Positive t statistics mean that the hub stability is HIGHER when we spare
+% the SOZ
+table((hub_text(:,1,1)),(hub_text(:,2,1)),(hub_text(:,3,1)),...
+    (hub_text(:,4,1)),(hub_text(:,5,1)),(hub_text(:,3,2)),'VariableNames',...
     {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
 
 end

@@ -62,8 +62,8 @@ freq = 'high_gamma';
     %}
 
 
-for freq_idx = 1:length(all_freq)
-for sec_idx = 1:length(all_sec)
+for freq_idx = 1%1:length(all_freq)
+for sec_idx = 3%1:length(all_sec)
     
 
 sec_text = all_sec{sec_idx};
@@ -81,10 +81,14 @@ all_z = [];
 all_rho_pts = {};
 
 for dist = dist_to_plot
+    tstat_hub_stability = zeros(5,length(soz),5);
+    
     for metric = metrics_to_plot
 
         z = [];
         rho_pts = [];
+        
+        
 
         for i = 1:length(soz)
             if isempty(soz(i).(freq)) == 1, continue; end
@@ -108,11 +112,11 @@ for dist = dist_to_plot
            
             
             % Get whether the hub changed identity
-            %{
+            
             if metric <= 5
                 hub_same = base.same_hub.(hub_metric_names{metric});
             end
-            %}
+            
             
             % Get the measure of distance (usually doing distance from
             % resection zone)
@@ -147,19 +151,24 @@ for dist = dist_to_plot
             end
             
             %% Do changing hub analysis
-            %{
+            
             if metric <=5
             % Logistic binary regression for whether distance from SOZ
             % predicts whether hub changes
-            
-                mdl = fitglm(dist_measure,hub_same,'linear','distribution','binomial');
+                for s = 1:5
+                    mdl = fitglm(dist_measure,hub_same(s,:),'linear','distribution','binomial');
+                    tstat_hub_stability(metric,i,s) = mdl.Coefficients.tStat(2);
+                end
             end
-            %}
             
-            if i == 21, error('what'); end
+            
+            
+            %if i == 21, error('what'); end
             
             
         end
+        
+        
         
         
         %% T test to see if the aggregated transformed rho's diff from zero
@@ -257,6 +266,14 @@ for dist = dist_to_plot
         print(gcf,[outFolder,metrics{metric},'_',freq,'_',sec_text,'_',dists{dist}],'-depsc');
         close(gcf)
         %}
+    end
+    
+    for metric = 1:5
+        %% One sample t test on tstats for hub stability
+        % look at 20% removal
+        [~,p,~,stats] = ttest(squeeze(tstat_hub_stability(metric,~isnan(squeeze(tstat_hub_stability(1,:,1))),4)));
+        fprintf(['For %s, correlation between soz and hub stability:\n'...
+            'tstat = %1.2f, p = %1.3f.\n\n'],metric_names{metric},stats.tstat,p);
     end
 end
 

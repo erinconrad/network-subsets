@@ -93,9 +93,12 @@ analysis/:
 stats and with plots) the reliability of the different metrics
 - compare_soz_resec: this takes the soz.mat structure and assesses (with
 stats and with plots) the correlation between the metric agreement and the
-distance from the resection zone
+distance from the seizure onset zone
+- soz_overlap_analysis: this takes the soz_overlap.mat structure and
+assesses whether resampling that targets the SOZ has a larger effect on the
+network than resampling that spares the SOZ
 - all_CI: this takes the stats.mat structure and generates plots exploring
-the jackknife approach
+the jackknife approach 
 - stats_CI: this takes the stats.mat structure and generates stats
 summarizing the results of the jackknife approach
 

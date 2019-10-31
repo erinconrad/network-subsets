@@ -18,6 +18,7 @@ all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'}; % which times relat
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'compare_metrics/'];
+addpath(genpath(scriptFolder))
 
 
 %% Initialize arrays
@@ -59,6 +60,8 @@ global_all = nan(np,length(global_metrics),length(ef),1000);
 true_global = nan(np,length(global_metrics));
 n_elecs = nan(np,1);
 
+same_hub_nodal = nan(np,length(nodal_metrics),length(ef));
+
 % Loop through patients
 for i = 1:length(stats)
     
@@ -85,6 +88,8 @@ for i = 1:length(stats)
     for j = 1:length(nodal_metrics)
         var_nodal(i,j,:) = base.(nodal_metrics{j}).rel_alt;
         ag_nodal(i,j,:) = base.(nodal_metrics{j}).rho_mean';
+        
+        same_hub_nodal(i,j,:) = mean(base.(nodal_metrics{j}).same_hub,2);
     end
     
     %% Get agreement and variability for global metrics by resection size
@@ -109,11 +114,13 @@ avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
 avg_var_nodal = squeeze(nanmean(var_nodal,1));
 avg_ag_global = squeeze(nanmean(ag_global,1));
 avg_var_global = squeeze(nanmean(var_global,1));
+avg_samehub_nodal = squeeze(nanmean(same_hub_nodal,1));
 
 %% Individual patient, 80% retained
 % These are the reliability metrics
 var_nodal_80 = var_nodal(:,:,4);
 var_global_80 = var_global(:,:,4);
+same_hub_nodal_80 = same_hub_nodal(:,:,4);
 
 %% Calculate statistics for variability
 if sum(sum(isnan(var_global_80))) == sum(sum((ones(size(var_global_80)))))
@@ -168,6 +175,26 @@ for i = 1:size(c,1)
     fprintf('Dunn''s test comparing %s and %s: t = %1.2f, p = %1.3f\n\n',...
         nodal_metrics{c(i,1)},nodal_metrics{c(i,2)},t(i),c(i,6));   
 end
+
+% Descriptive stats for how often hub stays the same
+for i = 1:length(nodal_metrics)
+    fprintf(['The hub stability when retaining 80%% of the network for %s\n'...
+        'is %1.2f\n\n'],nodal_metrics{i},nanmean(same_hub_nodal_80(:,i)));    
+end
+
+% Compare hub stability when 80% retained for nodal metrics
+[p,tbl,stats1] = friedman(same_hub_nodal_80(~isnan(same_hub_nodal_80(:,1)),:),1,'off');
+fprintf('Friedman test for nodal hub stability: p = %1.1e, chi-squared = %1.1f, dof = %d\n',...
+    p, tbl{2,5},tbl{3,3});
+
+% perform a post-hoc Dunn's test
+[c,~,~,~,t] = multcompare_erin(stats1,'CType','dunn-sidak','Display','off');
+for i = 1:size(c,1)
+    fprintf('Dunn''s test comparing hub stability for %s and %s: t = %1.2f, p = %1.3f\n\n',...
+        nodal_metrics{c(i,1)},nodal_metrics{c(i,2)},t(i),c(i,6));   
+end
+
+
 %% Order the nodal and global metrics
 % Calculate mean reliability
 mean_rel_global = mean(var_global_80(~isnan(var_global_80(:,1)),:),1);
