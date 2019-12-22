@@ -82,6 +82,7 @@ for whichPt = whichPts
         % Find the last seizure (that isn't 1 or 2)
         interictal_num = 1000;
         max_num = 1;
+        which_mb_out = nan;
         
         for n = 1:length(listing)
             fname = listing(n).name;
@@ -95,7 +96,7 @@ for whichPt = whichPts
             end
         end
         
-        if exist([outputFolder,'adj',which_mb_out,'.mat'],'file') == 1
+        if isnan(which_mb_out) == 1 || exist([outputFolder,'adj',which_mb_out,'.mat'],'file') == 1
             fprintf('Warning, only one or two seizures for %s\n\n',name);
             continue
         end
