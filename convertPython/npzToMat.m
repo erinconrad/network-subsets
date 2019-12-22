@@ -138,6 +138,8 @@ for whichPt = whichPts
         end
         count = count+1;
         
+        fprintf('Made it here\n');
+        
         % Get header info
         [arrayShape, dataType, fortranOrder, littleEndian, totalHeaderLength, npyVersion] = readNPYheader(filename);
         
