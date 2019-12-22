@@ -191,10 +191,10 @@ for whichPt = whichPts
     end
     
     % Add to structure
-    adj(7).name = 'labels';
-    adj(7).data.labels = keys;
-    adj(7).data.nums = vals;
-    adj(7).data.ignore = ignore;
+    adj(count+1).name = 'labels';
+    adj(count+1).data.labels = keys;
+    adj(count+1).data.nums = vals;
+    adj(count+1).data.ignore = ignore;
     
     % Save the structure
     save([outputFolder,'adj',which_mb_out,'.mat'],'adj');
