@@ -87,8 +87,8 @@ for whichPt = whichPts
         for n = 1:length(listing)
             fname = listing(n).name;
             [starti,endi] = regexp(fname,'Ictal.\d+.');
-            which_multiband = fname(starti + 6:endi-1)
-            which_mb_num = str2double(which_multiband)
+            which_multiband = fname(starti + 6:endi-1);
+            which_mb_num = str2double(which_multiband);
             
             if which_mb_num > max_num && which_mb_num < interictal_num
                 whichFile = n;
@@ -119,6 +119,8 @@ for whichPt = whichPts
   %  if exist([outputFolder,'labels.npy'],'file') == 0
         unzip([adj_pt_folder,fname],outputFolder);
   %  end
+  
+    fprintf('Unzipped file %s\n\n',fname);
 
     % Now find all the .npy files
     listing = dir([outputFolder,'*.npy']);
