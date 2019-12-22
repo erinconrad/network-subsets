@@ -1,0 +1,133 @@
+function unzip_npz_files(pt,whichPts,last_sz)
+
+mod = py.importlib.import_module('open_adj');
+py.reload(mod);
+
+[electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
+    pwfile,dataFolder,bctFolder,mainFolder,adjFolder] = resectFileLocs;
+baseFolder = [mainFolder,'/data/adjacencyMatrices/'];
+
+if isempty(whichPts) == 1
+    whichPts = 1:length(pt);
+end
+
+for whichPt = whichPts
+    
+    % Get name
+    name = pt(whichPt).name;
+    
+    fprintf('Doing %s\n',name);
+    
+    % Get folder
+    outputFolder = [baseFolder,name,'/'];
+    
+    % Current adjacency folder
+    adj_pt_folder = [adjFolder,name,'/aim3/'];
+    
+    if exist(adj_pt_folder,'dir') == 0
+        continue
+    end
+    
+    if exist([outputFolder,'adj.mat'],'file') == 1
+        continue
+    end
+    
+    % Find the files that end in .npz
+    listing = dir([adj_pt_folder,'/*multiband.npz']);
+    
+    if last_sz == 0
+        
+        % I believe this code will find the 2nd seizure if it exists
+    
+        % Find smallest number
+        minNum = 1000;
+        for n = 1:length(listing)
+            fname = listing(n).name;
+            [starti,endi] = regexp(fname,'Ictal.\d+.');
+            which_multiband = fname(starti + 6:endi-1); 
+            which_mb_num = str2double(which_multiband);
+            if which_mb_num < minNum
+                whichFile = n;
+                minNum = which_mb_num;
+                which_mb_out = which_multiband;
+            end
+        end
+
+        % Now find second smallest number
+        smallest = minNum;
+        minNum = 1000;
+        which_mb_num = 1000;
+
+        for n = 1:length(listing)
+            fname = listing(n).name;
+            [starti,endi] = regexp(fname,'Ictal.\d+.');
+            which_multiband = fname(starti + 6:endi-1); 
+            which_mb_num = str2double(which_multiband);
+            if which_mb_num < minNum && which_mb_num > smallest
+                whichFile = n;
+                minNum = which_mb_num;
+                which_mb_out = which_multiband;
+            end
+        end
+    
+        if minNum == 1000
+            fprintf('Warning, only one seizure for %s\n\n',name);
+            continue;
+        end
+        
+        fprintf('Doing seizure %d from %s\n',minNum,name);
+        
+    else
+        
+        % Find the last seizure (that isn't 1 or 2)
+        interictal_num = 1000;
+        max_num = 1;
+        which_mb_out = nan;
+        
+        for n = 1:length(listing)
+            fname = listing(n).name;
+            [starti,endi] = regexp(fname,'Ictal.\d+.');
+            which_multiband = fname(starti + 6:endi-1);
+            which_mb_num = str2double(which_multiband);
+            
+            if which_mb_num > max_num && which_mb_num < interictal_num
+                whichFile = n;
+                max_num = which_mb_num;
+                which_mb_out = which_multiband;
+            end
+        end
+        
+        if isnan(which_mb_out) == 1 || exist([outputFolder,'adj',which_mb_out,'.mat'],'file') == 1
+            fprintf('Warning, only one or two seizures for %s\n\n',name);
+            continue
+        end
+        
+        fprintf('Doing seizure %d from %s\n',max_num,name);
+        
+    end
+       
+    
+        
+    
+    
+    
+    fname = listing(whichFile).name;
+    fprintf('Doing file %s\n\n',fname);
+    
+    
+    % Unzip it
+  %  if exist([outputFolder,'labels.npy'],'file') == 0
+        unzip([adj_pt_folder,fname],outputFolder);
+  %  end
+  
+    fprintf('Unzipped file %s to %s\n\n',fname,outputFolder);
+
+    
+    %% Loop through each npy file and make it a .mat file   
+    py_file = 'save_as_mat.py';
+    commandStr = ['python ',sprintf('%s %s',py_file,outputFolder)];
+    system(commandStr);
+    
+end
+
+end
