@@ -70,7 +70,7 @@ else
 end
 
 if isempty(which_dens) == 0
-    extra_dens = sprintf('%d',which_dens);
+    extra_dens = sprintf('_dens%1.2f',which_dens);
 else
     extra_dens = '';
 end
@@ -79,28 +79,28 @@ end
 %% Load the output structure to add more info to it
 if merge == 1
     if do_soz_analysis == 1
-        if exist([resultsFolder,'basic_metrics/soz',extra,'.mat'],'file') ~= 0
-            load([resultsFolder,'basic_metrics/soz',extra,'.mat']);
+        if exist([resultsFolder,'basic_metrics/soz',extra,extra_dens,'.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/soz',extra,extra_dens,'.mat']);
         else
             soz = struct;
         end
     elseif do_soz_analysis == 0
-        if exist([resultsFolder,'basic_metrics/stats',extra,'.mat'],'file') ~= 0
-            load([resultsFolder,'basic_metrics/stats',extra,'.mat']);
+        if exist([resultsFolder,'basic_metrics/stats',extra,extra_dens,'.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/stats',extra,extra_dens,'.mat']);
         else
             stats = struct;
         end
     elseif do_soz_analysis == 2
-        if exist([resultsFolder,'basic_metrics/soz_overlap',extra,'.mat'],'file') ~= 0
+        if exist([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'.mat'],'file') ~= 0
             fprintf('Found existing file, loading...\n');
-            load([resultsFolder,'basic_metrics/soz_overlap',extra,'.mat']);
+            load([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'.mat']);
         else
             soz_overlap = struct;
         end
     elseif do_soz_analysis == 3
-        if exist([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat'],'file') ~= 0
+        if exist([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'.mat'],'file') ~= 0
             fprintf('Found existing file, loading...\n');
-            load([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat']);
+            load([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'.mat']);
         else
             soz_overlap = struct;
         end
