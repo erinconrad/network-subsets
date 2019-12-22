@@ -1,4 +1,4 @@
-function npzToMat(pt,whichPts)
+function npzToMat(pt,whichPts,last_sz)
 
 mod = py.importlib.import_module('open_adj');
 py.reload(mod);
@@ -35,45 +35,78 @@ for whichPt = whichPts
     % Find the files that end in .npz
     listing = dir([adj_pt_folder,'/*multiband.npz']);
     
-    % Find smallest number
-    minNum = 1000;
-    for n = 1:length(listing)
-        fname = listing(n).name;
-        [starti,endi] = regexp(fname,'Ictal.\d+.');
-        which_multiband = fname(starti + 6:endi-1);
-        which_mb_num = str2double(which_multiband);
-        if which_mb_num < minNum
-            whichFile = n;
-            minNum = which_mb_num;
-            which_mb_out = which_multiband;
+    if last_sz == 0
+        
+        % I believe this code will find the 2nd seizure if it exists
+    
+        % Find smallest number
+        minNum = 1000;
+        for n = 1:length(listing)
+            fname = listing(n).name;
+            [starti,endi] = regexp(fname,'Ictal.\d+.');
+            which_multiband = fname(starti + 6:endi-1); % I think the 6 should be a 5
+            which_mb_num = str2double(which_multiband);
+            if which_mb_num < minNum
+                whichFile = n;
+                minNum = which_mb_num;
+                which_mb_out = which_multiband;
+            end
         end
-    end
-    
-    % Now find second smallest number
-    smallest = minNum;
-    minNum = 1000;
-    which_mb_num = 1000;
-    
-    for n = 1:length(listing)
-        fname = listing(n).name;
-        [starti,endi] = regexp(fname,'Ictal.\d+.');
-        which_multiband = fname(starti + 6:endi-1);
-        which_mb_num = str2double(which_multiband);
-        if which_mb_num < minNum && which_mb_num > smallest
-            whichFile = n;
-            minNum = which_mb_num;
-            which_mb_out = which_multiband;
+
+        % Now find second smallest number
+        smallest = minNum;
+        minNum = 1000;
+        which_mb_num = 1000;
+
+        for n = 1:length(listing)
+            fname = listing(n).name;
+            [starti,endi] = regexp(fname,'Ictal.\d+.');
+            which_multiband = fname(starti + 6:endi-1); % I think the 6 should be a 5
+            which_mb_num = str2double(which_multiband);
+            if which_mb_num < minNum && which_mb_num > smallest
+                whichFile = n;
+                minNum = which_mb_num;
+                which_mb_out = which_multiband;
+            end
         end
-    end
     
-    if minNum == 1000
-        fprintf('Warning, only one seizure for %s\n\n',name);
-        continue;
-    else
-       
+        if minNum == 1000
+            fprintf('Warning, only one seizure for %s\n\n',name);
+            continue;
+        end
+        
         fprintf('Doing seizure %d from %s\n',minNum,name);
         
+    else
+        
+        % Find the last seizure (that isn't 1 or 2)
+        interictal_num = 1000;
+        max_num = 1;
+        
+        for n = 1:length(listing)
+            fname = listing(n).name;
+            [starti,endi] = regexp(fname,'Ictal.\d+.');
+            which_multiband = fname(starti + 5:endi-1);
+            which_mb_num = str2double(which_multiband);
+            if which_mb_num > max_num && which_mb_num < interictal_num
+                whichFile = n;
+                max_num = which_mb_num;
+                which_mb_out = which_multiband;
+            end
+        end
+        
+        if exist([outputFolder,'adj',which_mb_out,'.mat'],'file') == 1
+            fprintf('Warning, only one or two seizures for %s\n\n',name);
+            continue
+        end
+        
+        fprintf('Doing seizure %d from %s\n',max_num,name);
+        
     end
+       
+    
+        
+    
     
     
     fname = listing(whichFile).name;

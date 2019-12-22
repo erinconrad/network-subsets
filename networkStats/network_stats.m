@@ -65,8 +65,10 @@ load([dataFolder,'structs/info.mat']);
 
 if which_sz == 1
     extra = '';
-else
+elseif which_sz == 2
     extra = '2';
+elseif which_sz == 3
+    extra = '3';
 end
 
 if isempty(which_dens) == 0
