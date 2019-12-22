@@ -44,7 +44,7 @@ for whichPt = whichPts
         for n = 1:length(listing)
             fname = listing(n).name;
             [starti,endi] = regexp(fname,'Ictal.\d+.');
-            which_multiband = fname(starti + 6:endi-1); % I think the 6 should be a 5
+            which_multiband = fname(starti + 6:endi-1); 
             which_mb_num = str2double(which_multiband);
             if which_mb_num < minNum
                 whichFile = n;
@@ -61,7 +61,7 @@ for whichPt = whichPts
         for n = 1:length(listing)
             fname = listing(n).name;
             [starti,endi] = regexp(fname,'Ictal.\d+.');
-            which_multiband = fname(starti + 6:endi-1); % I think the 6 should be a 5
+            which_multiband = fname(starti + 6:endi-1); 
             which_mb_num = str2double(which_multiband);
             if which_mb_num < minNum && which_mb_num > smallest
                 whichFile = n;
@@ -87,7 +87,7 @@ for whichPt = whichPts
         for n = 1:length(listing)
             fname = listing(n).name;
             [starti,endi] = regexp(fname,'Ictal.\d+.');
-            which_multiband = fname(starti + 5:endi-1)
+            which_multiband = fname(starti + 6:endi-1)
             which_mb_num = str2double(which_multiband)
             
             if which_mb_num > max_num && which_mb_num < interictal_num
