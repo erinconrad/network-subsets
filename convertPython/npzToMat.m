@@ -89,6 +89,8 @@ for whichPt = whichPts
             [starti,endi] = regexp(fname,'Ictal.\d+.');
             which_multiband = fname(starti + 5:endi-1);
             which_mb_num = str2double(which_multiband);
+            
+            which_mb_num
             if which_mb_num > max_num && which_mb_num < interictal_num
                 whichFile = n;
                 max_num = which_mb_num;
