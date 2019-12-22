@@ -26,8 +26,6 @@ all_cc = resampleNetwork(A,1,0.8,0,pt,whichPt,adj,1);
 cc_diff = (all_cc-cc)./cc;
 
 locs = pt(whichPt).new_elecs.locs;
-A = transform_elecs_to_brain(pt,whichPt);
-new_locs = A*locs-offset;
 
 % Load gifti
 brainFolder = '/Users/erinconrad/Desktop/residency stuff/R25/actual work/data/brains/';
@@ -37,7 +35,7 @@ fname2 = names(1).name;
 g = gifti([giftiFolder,fname2]);
 
 %% Plot network
-if 0
+if 1
 figure
 imagesc(A)
 c = colorbar;

@@ -110,7 +110,7 @@ for text = which_texts
         elseif count == 6
            l1 = legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.92 0.72 0.03 0.10],...
                 'box','on');
-            pause(1) % do not delete
+            pause(2) % do not delete
             for k = 1:length(l1.EntryContainer.NodeChildren)
                 l1.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 14;
             end
@@ -162,7 +162,7 @@ for j = {'sync','eff','trans'}
         base = stats(i).(freq).(contig_text).(sec_text);
 
         true(i) = base.(j{1}).true;
-        all_perm(i,:) = base.(j{1}).all;
+        all_perm(i,:) = base.(j{1}).all(4,:);
     end
     inan = find(isnan(true));
     true(inan) = [];
@@ -274,7 +274,7 @@ annotation('textbox',[0 0.13 0.1 0.1],'String',...
 annotation('textbox',[0.59 0.13 0.1 0.1],'String',...
     'E','FontSize',35,'linestyle','none');
 
-print(gcf,[outFolder,'all_',freq,contig_text,sec_text],'-depsc');
-print(gcf,[outFolder,'all_',freq,contig_text,sec_text],'-dpng');
+%print(gcf,[outFolder,'all_',freq,contig_text,sec_text],'-depsc');
+%print(gcf,[outFolder,'all_',freq,contig_text,sec_text],'-dpng');
 
 end

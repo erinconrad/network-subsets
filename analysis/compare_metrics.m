@@ -89,7 +89,7 @@ for i = 1:length(stats)
         var_nodal(i,j,:) = base.(nodal_metrics{j}).rel_alt;
         ag_nodal(i,j,:) = base.(nodal_metrics{j}).rho_mean';
         
-        same_hub_nodal(i,j,:) = mean(base.(nodal_metrics{j}).same_hub,2);
+        %same_hub_nodal(i,j,:) = mean(base.(nodal_metrics{j}).same_hub,2);
     end
     
     %% Get agreement and variability for global metrics by resection size
@@ -114,13 +114,13 @@ avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
 avg_var_nodal = squeeze(nanmean(var_nodal,1));
 avg_ag_global = squeeze(nanmean(ag_global,1));
 avg_var_global = squeeze(nanmean(var_global,1));
-avg_samehub_nodal = squeeze(nanmean(same_hub_nodal,1));
+%avg_samehub_nodal = squeeze(nanmean(same_hub_nodal,1));
 
 %% Individual patient, 80% retained
 % These are the reliability metrics
 var_nodal_80 = var_nodal(:,:,4);
 var_global_80 = var_global(:,:,4);
-same_hub_nodal_80 = same_hub_nodal(:,:,4);
+%same_hub_nodal_80 = same_hub_nodal(:,:,4);
 
 %% Calculate statistics for variability
 if sum(sum(isnan(var_global_80))) == sum(sum((ones(size(var_global_80)))))
@@ -177,15 +177,19 @@ for i = 1:size(c,1)
 end
 
 % Descriptive stats for how often hub stays the same
+%{
 for i = 1:length(nodal_metrics)
     fprintf(['The hub stability when retaining 80%% of the network for %s\n'...
         'is %1.2f\n\n'],nodal_metrics{i},nanmean(same_hub_nodal_80(:,i)));    
 end
+%}
 
 % Compare hub stability when 80% retained for nodal metrics
+%{
 [p,tbl,stats1] = friedman(same_hub_nodal_80(~isnan(same_hub_nodal_80(:,1)),:),1,'off');
 fprintf('Friedman test for nodal hub stability: p = %1.1e, chi-squared = %1.1f, dof = %d\n',...
     p, tbl{2,5},tbl{3,3});
+%}
 
 % perform a post-hoc Dunn's test
 [c,~,~,~,t] = multcompare_erin(stats1,'CType','dunn-sidak','Display','off');
@@ -415,7 +419,7 @@ if doPlots == 1
     
     figure
     set(gcf,'Position',[174 207 1300 660])
-    [ha, pos] = tight_subplot(2, 1, [0.1 0.04], [0.09 0.05],[0.05 0.02]);
+    [ha, pos] = tight_subplot(2, 1, [0.11 0.04], [0.11 0.06],[0.06 0.02]);
     
     
     % Nodal reliability
@@ -443,13 +447,13 @@ if doPlots == 1
     xlim([-6 86])
     xticks(sort(100-ef))
    % title('Reliability by subsample size','Position',[0.1 0.1 0.1 0.1]);
-    set(gca,'Fontsize',20);
+    set(gca,'Fontsize',25);
     
    % axes(ha(3))
    legend(nd,{'Control centrality',...
         'Node strength','Betweenness centrality',...
         'Eigenvector centrality','Clustering coefficient'},'Location',...
-        'southwest');
+        'southwest','fontsize',25);
     legend boxoff
     
     gl = zeros(size(avg_ag_global,1),1);
@@ -474,11 +478,11 @@ if doPlots == 1
     xlim([-6 86])
     xticks(sort(100-ef))
     %title('Variability by subsample size');
-    set(gca,'Fontsize',20);
+    set(gca,'Fontsize',25);
     
    % axes(ha(6))
    legend(gl,{'Synchronizability','Global efficiency','Transitivity'},'Location',...
-        'southwest');
+        'southwest','fontsize',25);
     legend boxoff
     
     annotation('textbox',[0 0.89 0.1 0.1],'String',...
@@ -487,9 +491,9 @@ if doPlots == 1
         'B','FontSize',35,'linestyle','none');
     
     
-    pause
-    print(gcf,[outFolder,'new_all_fig2_',freq,contig_text,sec_text],'-depsc');
-    close(gcf)
+    %pause
+    %print(gcf,[outFolder,'new_all_fig2_',freq,contig_text,sec_text],'-depsc');
+    %close(gcf)
 
 end
 

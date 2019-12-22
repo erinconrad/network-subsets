@@ -1,4 +1,4 @@
-function network_stats(whichPts,do_soz_analysis,which_sz)
+function network_stats(whichPts,do_soz_analysis,which_sz,which_dens)
 
 %{
 This function takes an adjacency matrix A, calculates global and nodal
@@ -17,6 +17,10 @@ rng('default')
 %% Parameters
 
 % Which sz: if 1, the first the patient has, if 2, the second
+
+if isempty(whichPts) == 1
+    whichPts = 1:33;
+end
 
 % Save the output? (Should be yes)
 doSave = 1;
@@ -65,6 +69,12 @@ else
     extra = '2';
 end
 
+if isempty(which_dens) == 0
+    extra_dens = sprintf('%d',which_dens);
+else
+    extra_dens = '';
+end
+
 
 %% Load the output structure to add more info to it
 if merge == 1
@@ -106,13 +116,24 @@ else
 end
 
 %% which frequencies to do
-freq_cell = {'high_gamma','beta'};
+if isempty(which_dens) == 1
+    freq_cell = {'high_gamma','beta'};
+else
+    freq_cell = {'high_gamma'};
+end
+
+%% Which times to do
+if isempty(which_dens) == 1
+    which_times = [0 -10 -5 5 10];
+else
+    which_times = [0];
+end
 
 %% Loop through patients, times, frequencies, and whether contig or random electrodes
 for ff = 1:length(freq_cell)
     freq = freq_cell{ff};
     fprintf('Doing %s\n',freq);
-for which_sec = [0 -10 -5 5 10] % 0 means EEC, -5 is 5 seconds before
+for which_sec = which_times % 0 means EEC, -5 is 5 seconds before
     fprintf('Doing %d second\n',which_sec);
 
     
@@ -195,7 +216,7 @@ for contig = contigs % random or contiguous electrodes
     if isempty(adj) == 1
         fprintf('Cannot do %s\n\n',name);
         continue;
-    end
+    end   
 
     %% Get appropriate frequency band
     if strcmp(freq,'high_gamma') == 1
@@ -218,6 +239,10 @@ for contig = contigs % random or contiguous electrodes
     if sum(sum(isnan(A))) == sum(sum(ones(size(A))))
         continue
     end
+    
+    %% Threshold the adjacency matrix to achieve desired density
+    threshold = density_to_threshold(which_dens,A);
+    A(A<threshold) = 0;
 
     %% Get true metrics
     fprintf('Getting true metrics\n');
