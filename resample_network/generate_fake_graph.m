@@ -5,13 +5,14 @@ This function generates a fake graph of the same size as A
 %}
 
 % Get the upper triangular matrix from A
-U = triu(A);
+U = triu(A,1);
 
 % Get the number of elements in the upper triangle, excluding the diagonal
 n_non_diag = (size(A,1)^2-length(A))/2; 
 
 % Get the non-diagonal elemtns
-non_diag = U(U~=0);
+C = logical(triu(ones(size(A)),1));
+non_diag = A(C);
 
 if length(non_diag) ~= n_non_diag
     error('What\n');

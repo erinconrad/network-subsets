@@ -9,7 +9,7 @@ weighting threshold that will return that density
 N = size(A,1);
 
 % Get upper triangular elements
-ut = triu(A);
+ut = triu(A,1);
 
 % Sort them; remove the zeros
 ut_sort = sort(ut(:));
