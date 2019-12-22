@@ -137,8 +137,7 @@ for whichPt = whichPts
             continue
         end
         count = count+1;
-        
-        fprintf('Made it here\n');
+    
         
         % Get header info
         [arrayShape, dataType, fortranOrder, littleEndian, totalHeaderLength, npyVersion] = readNPYheader(filename);
@@ -162,9 +161,13 @@ for whichPt = whichPts
         
     end
     
+    fprintf('Created adjacency matrices ok\n');
+    
     %% Fix for the labels
     new_file = [outputFolder,'labels.npy'];
     label_data = py.open_adj.open_ad_f(new_file);
+    
+    fprintf('Made it here\n');
     vals = cell(label_data{1});
     vals = cell2mat(vals)';
     keys = cell(label_data{2});
