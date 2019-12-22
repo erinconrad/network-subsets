@@ -17,7 +17,17 @@ def save_as_mat_type1(dir):
     out = {}
     for name, path in files:
         d = np.load(dir + '/' + path)
-        out[name] = d
+        if name == 'labels':
+            keys = d.item().keys()
+            vals = [];
+            for k in keys:
+                vals.append(d.item()[k])
+            vals, b = zip(*vals)
+            out['label_vals'] = vals
+            out['label_keys'] = keys
+            out['label_b'] = b
+        else:
+            out[name] = d
     io.savemat(dir + '/' + output, out)
 
 if __name__ == '__main__':

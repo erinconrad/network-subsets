@@ -125,8 +125,52 @@ for whichPt = whichPts
     
     %% Loop through each npy file and make it a .mat file   
     py_file = 'save_as_mat.py';
-    commandStr = ['python ',sprintf('%s %s',py_file,outputFolder)];
+    commandStr = ['python ',sprintf('%s "%s"',py_file,outputFolder)];
     system(commandStr);
+    
+    %% Load the mat file
+    all = load([outputFolder,'all.mat']);
+    
+    %% Prepare adjacency matrices
+    adj(1).name = 'all_adj_alphatheta';
+    adj(1).data = all.alphatheta;
+    adj(2).name = 'all_adj_beta';
+    adj(2).data = all.beta;
+    adj(3).name = 'all_adj_broadband_CC';
+    adj(3).data = all.broadband;
+    adj(4).name = 'all_adj_highgamma';
+    adj(4).data = all.highgamma;
+    adj(5).name = 'all_adj_lowgamma';
+    adj(5).data = all.lowgamma;
+    adj(6).name = 'all_adj_veryhigh';
+    adj(6).data = all.veryhigh;
+    
+     %% Fix for the labels
+    vals = all.label_vals;
+    keys = all.label_keys;
+    
+    keys = cellstr(keys);
+    
+     % Re-sort by number
+    [vals,I] = sort(vals);
+    keys = keys(I);
+    
+    %% Figure out if we are ignoring it
+    ignore = zeros(length(vals),1);
+    for i = 1:length(ignore)
+        if ismember(keys(i),pt(whichPt).ignore_electrodes) == 1
+            ignore(i) = 1;
+        end
+    end
+    
+    % Add to structure
+    adj(count+1).name = 'labels';
+    adj(count+1).data.labels = keys;
+    adj(count+1).data.nums = vals;
+    adj(count+1).data.ignore = ignore;
+    
+    % Save the structure
+    save([outputFolder,'adj',which_mb_out,'.mat'],'adj');
     
 end
 
