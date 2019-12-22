@@ -120,7 +120,7 @@ for whichPt = whichPts
         unzip([adj_pt_folder,fname],outputFolder);
   %  end
   
-    fprintf('Unzipped file %s\n\n',fname);
+    fprintf('Unzipped file %s to %s\n\n',fname,outputFolder);
 
     % Now find all the .npy files
     listing = dir([outputFolder,'*.npy']);
