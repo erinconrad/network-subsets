@@ -98,7 +98,7 @@ for whichPt = whichPts
             end
         end
         
-        if isnan(which_mb_num) == 1 || exist([outputFolder,'adj',which_mb_out,'.mat'],'file') == 1
+        if isnan(which_mb_num) == 1 || exist([outputFolder,'adj',which_mb_out,'.mat'],'file') == 1 || which_mb_num == 1000
             fprintf('Warning, only one or two seizures for %s\n\n',name);
             continue
         end
