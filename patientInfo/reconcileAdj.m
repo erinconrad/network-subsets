@@ -64,7 +64,7 @@ for i = 1:size(locs,1)
     
 end
 
-if size(out_names,1) ~= size(adj(1).data,2)
+if length(out_names) ~= size(adj(1).data,2)
     error('What\n');
 end
 
