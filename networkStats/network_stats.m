@@ -816,7 +816,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).trans.all_norm = all_trans_norm;
 
         if doSave == 1
-            save([resultsFolder,'basic_metrics/stats',extra,'.mat'],'stats');
+            save([resultsFolder,'basic_metrics/stats',extra,extra_dens,'.mat'],'stats');
         end
         
         out = stats;
