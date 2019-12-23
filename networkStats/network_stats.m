@@ -1,4 +1,4 @@
-function network_stats(whichPts,do_soz_analysis,which_sz,which_dens)
+function out = network_stats(whichPts,do_soz_analysis,which_sz,which_dens,example)
 
 %{
 This function takes an adjacency matrix A, calculates global and nodal
@@ -18,16 +18,23 @@ rng('default')
 
 % Which sz: if 1, the first the patient has, if 2, the second
 
-if isempty(whichPts) == 1
+if isempty(example) == 1 && isempty(whichPts) == 1
     whichPts = 1:33;
+elseif isempty(example) == 0
+    whichPts = example.whichPt;
 end
 
-% Save the output? (Should be yes)
-doSave = 1;
+if isempty(example) == 1
+    % Save the output? (Should be yes)
+    doSave = 1;
 
-% add to existing stats array? Or re-write with new stats array? Usually
-% yes
-merge = 1;
+    % add to existing stats array? Or re-write with new stats array? Usually
+    % yes
+    merge = 1;
+else
+    doSave = 0;
+    merge = 0;
+end
 
 % do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis, 2 if
 % doing new soz overlap analysis
@@ -52,6 +59,7 @@ n_f = length(e_f);
 
 
 
+if isempty(example) == 1
 %% Load Stuff
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
@@ -77,8 +85,8 @@ else
     extra_dens = '';
 end
 
-
 %% Load the output structure to add more info to it
+
 if merge == 1
     if do_soz_analysis == 1
         if exist([resultsFolder,'basic_metrics/soz',extra,extra_dens,'.mat'],'file') ~= 0
@@ -117,16 +125,38 @@ else
     end
 end
 
+else
+    % Supply missing things if running example
+    pt = example.pt;
+    if do_soz_analysis == 1
+        soz = struct;
+    elseif do_soz_analysis == 0
+        stats = struct;
+    elseif do_soz_analysis == 2 || do_soz_analysis == 3
+        soz_overlap = struct;
+    end
+   
+end
+
+
 %% which frequencies to do
 if isempty(which_dens) == 1
-    freq_cell = {'high_gamma','beta'};
+    if isempty(example) == 1
+        freq_cell = {'high_gamma','beta'};
+    else
+        freq_cell = {example.freq};
+    end
 else
     freq_cell = {'high_gamma'};
 end
 
 %% Which times to do
 if isempty(which_dens) == 1
-    which_times = [0 -10 -5 5 10];
+    if isempty(example) == 1
+        which_times = [0 -10 -5 5 10];
+    else
+        which_times = example.which_times;
+    end
 else
     which_times = [0];
 end
@@ -168,7 +198,9 @@ for contig = contigs % random or contiguous electrodes
     
     fprintf('Doing %s\n',name);
     
-    outFolder = [resultsFolder,'basic_metrics/',name,'/'];
+    if isempty(example) == 1
+        outFolder = [resultsFolder,'basic_metrics/',name,'/'];
+    end
     %{
     if exist(outFolder,'dir') == 0
         mkdir(outFolder);
@@ -214,7 +246,12 @@ for contig = contigs % random or contiguous electrodes
     end
 
     %% Get adjacency matrix
-    [adj,~,sz_num] = reconcileAdj(pt,whichPt,which_sz);
+    if isempty(example) == 1
+        [adj,~,sz_num] = reconcileAdj(pt,whichPt,which_sz);
+    else
+        adj = example.adj;
+        sz_num = example.sz_num;
+    end
     if isempty(adj) == 1
         fprintf('Cannot do %s\n\n',name);
         continue;
@@ -243,8 +280,10 @@ for contig = contigs % random or contiguous electrodes
     end
     
     %% Threshold the adjacency matrix to achieve desired density
-    threshold = density_to_threshold(which_dens,A);
-    A(A<threshold) = 0;
+    if isempty(which_dens) == 0
+        threshold = density_to_threshold(which_dens,A);
+        A(A<threshold) = 0;
+    end
 
     %% Get true metrics
     fprintf('Getting true metrics\n');
@@ -779,6 +818,8 @@ for contig = contigs % random or contiguous electrodes
         if doSave == 1
             save([resultsFolder,'basic_metrics/stats',extra,'.mat'],'stats');
         end
+        
+        out = stats;
     elseif do_soz_analysis == 1 || do_soz_analysis == 2 || do_soz_analysis == 3
         %% Do the analysis of dependence of agreement on distance from important things
         if do_soz_analysis == 2 || do_soz_analysis == 3
@@ -836,6 +877,8 @@ for contig = contigs % random or contiguous electrodes
                 save([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat'],'soz_overlap');
             end
         end
+        
+        out = soz;
     end
 
     %% Plots
