@@ -83,6 +83,7 @@ for whichPt = whichPts
         interictal_num = 1000;
         max_num = 1;
         which_mb_out = nan;
+        which_mb_num = nan;
         
         for n = 1:length(listing)
             fname = listing(n).name;
