@@ -868,13 +868,13 @@ for contig = contigs % random or contiguous electrodes
        % soz(whichPt).(contig_text).(sec_text).rho_le_resec = rho_le_resec;
         if doSave == 1 
             if do_soz_analysis == 1
-                save([resultsFolder,'basic_metrics/soz',extra,'.mat'],'soz');
+                save([resultsFolder,'basic_metrics/soz',extra,extra_dens,'.mat'],'soz');
             elseif do_soz_analysis == 2
                 soz_overlap = soz;
-                save([resultsFolder,'basic_metrics/soz_overlap',extra,'.mat'],'soz_overlap');
+                save([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'.mat'],'soz_overlap');
             elseif do_soz_analysis == 3
                 soz_overlap = soz;
-                save([resultsFolder,'basic_metrics/soz_overlap_random',extra,'.mat'],'soz_overlap');
+                save([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'.mat'],'soz_overlap');
             end
         end
         
