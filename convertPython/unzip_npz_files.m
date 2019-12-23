@@ -133,17 +133,17 @@ for whichPt = whichPts
     
     %% Prepare adjacency matrices
     adj(1).name = 'all_adj_alphatheta';
-    adj(1).data = all.alphatheta;
+    adj(1).data = permute(all.alphatheta,[3,1,2]);
     adj(2).name = 'all_adj_beta';
-    adj(2).data = all.beta;
+    adj(2).data = permute(all.beta,[3,1,2]);
     adj(3).name = 'all_adj_broadband_CC';
-    adj(3).data = all.broadband;
+    adj(3).data = permute(all.broadband,[3,1,2]);
     adj(4).name = 'all_adj_highgamma';
-    adj(4).data = all.highgamma;
+    adj(4).data = permute(all.highgamma,[3,1,2]);
     adj(5).name = 'all_adj_lowgamma';
-    adj(5).data = all.lowgamma;
+    adj(5).data = permute(all.lowgamma,[3,1,2]);
     adj(6).name = 'all_adj_veryhigh';
-    adj(6).data = all.veryhigh;
+    adj(6).data = permute(all.veryhigh,[3,1,2]);
     
      %% Fix for the labels
     vals = all.label_vals;
@@ -171,6 +171,9 @@ for whichPt = whichPts
     
     % Save the structure
     save([outputFolder,'adj',which_mb_out,'.mat'],'adj');
+    
+    % Delete all.mat (it causes all sorts of issues if I keep it there)
+    delete([outputFolder,'all.mat'])
     
 end
 
