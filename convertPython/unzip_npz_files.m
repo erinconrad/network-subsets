@@ -79,6 +79,16 @@ for whichPt = whichPts
         
     else
         
+        if whichPt == 19
+            
+            % Fix - something wrong with last seizure; wrong # of
+            % electrodes. I think it is because seizure #11 is the first sz
+            % with the reimplanation. Seizure #6 is the last sz of the
+            % original implant.
+            name = 'HUP111A.Ictal.6.multiband.npz';
+            which_mb_out = 6;
+        else
+        
         % Find the last seizure (that isn't 1 or 2)
         interictal_num = 1000;
         max_num = 1;
@@ -104,6 +114,8 @@ for whichPt = whichPts
         end
         
         fprintf('Doing seizure %d from %s\n',max_num,name);
+        
+        end
         
     end
        
