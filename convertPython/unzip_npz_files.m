@@ -122,10 +122,13 @@ for whichPt = whichPts
     
         
     
-    
-    
-    fname = listing(whichFile).name;
-    fprintf('Doing file %s\n\n',fname);
+    if whichPt == 19 && last_sz == 1
+        fname = name;
+    else
+        fname = listing(whichFile).name;
+        fprintf('Doing file %s\n\n',fname);
+    end
+
     
     
     % Unzip it
