@@ -126,8 +126,14 @@ avg_bc_removed = nan(n_f,n_perm);
 %%  Loop through fractions
 for f = 1:n_f
     
+    
     %%  Do n_perm permutations per fraction
     for i_p = 1:n_perm
+       
+        if mod(i_p,100) == 0
+            fprintf('Doing permutation %d of %d for removal fraction %d of %d...\n',...
+                i_p,n_perm,f,n_f);
+        end
         
         %% Take e_n electrodes and just remove them
         % (e_n is nch - n_f(f))

@@ -1,4 +1,4 @@
-function compare_metrics(pt,stats)
+function compare_metrics(pt,stats,example)
 
 %{
 This function takes the output of the resampling script network_stats and
@@ -6,12 +6,24 @@ compares network measure reliability
 %}
 
 %% Parameters
-doPlots = 1; % plot things?
+if example == 0
+    doPlots = 1; % plot things?
+    which_contigs = [1 2];
+    which_freqs = [1 2];
+    which_secs = 1:5;
+else
+    doPlots = 0;
+    which_contigs = [1 2];
+    which_freqs = 1;
+    which_secs = 3;
+end
 all_contig = {'random','contiguous'}; % look at random or contiguous removal
 all_freq = {'high_gamma','beta'}; % which frequency coherence
 all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'}; % which times relative to EEC
 
-
+cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
+        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;...
+        0.6350 0.0780 0.1840;0.75 0.5 0.5];
 
 %% Locations
 
@@ -23,6 +35,8 @@ addpath(genpath(scriptFolder))
 
 %% Initialize arrays
 nodal_metrics = {'cc','ns','bc','ec','clust'};
+nodal_metrics_text = {'control centrality','node strength','betweenness centrality',...
+    'eigenvector centrality','clustering coefficient'};
 global_metrics = {'sync','eff','trans'};
 ef = [20 40 60 80 100];
 
@@ -73,7 +87,7 @@ for i = 1:length(stats)
     end
     
     %% Get number of electrodes
-    if strcmp(pt(i).name,stats(i).name) == 0, error('what\n'); end
+    if strcmp(pt(i).name,stats(i).name) == 0 && example == 0, error('what\n'); end
     n_elecs(i) = length(pt(i).new_elecs.electrodes);
     
     %% Extract just numbers from name (for plotting)
@@ -121,6 +135,44 @@ avg_var_global = squeeze(nanmean(var_global,1));
 var_nodal_80 = var_nodal(:,:,4);
 var_global_80 = var_global(:,:,4);
 %same_hub_nodal_80 = same_hub_nodal(:,:,4);
+
+% Give single patient statistics if example ==1
+if example == 1
+    ndl = squeeze(var_nodal);
+    tbl =  table(array2table(ndl,'VariableNames',sprintfc('retain_%d',ef)),'RowNames',nodal_metrics_text);
+    fprintf('Nodal metric reliability for example patient:\n')
+    display(tbl)
+    fprintf(['Different columns show different removal percentages\n'...
+        '(20 means 20%% of the network is retained and 100 means 100%% of the network is retained).\n'...
+        'Different rows show different nodal metrics.\n\n']);
+    
+    % Do plot
+    figure
+    set(gcf,'position',[246 260 1192 545]);
+    for j = 1:size(ndl,1)
+        plot(100-ef+j*2-6,ndl(j,:),'o','MarkerSize',15,...
+        'MarkerEdgeColor',cols(j,:),'MarkerFaceColor',cols(j,:),'Color',cols(j,:),'linewidth',2);
+        hold on
+ 
+    end
+    
+    legend('Control centrality',...
+        'Node strength','Betweenness centrality',...
+        'Eigenvector centrality','Clustering coefficient',...
+        'location','northeastoutside');
+    
+    xlabel('Percent nodes removed');
+    ylabel({'Reliability'})
+    title('Nodal reliability');
+    xlim([-6 86])
+    xticks(sort(100-ef))
+    title('Reliability by subsample size');
+    set(gca,'Fontsize',25);
+    
+    
+    return
+end
+
 
 %% Calculate statistics for variability
 if sum(sum(isnan(var_global_80))) == sum(sum((ones(size(var_global_80)))))
@@ -413,9 +465,7 @@ if doPlots == 1
     
     %% Just reliability
     
-    cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
-        0.4940 0.1840 0.5560;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;...
-        0.6350 0.0780 0.1840;0.75 0.5 0.5];
+    
     
     figure
     set(gcf,'Position',[174 207 1300 660])

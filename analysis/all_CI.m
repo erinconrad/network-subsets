@@ -1,4 +1,4 @@
-function all_CI(stats,pt)
+function all_CI(stats,pt,example)
 
 %{
 This function takes info about the number and identities of electrodes
@@ -12,7 +12,11 @@ sec_text = 'sec_0';
 freq = 'high_gamma';
 which_texts = {'ns','min_cc_elecs'};
 which_names = {'node strength','regional control centrality'};
-whichPts = [1 10 21];
+if example == 1
+    whichPts = 1
+else
+    whichPts = [1 10 21];
+end
 which_global = 'sync';
 global_name = 'Synchronizability';
 global_names_all = {'Synchronizability','Global efficiency','Transitivity'};
@@ -25,17 +29,33 @@ outFolder = [resultsFolder,'cc_comparison/'];
 
 figure  
 set(gcf,'Position',[100 0 900 1100]);
-[ha,pos] = tight_subplot(4, 3, [0.07 0.03], [0.01 0.04],[0.11 0.02]);
-set(ha(7),'position',[pos{4}(1), pos{7}(2), (pos{5}(1) - pos{4}(1) + ...
-    pos{5}(3)/2)*2, pos{7}(4)]);
-delete(ha(8))
-delete(ha(9))
-set(ha(10),'position',[pos{4}(1)+0.01, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
-    pos{5}(3)/2-0.01), pos{10}(4)]);
-set(ha(11),'position',[pos{4}(1) + (pos{5}(1) - pos{4}(1) + ...
-    pos{5}(3)/2) + 0.12, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
-    pos{5}(3)/2) - 0.12, pos{10}(4)]);
-delete(ha(12))
+if example == 1
+    [ha,pos] = tight_subplot(4, 3, [0.07 0.03], [0.01 0.04],[0.11 0.02]);
+    set(ha(10),'position',[pos{4}(1)+0.01, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
+        pos{5}(3)/2-0.01), pos{10}(4)]);
+    set(ha(11),'position',[pos{4}(1) + (pos{5}(1) - pos{4}(1) + ...
+        pos{5}(3)/2) + 0.12, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
+        pos{5}(3)/2) - 0.12, pos{10}(4)]);
+    delete(ha(2))
+    delete(ha(3))
+    delete(ha(5))
+    delete(ha(6))
+    delete(ha(8))
+    delete(ha(9))
+    delete(ha(12))
+else
+    [ha,pos] = tight_subplot(4, 3, [0.07 0.03], [0.01 0.04],[0.11 0.02]);
+    set(ha(7),'position',[pos{4}(1), pos{7}(2), (pos{5}(1) - pos{4}(1) + ...
+        pos{5}(3)/2)*2, pos{7}(4)]);
+    delete(ha(8))
+    delete(ha(9))
+    set(ha(10),'position',[pos{4}(1)+0.01, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
+        pos{5}(3)/2-0.01), pos{10}(4)]);
+    set(ha(11),'position',[pos{4}(1) + (pos{5}(1) - pos{4}(1) + ...
+        pos{5}(3)/2) + 0.12, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
+        pos{5}(3)/2) - 0.12, pos{10}(4)]);
+    delete(ha(12))
+end
 
 count = 0;
 text_count = 0;
@@ -105,16 +125,7 @@ for text = which_texts
         
        % pl(6) = scatter3(resec(:,1),resec(:,2),resec(:,3),15,'k','filled');
         scatter3(locs(:,1),locs(:,2),locs(:,3),100,'k','linewidth',2);
-        if count == 3
-            
-        elseif count == 6
-           l1 = legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.92 0.72 0.03 0.10],...
-                'box','on');
-            pause(2) % do not delete
-            for k = 1:length(l1.EntryContainer.NodeChildren)
-                l1.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 14;
-            end
-        end
+        
 
         if count == 1 || count == 4
             view(150,32.4);
@@ -138,6 +149,23 @@ for text = which_texts
         %}
 %}
     
+    if example == 1, count = count + 2; end
+    if count == 3
+            
+        elseif count == 6
+            if example == 1
+                l1 = legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.37 0.72 0.03 0.10],...
+                'box','on');
+            else
+           l1 = legend(pl,{'True','70%','80%','90%','95%'},'Position',[0.92 0.72 0.03 0.10],...
+                'box','on');
+            end
+            pause(2) % do not delete
+            for k = 1:length(l1.EntryContainer.NodeChildren)
+                l1.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 14;
+            end
+        end
+    
     end
     
 end
@@ -146,11 +174,11 @@ end
 axes(ha(7))
 all_rho = zeros(1000,3);
 new_count = 0;
-all_95_ci_width = zeros(29,3);
+all_95_ci_width = nan(29,3);
 for j = {'sync','eff','trans'}
     new_count = new_count + 1;
-    true = zeros(29,1);
-    all_perm = zeros(29,1000);
+    true = nan(29,1);
+    all_perm = nan(29,1000);
     
     for i = 1:length(stats)    
         if isempty(stats(i).name) ==1
@@ -178,7 +206,11 @@ for j = {'sync','eff','trans'}
         violin(all_perm',true,'facecolor',[0 0.4470 0.7410])
         xticklabels([])
         ylabel(sprintf('%s',global_name));
-        title('All patients');
+        if example == 1
+            
+        else
+            title('All patients');
+        end
         set(gca,'fontsize',20)
     end
 end
