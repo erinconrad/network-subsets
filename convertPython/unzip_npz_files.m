@@ -86,7 +86,7 @@ for whichPt = whichPts
             % with the reimplanation. Seizure #6 is the last sz of the
             % original implant.
             name = 'HUP111A.Ictal.6.multiband.npz';
-            which_mb_out = 6;
+            which_mb_out = '6';
         else
         
         % Find the last seizure (that isn't 1 or 2)
