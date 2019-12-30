@@ -13,7 +13,7 @@ freq = 'high_gamma';
 which_texts = {'ns','min_cc_elecs'};
 which_names = {'node strength','regional control centrality'};
 if example == 1
-    whichPts = 1
+    whichPts = 1;
 else
     whichPts = [1 10 21];
 end
@@ -30,12 +30,14 @@ outFolder = [resultsFolder,'cc_comparison/'];
 figure  
 set(gcf,'Position',[100 0 900 1100]);
 if example == 1
-    [ha,pos] = tight_subplot(4, 3, [0.07 0.03], [0.01 0.04],[0.11 0.02]);
-    set(ha(10),'position',[pos{4}(1)+0.01, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
-        pos{5}(3)/2-0.01), pos{10}(4)]);
-    set(ha(11),'position',[pos{4}(1) + (pos{5}(1) - pos{4}(1) + ...
-        pos{5}(3)/2) + 0.12, pos{10}(2), (pos{5}(1) - pos{4}(1) + ...
-        pos{5}(3)/2) - 0.12, pos{10}(4)]);
+    for i = 1:12
+        ha(i) = subplot(4, 3,i);
+    end
+    set(ha(1),'position',[0.1100    0.7750    0.2700    0.1850]);
+    set(ha(4),'position',[0.1100    0.5200    0.2700    0.1850]);
+    set(ha(7),'position',[0.1100    0.2650    0.4    0.1850]);
+    set(ha(10),'position',[0.1200    0.0100    0.4250    0.1850]);
+    set(ha(11),'position',[0.6650    0.0100    0.3150    0.1850]);
     delete(ha(2))
     delete(ha(3))
     delete(ha(5))
@@ -43,6 +45,7 @@ if example == 1
     delete(ha(8))
     delete(ha(9))
     delete(ha(12))
+    
 else
     [ha,pos] = tight_subplot(4, 3, [0.07 0.03], [0.01 0.04],[0.11 0.02]);
     set(ha(7),'position',[pos{4}(1), pos{7}(2), (pos{5}(1) - pos{4}(1) + ...
@@ -261,7 +264,9 @@ for i = 1:length(all_rat)
     hold on
 end
 xticklabels([]);
+
 l2 = legend(pl,all_met_names,'position',[0.31 0.13 0.1 0.1],'fontsize',18);
+
 pause(1); % DO NOT DELETE
 for k = 1:length(l2.EntryContainer.NodeChildren)
     l2.EntryContainer.NodeChildren(k).Icon.Transform.Children.Children.Size = 12;
@@ -301,10 +306,13 @@ annotation('textbox',[0 0.63 0.1 0.1],'String',...
     'B','FontSize',35,'linestyle','none');
 annotation('textbox',[0 0.38 0.1 0.1],'String',...
     'C','FontSize',35,'linestyle','none');
+
+
 annotation('textbox',[0 0.13 0.1 0.1],'String',...
-    'D','FontSize',35,'linestyle','none');
+'D','FontSize',35,'linestyle','none');
 annotation('textbox',[0.59 0.13 0.1 0.1],'String',...
-    'E','FontSize',35,'linestyle','none');
+'E','FontSize',35,'linestyle','none');
+
 
 %print(gcf,[outFolder,'all_',freq,contig_text,sec_text],'-depsc');
 %print(gcf,[outFolder,'all_',freq,contig_text,sec_text],'-dpng');

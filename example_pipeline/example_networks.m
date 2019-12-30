@@ -1,7 +1,6 @@
 function example_networks
 
-%% Need to edit
-
+%% Paths to edit
 % Edit this to match the file path
 data_folder = '../../data/example_data/';
 
@@ -54,6 +53,20 @@ fprintf(['Showing confidence intervals for single patient of:\n'...
     'C: 95%% confidence interval for synchronizability\n'...
     'D: Number of electrodes forming 95%% CI set of nodal metrics\n'...
     'E: 95%% confidence interval for all global metrics\n']);
-all_CI(out(11),pt,1)
+all_CI(out(whichPt),pt,1)
+
+%% Perform network resampling to do seizure onset zone analyses
+% Call main network stats function to do the main resampling
+out_soz_1 = network_stats([],1,[],[],example); 
+out_soz_2 = network_stats([],2,[],[],example);
+
+% Analysis to see if agreement between original and resampled metric
+% correlates with distance from seizure onset zone
+compare_soz_resec(out_soz_1(whichPt),pt,1)
+
+% Analysis to see if agreement between original and resampled metric is
+% better when we spare the seizure onset zone from removal
+soz_overlap_analysis(out_soz_2(whichPt),pt,1)
+
 
 end

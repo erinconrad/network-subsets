@@ -134,6 +134,9 @@ else
         stats = struct;
     elseif do_soz_analysis == 2 || do_soz_analysis == 3
         soz_overlap = struct;
+        if exist('soz','var') == 1
+            soz_overlap = soz;
+        end
     end
    
 end
@@ -174,6 +177,11 @@ for whichPt = whichPts
 
 for contig = contigs % random or contiguous electrodes
     fprintf('Doing contig %d\n',contig);
+    
+    if isempty(example) == 0 && exist('soz','var') == 1
+        soz_overlap = soz;
+    end
+    
     tic
     
     % Skip if all electrode locations are -1 (means we don't have electrode
@@ -878,7 +886,7 @@ for contig = contigs % random or contiguous electrodes
             end
         end
         
-        out = soz;
+        
     end
 
     %% Plots
@@ -1036,10 +1044,15 @@ for contig = contigs % random or contiguous electrodes
     
 end
 
+
+
 end
 end
 end
 
+if do_soz_analysis == 1 || do_soz_analysis == 2
+    out = soz;
+end
 fprintf('The total time was %1.2f hours.\n\n',total_time/3600);
 
 end

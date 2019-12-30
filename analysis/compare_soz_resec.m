@@ -1,4 +1,4 @@
-function compare_soz_resec(soz,pt)
+function compare_soz_resec(soz,pt,example)
 
 %{
 This function takes patient-level data on agreement between original metric
@@ -8,7 +8,7 @@ from the resection zone and calculates summary statistics and does plots
 
 
 %% Parameters
-which_removal_perc = 3; %1 = 80%, 2 = 60%, 3 = 40%, 4 = 20%, 5 = 0% (4 is standard)
+which_removal_perc = 4; %1 = 80%, 2 = 60%, 3 = 40%, 4 = 20%, 5 = 0% (4 is standard)
 doPlot = 0;
 dist_to_plot = 3;
 %1 if looking at distance to nearest resec zone elec;
@@ -79,6 +79,7 @@ all_t = [];
 all_rho = [];
 all_z = [];
 all_rho_pts = {};
+rho_example = nan(8,1);
 
 for dist = dist_to_plot
     tstat_hub_stability = zeros(5,length(soz),5);
@@ -150,7 +151,14 @@ for dist = dist_to_plot
             close(gcf)
             end
             
+            % Aggregate rhos across metrics for example patient
+            if example == 1
+                rho_example(metric) = rho;
+                continue
+            end
+            
             %% Do changing hub analysis
+            
             
             if metric <=5
             % Logistic binary regression for whether distance from SOZ
@@ -166,13 +174,15 @@ for dist = dist_to_plot
             %if i == 21, error('what'); end
             
             
+            
+            
         end
         
         
         
         
         %% T test to see if the aggregated transformed rho's diff from zero
-        
+        if example == 1, continue; end
         
         all_rho = [all_rho;average_rho(rho_pts,1)];
         
@@ -268,7 +278,24 @@ for dist = dist_to_plot
         %}
     end
     
+    if example == 1
+        % Do a summary plot for the example patient and then return
+        
+        figure
+        set(gcf,'position',[1 384 1440 414])
+        plot(1:8,rho_example,'o','markersize',15)
+        xticklabels(metric_names)
+        ylabel('Spearman rank correlation');
+        title(sprintf(...
+            'Correlation between resampled-original metric agreement\nand distance of removal from the seizure onset zone'));
+        set(gca,'fontsize',15)
+        return
+    end
+    
     for metric = 1:5
+        
+        
+        
         %% One sample t test on tstats for hub stability
         % look at 20% removal
         [~,p,~,stats] = ttest(squeeze(tstat_hub_stability(metric,~isnan(squeeze(tstat_hub_stability(1,:,1))),4)));
@@ -276,6 +303,8 @@ for dist = dist_to_plot
             'tstat = %1.2f, p = %1.3f.\n\n'],metric_names{metric},stats.tstat,p);
     end
 end
+
+
 
 t_all(:,sec_idx,freq_idx) = all_t;
 p_all(:,sec_idx,freq_idx) = all_p;
@@ -319,6 +348,7 @@ squeeze(p_all(:,3,2))
 %}
 
 %% EEC, high gamma (for sz 2 or multiple removal percentages)
+fprintf('T and p values for EEC and high gamma:\n');
 squeeze(t_all(:,3,1))
 squeeze(p_all(:,3,1))
 

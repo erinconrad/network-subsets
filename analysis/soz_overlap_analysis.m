@@ -1,4 +1,4 @@
-function soz_overlap_analysis(soz_overlap,pt)
+function soz_overlap_analysis(soz_overlap,pt,example)
 
 
 %{
@@ -18,8 +18,14 @@ metric_names = {'Control centrality','Node strength','Betweenness centrality',..
 
 n_metrics = length(metrics);
 global_metric = [0 0 0 0 0 1 1 1];
-all_freq = {'high_gamma','beta'};
-all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};
+
+if example == 1
+    all_freq = {'high_gamma'};
+    all_sec = {'sec_0'};
+else
+    all_freq = {'high_gamma','beta'};
+    all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};
+end
 all_contig = {'not_soz','soz'};
 
 %% Locations
@@ -56,6 +62,9 @@ all_t_trans = [];
 % Initialize arrays for hub stability
 all_p_hub = [];
 all_t_hub = [];
+
+% Initialize agreement array for example patient
+agreement_ex = nan(8,2);
 
 % loop over metrics
 for metric = 1:n_metrics
@@ -136,8 +145,11 @@ for metric = 1:n_metrics
                 not_soz_rm_measure = measure;
             end
       
+            
         
         end
+        
+        
         
         if soz_rm_measure== 1
             error('what');
@@ -181,6 +193,11 @@ for metric = 1:n_metrics
         if exist('soz_rm_measure','var') == 0, continue; end
         if exist('not_soz_rm_measure','var') == 0, continue; end
         z = [mean(not_soz_rm_measure),soz_rm_measure];
+        
+        if example == 1
+            agreement_ex(metric,:) = z;
+            continue
+        end
             
         end
         
@@ -197,8 +214,12 @@ for metric = 1:n_metrics
             soz_test(metric).trans.values = [soz_test(metric).trans.values;...
                 mean(signed_trans_spare),signed_trans_target];
         end
+        
+        
 
     end
+    
+    if example == 1, continue; end
     
     if isempty(soz_test(metric).z) == 1, continue; end
     
@@ -254,6 +275,34 @@ for metric = 1:n_metrics
     end
 end
 
+if example == 1
+    % plot figure for example patient
+    figure
+    set(gcf,'position',[1         416        1440         382]);
+    ha(1) = subplot(1,2,1);
+    set(ha(1),'position',[0.05 0.07 0.48 0.85])
+    plot(0.85:2:8.85,agreement_ex(1:5,1),'o','markersize',15,'MarkerFaceColor','auto');
+    hold on
+    plot(1.15:2:9.15,agreement_ex(1:5,2),'o','markersize',15,'MarkerFaceColor','auto');
+    xticks(1:2:9)
+    xticklabels(metric_names(1:5))
+    ylabel('Resampled-original metric agreement');
+    legend({'SOZ-sparing','SOZ-targeting'},'location','southeast')
+    title('Nodal metrics')
+    set(gca,'fontsize',13)
+    ha(2) = subplot(1,2,2);
+    set(ha(2),'position',[0.58 0.07 0.42 0.85])
+    plot(0.85:1:2.85,agreement_ex(6:8,1),'o','markersize',15,'MarkerFaceColor','auto');
+    hold on
+    plot(1.15:1:3.15,agreement_ex(6:8,2),'o','markersize',15,'MarkerFaceColor','auto');
+    legend({'SOZ-sparing','SOZ-targeting'},'location','southeast')
+    xticks(1:1:3)
+    xticklabels(metric_names(6:8))
+    title('Global metrics')
+    set(gca,'fontsize',13)
+    return
+end
+
 
 %% Table
 if 0
@@ -264,11 +313,12 @@ if 0
     table(metrics',all_t,all_df,all_p,'VariableNames',{'Metric','Tstat','df','p'})
 end
 
+% T stats
 for i = 1:size(all_t)
     t_text{i,sec_idx,freq_idx} = pretty_tstat(all_t(i),all_p(i),length(metrics));
 end
 
-
+% Signed transitivity
 for i = 1:size(all_t_trans)
     trans_text{i,sec_idx,freq_idx} = pretty_tstat(all_t_trans(i),all_p_trans(i),length(metrics));
 end
@@ -350,6 +400,7 @@ end
 end
 
 fprintf('Main table:\n');
+% Main t stats
 table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
     char(t_text(:,4,1)),char(t_text(:,5,1)),char(t_text(:,3,2)),'VariableNames',...
     {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
@@ -358,7 +409,7 @@ table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
 
 fprintf('Trans table:\n');
 % Positive t statistics mean that the transitivity is HIGHER when we spare
-% the SOZ than when we remove the SOZ
+% the SOZ than when we remove the SOZ (signed transitivity)
 table((trans_text(:,1,1)),(trans_text(:,2,1)),(trans_text(:,3,1)),...
     (trans_text(:,4,1)),(trans_text(:,5,1)),(trans_text(:,3,2)),'VariableNames',...
     {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
