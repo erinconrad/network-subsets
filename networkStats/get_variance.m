@@ -53,6 +53,8 @@ for ff = 1:length(freq_cell)
         
         for whichPt = whichPts
             
+            fprintf('Doing patient %d\n', whichPt);
+            
             % Get locations
             locs = pt(whichPt).new_elecs.locs; % all electrode locations
             
