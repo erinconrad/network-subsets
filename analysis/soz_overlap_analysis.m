@@ -41,10 +41,10 @@ t_text = cell(length(metrics),length(all_sec),...
     length(all_freq));
 
 % Loop over frequencies and times
-for freq_idx = 1:length(all_freq)
+for freq_idx = 1%1:length(all_freq)
 freq = all_freq{freq_idx};
 
-for sec_idx = 1:length(all_sec)
+for sec_idx = 3%1:length(all_sec)
 
     
 sec_text = all_sec{sec_idx};

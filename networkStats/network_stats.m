@@ -38,6 +38,7 @@ end
 
 % do_soz_analysis: 1 if doing SOZ analysis, 0 if doing main analysis, 2 if
 % doing new soz overlap analysis
+% 4 if getting SRC and related info
 % e_f: What fraction of nodes to retain
 % contigs: 1 means contiguous set of electrodes, 0 means random electrodes
 if do_soz_analysis == 1
@@ -54,6 +55,9 @@ elseif do_soz_analysis == 2 % compare targeting soz to sparing soz
 elseif do_soz_analysis == 3 % compare targeting soz to random
     contigs = [4 3];
     e_f = nan;
+elseif do_soz_analysis == 4
+    contigs = 0;
+    e_f = [0.2 0.4 0.6 0.8 1];
 end
 n_f = length(e_f);
 
@@ -114,6 +118,12 @@ if merge == 1
         else
             soz_overlap = struct;
         end
+    elseif do_soz_analysis == 4
+        if exist([resultsFolder,'basic_metrics/src',extra,extra_dens,'.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/src',extra,extra_dens,'.mat']);
+        else
+            stats = struct;
+        end
     end
 else
     if do_soz_analysis == 1
@@ -122,6 +132,8 @@ else
         stats = struct;
     elseif do_soz_analysis == 2 || do_soz_analysis == 3
         soz_overlap = struct;
+    elseif do_soz_analysis == 4
+        stats = struct;
     end
 end
 
@@ -156,7 +168,12 @@ end
 %% Which times to do
 if isempty(which_dens) == 1
     if isempty(example) == 1
-        which_times = [0 -10 -5 5 10];
+        if do_soz_analysis == 4
+            which_times = [0];
+        else
+            
+            which_times = [0 -10 -5 5 10];
+        end
     else
         which_times = example.which_times;
     end
@@ -632,7 +649,7 @@ for contig = contigs % random or contiguous electrodes
      
     %% Fill up stats structures
     
-    if do_soz_analysis == 0
+    if do_soz_analysis == 0 || do_soz_analysis == 4
     
         %% Doing the main analysis (not dependence on distance from SOZ/resection zone)
         % For this, we need measures of variability AND agreement

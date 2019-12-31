@@ -44,6 +44,7 @@ global_metric = [0 0 0 0 0 1 1 1 0 0 0];
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
 outFolder = [resultsFolder,'agreement_dist/'];
+addpath(genpath(scriptFolder));
 
 %% Initialize cross time, freq, etc. comparisons
 t_all = nan(length(metrics_to_plot),length(all_sec),...
@@ -159,7 +160,7 @@ for dist = dist_to_plot
             
             %% Do changing hub analysis
             
-            
+            if 0
             if metric <=5
             % Logistic binary regression for whether distance from SOZ
             % predicts whether hub changes
@@ -168,7 +169,7 @@ for dist = dist_to_plot
                     tstat_hub_stability(metric,i,s) = mdl.Coefficients.tStat(2);
                 end
             end
-            
+            end
             
             
             %if i == 21, error('what'); end
@@ -292,6 +293,7 @@ for dist = dist_to_plot
         return
     end
     
+    if 1 == 0
     for metric = 1:5
         
         
@@ -301,6 +303,7 @@ for dist = dist_to_plot
         [~,p,~,stats] = ttest(squeeze(tstat_hub_stability(metric,~isnan(squeeze(tstat_hub_stability(1,:,1))),4)));
         fprintf(['For %s, correlation between soz and hub stability:\n'...
             'tstat = %1.2f, p = %1.3f.\n\n'],metric_names{metric},stats.tstat,p);
+    end
     end
 end
 
@@ -347,7 +350,7 @@ squeeze(t_all(:,3,2))
 squeeze(p_all(:,3,2))
 %}
 
-%% EEC, high gamma (for sz 2 or multiple removal percentages)
+%% EEC, high gamma (for sz 2 or multiple removal percentages or density)
 fprintf('T and p values for EEC and high gamma:\n');
 squeeze(t_all(:,3,1))
 squeeze(p_all(:,3,1))
