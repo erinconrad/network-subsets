@@ -784,7 +784,7 @@ for contig = contigs % random or contiguous electrodes
         % Participation coeff
         stats(whichPt).(freq).(contig_text).(sec_text).par.rel = par_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).par.rel_alt = par_rel_alt;
-        stats(whichPt).(freq).(contig_text).(sec_text).par.rho_mean = rho_mean_par;
+        stats(whichPt).(freq).(contig_text).(sec_text).par.rhos = rhos_par;
         
         % Eigenvector centrality
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rel = ec_rel;
