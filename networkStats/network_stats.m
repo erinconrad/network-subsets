@@ -638,13 +638,13 @@ for contig = contigs % random or contiguous electrodes
     % Nodal measures: "average" the SRCs. To average the SRCs, I
     % apply a Fisher's transformation, average the z values, and then back
     % transform to get an average rho.
-    [rho_mean_cc,rho_var_cc,z_mean_cc,z_var_cc] = average_rho(rho_cc,2);
-    [rho_mean_ns,rho_var_ns,z_mean_ns,z_var_ns] = average_rho(rho_ns,2);
-    [rho_mean_bc,rho_var_bc,z_mean_bc,z_var_bc] = average_rho(rho_bc,2);
-    [rho_mean_par,rho_var_par,z_mean_par,z_var_par] = average_rho(rho_par,2);
-    [rho_mean_ec,rho_var_ec,z_mean_ec,z_var_ec] = average_rho(rho_ec,2);
-    [rho_mean_clust,rho_var_clust,z_mean_clust,z_var_clust] = average_rho(rho_clust,2);
-    [rho_mean_cc_reg,rho_var_cc_reg,z_mean_cc_reg,z_var_cc_reg] = average_rho(rho_cc_reg,2);
+    rhos_cc = average_rho(rho_cc,2);
+    rhos_ns = average_rho(rho_ns,2);
+    rhos_bc = average_rho(rho_bc,2);
+    rhos_par = average_rho(rho_par,2);
+    rhos_ec = average_rho(rho_ec,2);
+    rhos_clust = average_rho(rho_clust,2);
+    rhos_cc_reg = average_rho(rho_cc_reg,2);
    % rho_mean_le = average_rho(rho_le,2);
      
     %% Fill up stats structures
@@ -722,10 +722,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_alt = cc_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.rel_norm = cc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.other_rel_norm = other_cc_rel_norm;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc.rho_mean = rho_mean_cc;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc.rho_var = rho_var_cc;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc.z_mean = z_mean_cc;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc.z_var = z_var_cc;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc.rhos = rhos_cc;
         stats(whichPt).(freq).(contig_text).(sec_text).cc.same_hub = same_most_sync;
         
         % regional control centrality
@@ -773,10 +770,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_alt = ns_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.rel_norm = ns_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.other_rel_norm = other_ns_rel_norm;
-        stats(whichPt).(freq).(contig_text).(sec_text).ns.rho_mean = rho_mean_ns;
-        stats(whichPt).(freq).(contig_text).(sec_text).ns.rho_var = rho_var_ns;
-        stats(whichPt).(freq).(contig_text).(sec_text).ns.z_mean = z_mean_ns;
-        stats(whichPt).(freq).(contig_text).(sec_text).ns.z_var = z_var_ns;
+        stats(whichPt).(freq).(contig_text).(sec_text).ns.rhos = rhos_ns;
         stats(whichPt).(freq).(contig_text).(sec_text).ns.same_hub = same_most_ns;
 
         % betweenness centrality
@@ -784,10 +778,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_alt = bc_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.rel_norm = bc_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.other_rel_norm = other_bc_rel_norm;
-        stats(whichPt).(freq).(contig_text).(sec_text).bc.rho_mean = rho_mean_bc;
-        stats(whichPt).(freq).(contig_text).(sec_text).bc.rho_var = rho_var_bc;
-        stats(whichPt).(freq).(contig_text).(sec_text).bc.z_mean = z_mean_bc;
-        stats(whichPt).(freq).(contig_text).(sec_text).bc.z_var = z_var_bc;
+        stats(whichPt).(freq).(contig_text).(sec_text).bc.rhos = rhos_bc;
         stats(whichPt).(freq).(contig_text).(sec_text).bc.same_hub = same_most_bc;
         
         % Participation coeff
@@ -800,10 +791,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_alt = ec_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.rel_norm = ec_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.other_rel_norm = other_ec_rel_norm;
-        stats(whichPt).(freq).(contig_text).(sec_text).ec.rho_mean = rho_mean_ec;
-        stats(whichPt).(freq).(contig_text).(sec_text).ec.rho_var = rho_var_ec;
-        stats(whichPt).(freq).(contig_text).(sec_text).ec.z_mean = z_mean_ec;
-        stats(whichPt).(freq).(contig_text).(sec_text).ec.z_var = z_var_ec;
+        stats(whichPt).(freq).(contig_text).(sec_text).ec.rhos = rhos_ec;
         stats(whichPt).(freq).(contig_text).(sec_text).ec.same_hub = same_most_ec;
         
         % Local efficiency
@@ -815,10 +803,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_alt = clust_rel_alt;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.rel_norm = clust_rel_norm;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.other_rel_norm = other_clust_rel_norm;
-        stats(whichPt).(freq).(contig_text).(sec_text).clust.rho_mean = rho_mean_clust;
-        stats(whichPt).(freq).(contig_text).(sec_text).clust.rho_var = rho_var_clust;
-        stats(whichPt).(freq).(contig_text).(sec_text).clust.z_mean = z_mean_clust;
-        stats(whichPt).(freq).(contig_text).(sec_text).clust.z_var = z_var_clust;
+        stats(whichPt).(freq).(contig_text).(sec_text).clust.rhos = rhos_clust;
         stats(whichPt).(freq).(contig_text).(sec_text).clust.same_hub = same_most_clust;
 
         % synchronizability
