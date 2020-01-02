@@ -729,7 +729,7 @@ for contig = contigs % random or contiguous electrodes
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.true = cc_regional;
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel = cc_reg_rel;
         stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rel_alt = cc_reg_rel_alt;
-        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rho_mean = rho_mean_cc_reg;
+        stats(whichPt).(freq).(contig_text).(sec_text).cc_reg.rhos = rhos_cc_reg;
         
         % Most synchronizing electrode
         stats(whichPt).(freq).(contig_text).(sec_text).min_cc.true = min_cc_true;

@@ -59,10 +59,25 @@ for i = 1:length(stats)
     
 end
 
+%% Descriptive stats
 % I again need to average rhos, but I won't do the Fisher transformation
 % here because it is a mess.
 src_mean_avg = squeeze(nanmean(src_means,1));
 src_mean_std = squeeze(nanstd(src_means,0,1));
+
+%% Statistics to compare nodal metrics
+% Do 20% removal
+src_means_80 = src_means(:,:,4);
+[p,tbl,stats1] = friedman(src_means_80(~isnan(src_means_80(:,1)),:),1,'off');
+fprintf('Friedman test for nodal metrics: p = %1.1e, chi-squared = %1.1f, dof = %d\n',...
+    p, tbl{2,5},tbl{3,3});
+
+% perform a post-hoc Dunn's test
+[c,~,~,~,t] = multcompare_erin(stats1,'CType','dunn-sidak','Display','off');
+for i = 1:size(c,1)
+    fprintf('Dunn''s test comparing %s and %s: t = %1.2f, p = %1.3f\n\n',...
+        nodal_metrics_text{c(i,1)},nodal_metrics_text{c(i,2)},t(i),c(i,6));   
+end
 
 %% Prep text
 text = cell(5,5);
