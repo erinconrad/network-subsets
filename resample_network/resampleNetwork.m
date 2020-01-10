@@ -174,6 +174,24 @@ for f = 1:n_f
             n_soz = length(soz);
             which_elecs = randperm(nch,n_soz);
             
+        elseif contig == 5
+            
+            % Just take resected electrodes
+            which_elecs = resec;
+            
+        elseif contig == 6
+            
+            % Take random sample of ALL electrodes NOT forming resection zone, equal in number to
+            % number of resected electrodes
+            
+            % Find non-resec electrodes
+            n_resec = length(resec);
+            resec_binary = ismember(1:nch,resec);
+            not_resec = find(~resec_binary);
+            
+            % pick random sample equal in size to resec
+            which_elecs = randsample(not_resec,min(n_resec,length(not_resec)));
+            
         end
         
         %% Compare electrodes to SOZ and resection zone

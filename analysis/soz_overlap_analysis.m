@@ -7,6 +7,7 @@ when we target vs spare the SOZ for removal
 %}
 
 %% Parameters
+rm_non_independent_pts = 0;
 do_plot = 0;
 save_plot = 0;
 metrics = {'rho_cc','rho_ns','rho_bc','rho_ec','rho_clust',...
@@ -40,11 +41,12 @@ end
 t_text = cell(length(metrics),length(all_sec),...
     length(all_freq));
 
+
 % Loop over frequencies and times
-for freq_idx = 1%1:length(all_freq)
+for freq_idx = 1:length(all_freq)
 freq = all_freq{freq_idx};
 
-for sec_idx = 3%1:length(all_sec)
+for sec_idx = 1:length(all_sec)
 
     
 sec_text = all_sec{sec_idx};
@@ -55,9 +57,16 @@ all_z_pts = {};
 all_t = [];
 all_df = [];
 
+all_p_dist = [];
+all_z_pts = {};
+all_t_dist = [];
+all_df_dist = [];
+
 % Initialize arrays for transitivity
 all_p_trans = [];
 all_t_trans = [];
+all_p_trans_dist = [];
+all_t_trans_dist = [];
 
 % Initialize arrays for hub stability
 all_p_hub = [];
@@ -71,6 +80,7 @@ for metric = 1:n_metrics
     
     if metric == 8
         soz_test(metric).trans.values = [];
+        soz_test(metric).trans.all_spare = [];
     end
     
     % Initialize some variables
@@ -78,12 +88,18 @@ for metric = 1:n_metrics
     soz_test(metric).rm_soz = [];
     soz_test(metric).rm_not_soz = {};
     soz_test(metric).hub.means = [];
+    soz_test(metric).spare_lower_per = [];
 
     % loop over patients
     for i = 1:length(soz_overlap)
         if isfield(soz_overlap(i),freq) == 0, continue; end
         if isempty(soz_overlap(i).(freq)) == 1, continue; end
         
+        % Remove non-independent patients
+        if rm_non_independent_pts == 1
+            if ismember(i,[1 8 21 23 25 29]) == 1, continue; end
+            
+        end
         
         
         for contig_idx = [1,2] % 1 is spare soz, 2 is remove soz
@@ -167,52 +183,60 @@ for metric = 1:n_metrics
             close(gcf)
         end
         
-        if 0
-        %% Rank sum
+        
+        %% Get distribution of soz_removing
         % Comparing single rho from when we only remove soz to all rhos
         % when we randomly remove something that is not the soz
-        
-        % The reason this is bad is because the group of
+
+        % The reason this is problematic is because the group of
         % not_soz_rm_measures are not independent. For instance, there is
         % one patient where the soz electrodes comprise more than half of
         % the electrodes. And so I just take the remainder of the
         % electrodes to remove for not_soz_rm_measure. And I take that same
-        % set 1,000 times. And so even a teeny tiny difference will become
-        % significant because rank sum assumes that each of the 1,000
-        % measures is significant
-        
+        % set 1,000 times. 
+
         if exist('soz_rm_measure','var') == 0, continue; end
-        [p,h,stats] = ranksum(soz_rm_measure,not_soz_rm_measure);
-        
+
+        % Get the percentage of sparing agreements lower than the
+        % targeted agreement
+        spare_lower_per = sum(not_soz_rm_measure < soz_rm_measure)/...
+            length(not_soz_rm_measure);
+
+
+        %[p,h,stats] = ranksum(soz_rm_measure,not_soz_rm_measure);
+
         % Get the z-score
-        z = stats.zval;
-        
-        elseif 1
+        %z = stats.zval;
+
+
         %% Take means
         % I think this is the only way to directly compare
         if exist('soz_rm_measure','var') == 0, continue; end
         if exist('not_soz_rm_measure','var') == 0, continue; end
         z = [mean(not_soz_rm_measure),soz_rm_measure];
-        
+
         if example == 1
             agreement_ex(metric,:) = z;
             continue
         end
-            
-        end
-        
+
+
+
         soz_test(metric).name = metrics{metric};
         soz_test(metric).z = [soz_test(metric).z;z];
         soz_test(metric).rm_soz = [soz_test(metric).rm_soz;soz_rm_measure];
         soz_test(metric).rm_not_soz{i} = not_soz_rm_measure;
+        soz_test(metric).spare_lower_per = [soz_test(metric).spare_lower_per;spare_lower_per];
         if metric <= 5
         soz_test(metric).hub.means = [soz_test(metric).hub.means;not_soz_rm_hub_same,soz_rm_hub_same];
         end
-        
+
         % add the transitivity signed relative differences
         if metric == 8
             soz_test(metric).trans.values = [soz_test(metric).trans.values;...
                 mean(signed_trans_spare),signed_trans_target];
+            soz_test(metric).trans.all_spare = [soz_test(metric).trans.all_spare;...
+                sum(signed_trans_spare<signed_trans_target)/length(signed_trans_spare)];
         end
         
         
@@ -238,6 +262,20 @@ for metric = 1:n_metrics
     all_t = [all_t;stats.tstat];
     all_p = [all_p;p];
     all_z_pts{metric} = soz_test(metric).z(:,1)-soz_test(metric).z(:,2);
+    
+    % Do a test to see if the percentage of SOZ-sparing agreements less
+    % than SOZ-targeted agreements is significantly less than 50% (I would
+    % expect, by chance, that half of the patients would have >50% and half
+    % would have <50%
+    [~,p_dist,~,stats_dist] = ttest(0.5-soz_test(metric).spare_lower_per);
+    soz_test(metric).stats_dist.p = p_dist;
+    soz_test(metric).stats_dist.t = stats_dist.tstat;
+    soz_test(metric).stats_dist.df = stats_dist.df;
+    all_df_dist = [all_df_dist;stats_dist.df];
+    all_t_dist = [all_t_dist;stats_dist.tstat];
+    all_p_dist = [all_p_dist;p_dist];
+    
+    %if metric== 8, error('look\n'); end
     
     %% Paired t-test on hub stability
     if metric <= 5
@@ -272,6 +310,15 @@ for metric = 1:n_metrics
             'tstat = %1.2f, p = %1.3f\n'],...
             all_sec{sec_idx},all_freq{freq_idx},nanmean(soz_test(metric).trans.values(:,1)),...
             nanmean(soz_test(metric).trans.values(:,2)),stats.tstat,p);
+        
+        % Do test on distribution
+        [~,p_dist,~,stats_dist] = ttest(0.5-soz_test(metric).trans.all_spare);
+        soz_test(metric).trans.stats_dist.p = p_dist;
+        soz_test(metric).trans.stats_dist.t = stats_dist.tstat;
+        soz_test(metric).trans.stats_dist.df = stats_dist.df;
+        all_p_trans_dist = [all_p_trans_dist;p_dist];
+        all_t_trans_dist = [all_t_trans_dist;stats_dist.tstat];
+        
     end
 end
 
@@ -318,9 +365,15 @@ for i = 1:size(all_t)
     t_text{i,sec_idx,freq_idx} = pretty_tstat(all_t(i),all_p(i),length(metrics));
 end
 
+% T stats for distribution
+for i = 1:size(all_t_dist)
+    t_text_dist{i,sec_idx,freq_idx} = pretty_tstat(all_t_dist(i),all_p_dist(i),length(metrics));
+end
+
 % Signed transitivity
 for i = 1:size(all_t_trans)
     trans_text{i,sec_idx,freq_idx} = pretty_tstat(all_t_trans(i),all_p_trans(i),length(metrics));
+    trans_text_dist{i,sec_idx,freq_idx} = pretty_tstat(all_t_trans_dist(i),all_p_trans_dist(i),length(metrics));
 end
 
 for i = 1:size(all_t_hub)
@@ -406,12 +459,22 @@ table(char(t_text(:,1,1)),char(t_text(:,2,1)),char(t_text(:,3,1)),...
     {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
 
 
+% T stats for distribution
+fprintf('Distribution table:\n');
+table(char(t_text_dist(:,1,1)),char(t_text_dist(:,2,1)),char(t_text_dist(:,3,1)),...
+    char(t_text_dist(:,4,1)),char(t_text_dist(:,5,1)),char(t_text_dist(:,3,2)),'VariableNames',...
+    {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
 
 fprintf('Trans table:\n');
 % Positive t statistics mean that the transitivity is HIGHER when we spare
 % the SOZ than when we remove the SOZ (signed transitivity)
 table((trans_text(:,1,1)),(trans_text(:,2,1)),(trans_text(:,3,1)),...
     (trans_text(:,4,1)),(trans_text(:,5,1)),(trans_text(:,3,2)),'VariableNames',...
+    {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
+
+fprintf('Distribution trans table:\n');
+table((trans_text_dist(:,1,1)),(trans_text_dist(:,2,1)),(trans_text_dist(:,3,1)),...
+    (trans_text_dist(:,4,1)),(trans_text_dist(:,5,1)),(trans_text_dist(:,3,2)),'VariableNames',...
     {all_sec{1},all_sec{2},all_sec{3},all_sec{4},all_sec{5},all_freq{2}})
 
 fprintf('Hub table:\n');

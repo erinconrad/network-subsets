@@ -1,4 +1,4 @@
-function compare_soz_resec(soz,pt,example)
+function compare_soz_resec(soz,pt,example,only_ilae1)
 
 %{
 This function takes patient-level data on agreement between original metric
@@ -95,6 +95,15 @@ for dist = dist_to_plot
         for i = 1:length(soz)
             if isempty(soz(i).(freq)) == 1, continue; end
             if isfield(soz(i).(freq).(contig_text),sec_text) == 0, continue; end
+            
+            % Remove non ilae 1 patients
+            if only_ilae1 == 1
+                % get outcome
+                outcome = get_ilae(pt(i).name);
+                
+                if outcome ~=1, continue; end
+            end
+            
             base = soz(i).(freq).(contig_text).(sec_text);
             
             % Get the agreement metric. For global measures this is the
@@ -114,9 +123,10 @@ for dist = dist_to_plot
            
             
             % Get whether the hub changed identity
-            
+            if 0
             if metric <= 5
                 hub_same = base.same_hub.(hub_metric_names{metric});
+            end
             end
             
             

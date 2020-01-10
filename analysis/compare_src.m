@@ -1,6 +1,7 @@
 function compare_src(stats)
 
 %% Parameters
+do_fisher = 0;
 which_freq = 1;
 which_contig = 1;
 which_sec = 3;
@@ -8,6 +9,13 @@ which_sec = 3;
 all_contig = {'random','contiguous'}; % look at random or contiguous removal
 all_freq = {'high_gamma','beta'}; % which frequency coherence
 all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'}; % which times relative to EEC
+if do_fisher == 1
+    rho_text = 'fisher_rho';
+    var_text = 'fisher_var';
+else
+    rho_text = 'simple_rho';
+    var_text = 'simple_var';
+end
 
 contig_text = all_contig{which_contig};
 sec_text = all_sec{which_sec};
@@ -48,8 +56,8 @@ for i = 1:length(stats)
     
     for m = 1:length(nodal_metrics)
         metric = nodal_metrics{m};
-        rho_mean = base.(metric).rho_mean;
-        rho_var = base.(metric).rho_var;
+        rho_mean = base.(metric).rhos.(rho_text);
+        rho_var = base.(metric).rhos.(var_text);
         
         % Fill arrays with src mean and var
         src_means(i,m,:) = rho_mean;
@@ -60,16 +68,22 @@ for i = 1:length(stats)
 end
 
 %% Descriptive stats
-% I again need to average rhos, but I won't do the Fisher transformation
-% here because it is a mess.
+
 src_mean_avg = squeeze(nanmean(src_means,1));
 src_mean_std = squeeze(nanstd(src_means,0,1));
+
+for m = 1:size(src_mean_avg)
+    fprintf('Averaged across all patients, the mean SRC for %s was %1.2f +/- %1.2f for 20%% removal.\n',...
+        nodal_metrics_text{m},src_mean_avg(m,4),src_mean_std(m,4));
+    
+end
+
 
 %% Statistics to compare nodal metrics
 % Do 20% removal
 src_means_80 = src_means(:,:,4);
 [p,tbl,stats1] = friedman(src_means_80(~isnan(src_means_80(:,1)),:),1,'off');
-fprintf('Friedman test for nodal metrics: p = %1.1e, chi-squared = %1.1f, dof = %d\n',...
+fprintf('\nFriedman test for nodal metrics: p = %1.1e, chi-squared = %1.1f, dof = %d\n',...
     p, tbl{2,5},tbl{3,3});
 
 % perform a post-hoc Dunn's test
