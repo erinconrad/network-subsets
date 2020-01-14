@@ -1,4 +1,4 @@
-function soz_overlap_analysis(soz_overlap,pt,example)
+function soz_overlap_analysis(soz_overlap,pt,example,only_ilae1)
 
 
 %{
@@ -94,6 +94,14 @@ for metric = 1:n_metrics
     for i = 1:length(soz_overlap)
         if isfield(soz_overlap(i),freq) == 0, continue; end
         if isempty(soz_overlap(i).(freq)) == 1, continue; end
+        
+        % Remove non ilae 1 patients
+            if only_ilae1 == 1
+                % get outcome
+                outcome = get_ilae(pt(i).name);
+                
+                if outcome ~=1, continue; end
+            end
         
         % Remove non-independent patients
         if rm_non_independent_pts == 1

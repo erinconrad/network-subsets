@@ -10,7 +10,7 @@ from the resection zone and calculates summary statistics and does plots
 %% Parameters
 which_removal_perc = 4; %1 = 80%, 2 = 60%, 3 = 40%, 4 = 20%, 5 = 0% (4 is standard)
 doPlot = 0;
-dist_to_plot = 3;
+dist_to_plot = 2;
 %1 if looking at distance to nearest resec zone elec;
 %2 if looking at distance to centroid of resection zone
 %3 if distance to centroid of SOZ
