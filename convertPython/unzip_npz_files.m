@@ -216,7 +216,7 @@ for whichPt = whichPts
     adj(7).data.ignore = ignore;
     
     % Save the structure
-    save([outputFolder,'adj',which_mb_out,'_window',window,'.mat'],'adj');
+    save([outputFolder,'adj',which_mb_out,'_window',sprintf('%d',window),'.mat'],'adj');
     
     % Delete all.mat (it causes all sorts of issues if I keep it there)
     delete([outputFolder,'all.mat'])
