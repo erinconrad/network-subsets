@@ -1,4 +1,4 @@
-function [adj,out_locs,sz_num] = reconcileAdj(pt,whichPt,which_sz,which_window)
+function [adj,out_locs,sz_num] = reconcileAdj(pt,whichPt,which_sz)
 
 %{
 This function gets an adjacency matrix and gets the correct locations

@@ -152,7 +152,7 @@ for whichPt = whichPts
     
         
     
-    if whichPt == 19 && last_sz == 1
+    if whichPt == 19 && which_sz == 3
         fname = name;
     else
         fname = listing(whichFile).name;
