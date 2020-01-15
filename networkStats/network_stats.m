@@ -93,7 +93,7 @@ else
 end
 
 if isempty(which_window) == 0
-    extra_window = sprintf('_dens%d',which_window);
+    extra_window = sprintf('_%d',which_window);
 else
     extra_window = '';
 end
