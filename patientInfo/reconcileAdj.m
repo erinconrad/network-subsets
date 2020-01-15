@@ -57,8 +57,8 @@ elseif which_window == 2
     if contains(new_listing(1).name,'window2') == 0, error('what\n'); end
     load([baseFolder,new_listing(1).name]);
 elseif which_window == 500
-    if contains(new_listing(1).name,'window500') == 0, error('what\n'); end
-    load([baseFolder,new_listing(500).name]);
+    if contains(new_listing(2).name,'window500') == 0, error('what\n'); end
+    load([baseFolder,new_listing(2).name]);
 end
 
 
