@@ -1,4 +1,4 @@
-function out = network_stats(whichPts,do_soz_analysis,which_sz,which_dens,example)
+function out = network_stats(whichPts,do_soz_analysis,which_sz,which_dens,which_window,example)
 
 %{
 This function takes an adjacency matrix A, calculates global and nodal
@@ -92,45 +92,51 @@ else
     extra_dens = '';
 end
 
+if isempty(which_window) == 0
+    extra_window = sprintf('_dens%d',which_window);
+else
+    extra_window = '';
+end
+
 %% Load the output structure to add more info to it
 
 if merge == 1
     if do_soz_analysis == 1
-        if exist([resultsFolder,'basic_metrics/soz',extra,extra_dens,'.mat'],'file') ~= 0
-            load([resultsFolder,'basic_metrics/soz',extra,extra_dens,'.mat']);
+        if exist([resultsFolder,'basic_metrics/soz',extra,extra_dens,'_window',extra_window,'.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/soz',extra,extra_dens,'_window',extra_window,'.mat']);
         else
             soz = struct;
         end
     elseif do_soz_analysis == 0
-        if exist([resultsFolder,'basic_metrics/stats',extra,extra_dens,'.mat'],'file') ~= 0
-            load([resultsFolder,'basic_metrics/stats',extra,extra_dens,'.mat']);
+        if exist([resultsFolder,'basic_metrics/stats',extra,extra_dens,'_window',extra_window,'.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/stats',extra,extra_dens,'_window',extra_window,'.mat']);
         else
             stats = struct;
         end
     elseif do_soz_analysis == 2
-        if exist([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'.mat'],'file') ~= 0
+        if exist([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'_window',extra_window,'.mat'],'file') ~= 0
             fprintf('Found existing file, loading...\n');
-            load([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'.mat']);
+            load([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'_window',extra_window,'.mat']);
         else
             soz_overlap = struct;
         end
     elseif do_soz_analysis == 3
-        if exist([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'.mat'],'file') ~= 0
+        if exist([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'_window',extra_window,'.mat'],'file') ~= 0
             fprintf('Found existing file, loading...\n');
-            load([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'.mat']);
+            load([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'_window',extra_window,'.mat']);
         else
             soz_overlap = struct;
         end
     elseif do_soz_analysis == 4
-        if exist([resultsFolder,'basic_metrics/src',extra,extra_dens,'.mat'],'file') ~= 0
-            load([resultsFolder,'basic_metrics/src',extra,extra_dens,'.mat']);
+        if exist([resultsFolder,'basic_metrics/src',extra,extra_dens,'_window',extra_window,'.mat'],'file') ~= 0
+            load([resultsFolder,'basic_metrics/src',extra,extra_dens,'_window',extra_window,'.mat']);
         else
             stats = struct;
         end
     elseif do_soz_analysis == 5
-        if exist([resultsFolder,'basic_metrics/resec_overlap',extra,extra_dens,'.mat'],'file') ~= 0
+        if exist([resultsFolder,'basic_metrics/resec_overlap',extra,extra_dens,'_window',extra_window,'.mat'],'file') ~= 0
             fprintf('Found existing file, loading...\n');
-            load([resultsFolder,'basic_metrics/resec_overlap',extra,extra_dens,'.mat']);
+            load([resultsFolder,'basic_metrics/resec_overlap',extra,extra_dens,'_window',extra_window,'.mat']);
         else
             soz_overlap = struct;
         end
@@ -180,6 +186,8 @@ if isempty(which_dens) == 1
     if isempty(example) == 1
         if do_soz_analysis == 4
             which_times = [0];
+        elseif which_window == 2 || which_window == 500
+            which_times = 0;
         else
             
             which_times = [0 -10 -5 5 10];
@@ -856,9 +864,9 @@ for contig = contigs % random or contiguous electrodes
 
         if doSave == 1
             if do_soz_analysis == 0
-                save([resultsFolder,'basic_metrics/stats',extra,extra_dens,'.mat'],'stats');
+                save([resultsFolder,'basic_metrics/stats',extra,extra_dens,'_window',extra_window,'.mat'],'stats');
             elseif do_soz_analysis == 4
-                save([resultsFolder,'basic_metrics/src',extra,extra_dens,'.mat'],'stats');
+                save([resultsFolder,'basic_metrics/src',extra,extra_dens,'_window',extra_window,'.mat'],'stats');
             end
         end
         
@@ -911,17 +919,17 @@ for contig = contigs % random or contiguous electrodes
        % soz(whichPt).(contig_text).(sec_text).rho_le_resec = rho_le_resec;
         if doSave == 1 
             if do_soz_analysis == 1
-                save([resultsFolder,'basic_metrics/soz',extra,extra_dens,'.mat'],'soz');
+                save([resultsFolder,'basic_metrics/soz',extra,extra_dens,'_window',extra_window,'.mat'],'soz');
             elseif do_soz_analysis == 2
                 soz_overlap = soz;
-                save([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'.mat'],'soz_overlap');
+                save([resultsFolder,'basic_metrics/soz_overlap',extra,extra_dens,'_window',extra_window,'.mat'],'soz_overlap');
             elseif do_soz_analysis == 3
                 soz_overlap = soz;
-                save([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'.mat'],'soz_overlap');
+                save([resultsFolder,'basic_metrics/soz_overlap_random',extra,extra_dens,'_window',extra_window,'.mat'],'soz_overlap');
             
             elseif do_soz_analysis == 5
                 soz_overlap = soz;
-                save([resultsFolder,'basic_metrics/resec_overlap',extra,extra_dens,'.mat'],'soz_overlap');
+                save([resultsFolder,'basic_metrics/resec_overlap',extra,extra_dens,'_window',extra_window,'.mat'],'soz_overlap');
             end
         end
         

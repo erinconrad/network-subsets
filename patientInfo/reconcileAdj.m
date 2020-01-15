@@ -22,8 +22,46 @@ if length(listing) < which_sz
     return
 end
 
-% Load the appropriate adjacency matrix
-load([baseFolder,listing(which_sz).name]);
+% get appropriate window
+new_listing_count = 1;
+for i = 1:length(listing)
+    if contains(listing(i).name,'window') == 1
+        if which_window ~=1
+            new_listing(new_listing_count).name = listing(i).name;
+            new_listing_count = new_listing_count + 1;
+        end
+    else
+        if which_window == 1
+            new_listing(new_listing_count).name = listing(i).name;
+            new_listing_count = new_listing_count + 1;
+        end
+    end
+end
+
+% Confirm I don't have any "window" files when I shouldn't, and that all
+% files have "window" if they should
+for i = 1:length(new_listing)
+    if which_window == 1
+        if contains(new_listing(i).name,'window') == 1, error('what\n'); end
+    else
+        if contains(new_listing(i).name,'window') == 0, error('what\n'); end
+    end
+end
+
+% note that "which_sz" is 1, 2, or 3 and whereas
+% the sz number attached to the adjacency matrix is the actual seizure
+% number. I need to make the conversion here
+if which_window == 1
+    load([baseFolder,new_listing(which_sz).name]);
+elseif which_window == 2
+    if contains(new_listing(500).name,'window2') == 0, error('what\n'); end
+    load([baseFolder,new_listing(1).name]);
+elseif which_window == 500
+    if contains(new_listing(500).name,'window500') == 0, error('what\n'); end
+    load([baseFolder,new_listing(500).name]);
+end
+
+
 elecs = adj(7).data;
 sz_num = which_sz;
 %{
