@@ -1,10 +1,11 @@
-function unzip_npz_files(pt,whichPts,last_sz)
+function unzip_npz_files(pt,whichPts,which_sz,window)
+
 
 mod = py.importlib.import_module('open_adj');
 py.reload(mod);
 
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
-    pwfile,dataFolder,bctFolder,mainFolder,adjFolder] = resectFileLocs;
+    pwfile,dataFolder,bctFolder,mainFolder,adjFolder,newAdjFolder] = resectFileLocs;
 baseFolder = [mainFolder,'/data/adjacencyMatrices/'];
 
 if isempty(whichPts) == 1
@@ -22,7 +23,11 @@ for whichPt = whichPts
     outputFolder = [baseFolder,name,'/'];
     
     % Current adjacency folder
-    adj_pt_folder = [adjFolder,name,'/aim3/'];
+    if window == 1
+        adj_pt_folder = [adjFolder,name,'/aim3/'];
+    else
+        adj_pt_folder = [newAdjFolder,name,'/'];
+    end
     
     if exist(adj_pt_folder,'dir') == 0
         continue
@@ -33,9 +38,34 @@ for whichPt = whichPts
     end
     
     % Find the files that end in .npz
-    listing = dir([adj_pt_folder,'/*multiband.npz']);
+    if window == 1
+        listing = dir([adj_pt_folder,'/*multiband.npz']);
+    elseif window == 2
+        listing = dir([adj_pt_folder,'/*multiband.2.npz']);
+    elseif window == 500
+        listing = dir([adj_pt_folder,'/*multiband.500.npz']);
+    end
     
-    if last_sz == 0
+    if which_sz == 1
+        % code to find the first seizure
+        
+        % Find smallest number
+        minNum = 1000;
+        for n = 1:length(listing)
+            fname = listing(n).name;
+            [starti,endi] = regexp(fname,'Ictal.\d+.');
+            which_multiband = fname(starti + 6:endi-1); 
+            which_mb_num = str2double(which_multiband);
+            if which_mb_num < minNum
+                whichFile = n;
+                minNum = which_mb_num;
+                which_mb_out = which_multiband;
+            end
+        end
+        
+        fprintf('Doing seizure %d from %s\n',minNum,name);
+    
+    elseif which_sz == 2
         
         % I believe this code will find the 2nd seizure if it exists
     
@@ -77,7 +107,7 @@ for whichPt = whichPts
         
         fprintf('Doing seizure %d from %s\n',minNum,name);
         
-    else
+    elseif which_sz == 3 % this is code to do the last seizure
         
         if whichPt == 19
             
