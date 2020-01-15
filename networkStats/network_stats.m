@@ -294,7 +294,7 @@ for contig = contigs % random or contiguous electrodes
 
     %% Get adjacency matrix
     if isempty(example) == 1
-        [adj,~,sz_num] = reconcileAdj(pt,whichPt,which_sz);
+        [adj,~,sz_num] = reconcileAdj(pt,whichPt,which_sz,which_window);
     else
         adj = example.adj;
         sz_num = example.sz_num;
