@@ -9,12 +9,22 @@ electrode sampling on intracranial EEG".
 
 The information below explains the components of the codebase.
 
+Of note, this code base makes use of the Brain Connectivity Toolbox as a
+dependency. This can be downloaded at https://sites.google.com/site/bctnet/
+
+Information of Brain Connectivity Toolbox:
+Complex network measures of brain connectivity: Uses and interpretations.
+Rubinov M, Sporns O (2010) NeuroImage 52:1059-69.
+ %}
+
+%% How to run example script
+%{
 To run an example script, navigate to the folder example_pipeline, open the
 script example_networks, and read the instructions. This is an example
 script demonstrating how the codebase is run using example data from a
 single patient and single seizure.
- 
- %}
+%} 
+
 
 %% Overview
 %{

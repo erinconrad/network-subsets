@@ -8,12 +8,15 @@ the input data and how the code utilizes this data.
 
 To run this code, you will need the following things:
 - the "Network Subsets" codebase, available at https://github.com/erinconrad/network-subsets/
-- The Brain Connectivity Toolbox (CITATION***), available at ***
+- The Brain Connectivity Toolbox (Complex network measures of brain 
+connectivity: Uses and interpretations. Rubinov M, Sporns O (2010) 
+NeuroImage 52:1059-69.), available at https://sites.google.com/site/bctnet/
 - the patient information "info.mat" file, which contains de-identified
-information about patients. This is available ***
+information about patients. This is available for download along with the
+primary codebase on Github in the example_pipeline folder.
 - the example adjacency matrix file "HUP083_ex.mat", which contains the
 adjacency matrices for a single seizure from a single patient (HUP083),
-available at ***.
+available along with the code base in the example_pipeline folder.
 
 Once you have downloaded all of these components, edit the "Paths to edit" 
 section below to point to where you have saved the "info.mat" file, the
