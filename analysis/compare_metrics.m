@@ -7,7 +7,7 @@ compares network measure reliability
 
 %% Parameters
 if example == 0
-    doPlots = 1; % plot things?
+    doPlots = 0; % plot things?
     which_contigs = [1 2];
     which_freqs = [1 2];
     which_secs = 1:5;
@@ -101,7 +101,9 @@ for i = 1:length(stats)
     %% Get agreement and reliability for metrics by resection size
     for j = 1:length(nodal_metrics)
         var_nodal(i,j,:) = base.(nodal_metrics{j}).rel_alt;
-        ag_nodal(i,j,:) = base.(nodal_metrics{j}).rho_mean';
+        
+        
+        %ag_nodal(i,j,:) = base.(nodal_metrics{j}).rho_mean';
         
         %same_hub_nodal(i,j,:) = mean(base.(nodal_metrics{j}).same_hub,2);
     end
@@ -109,7 +111,7 @@ for i = 1:length(stats)
     %% Get agreement and variability for global metrics by resection size
     for j = 1:length(global_metrics)
         std_global(i,j,:) = base.(global_metrics{j}).std';
-        ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff_norm,2);
+        %ag_global(i,j,:) = mean(base.(global_metrics{j}).rel_diff_norm,2);
         true_global(i,j,:) = base.(global_metrics{j}).true;
         global_all(i,j,1:size(base.(global_metrics{j}).all,1),...
             1:size(base.(global_metrics{j}).all,2)) = base.(global_metrics{j}).all;
@@ -124,9 +126,9 @@ end
 var_global = alt_global_reliability(global_all);
 
 %% Average over patients
-avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
+%avg_ag_nodal = squeeze(average_rho(ag_nodal,1)); % Fisher transform for rho
 avg_var_nodal = squeeze(nanmean(var_nodal,1));
-avg_ag_global = squeeze(nanmean(ag_global,1));
+%avg_ag_global = squeeze(nanmean(ag_global,1));
 avg_var_global = squeeze(nanmean(var_global,1));
 %avg_samehub_nodal = squeeze(nanmean(same_hub_nodal,1));
 
@@ -287,7 +289,7 @@ for i = 1:size(var_global_80,2)
 end
 rho_global_avg = average_rho(rho_global,1);
 fprintf(['The correlation coefficient between global reliability and\n'...
-    'electrode number is %1.2f\n'],rho_global_avg);
+    'electrode number is %1.2f\n'],rho_global_avg.fisher_rho);
 
 % nodal reliability
 rho_nodal = zeros(5,1);
@@ -307,7 +309,7 @@ for i = 1:size(var_nodal_80,2)
 end
 rho_nodal_avg = average_rho(rho_nodal,1);
 fprintf(['The correlation coefficient between nodal reliability and\n'...
-    'electrode number is %1.2f\n'],rho_nodal_avg);
+    'electrode number is %1.2f\n'],rho_nodal_avg.fisher_rho);
 
 
 %% Reliability for multiple removal percentages
@@ -474,8 +476,8 @@ if doPlots == 1
     
     % Nodal reliability
     axes(ha(1))
-    nd = zeros(size(avg_ag_nodal,1),1);
-    for j = 1:size(avg_ag_nodal,1)
+    nd = zeros(size(avg_var_nodal,1),1);
+    for j = 1:size(avg_var_nodal,1)
         std_rel = squeeze(nanstd(var_nodal,0,1));
        errorbar(100-ef+j*2-6,avg_var_nodal(j,:),std_rel(j,:),...
            'o','MarkerSize',15,'MarkerEdgeColor',cols(j,:),...
@@ -495,6 +497,7 @@ if doPlots == 1
     ylabel({'Reliability'})
     title('Nodal reliability');
     xlim([-6 86])
+    ylim([0.4 1])
     xticks(sort(100-ef))
    % title('Reliability by subsample size','Position',[0.1 0.1 0.1 0.1]);
     set(gca,'Fontsize',25);
@@ -506,9 +509,9 @@ if doPlots == 1
         'southwest','fontsize',25);
     legend boxoff
     
-    gl = zeros(size(avg_ag_global,1),1);
+    gl = zeros(size(avg_var_global,1),1);
     axes(ha(2))
-    for j = 1:size(avg_ag_global,1)
+    for j = 1:size(avg_var_global,1)
          std_rel = squeeze(nanstd(var_global,1));
          errorbar(100-ef+j*2-4,avg_var_global(j,:),std_rel(j,:),...
            'o','MarkerSize',15,'MarkerEdgeColor',cols(j+5,:),...
@@ -526,6 +529,7 @@ if doPlots == 1
     ylabel({'Reliability'})
     title('Global reliability');
     xlim([-6 86])
+    ylim([0.4 1])
     xticks(sort(100-ef))
     %title('Variability by subsample size');
     set(gca,'Fontsize',25);

@@ -1,5 +1,16 @@
 function make_heatmap(which_tbl)
 
+%% Parameters
+if which_tbl == 4 || which_tbl == 5 || which_tbl == 6
+    color_range = [-4 4];
+elseif which_tbl == 3
+    color_range = [0.6 1];
+elseif which_tbl == 2
+    color_range = [0.7 1];
+else
+    color_range = nan;
+end
+
 %% Locations
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
 pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
@@ -74,13 +85,30 @@ for i = 1:size(C,1)
 end
 
 %% Make heatmap
-h = heatmap_custom(c_num,column_names,T.Properties.RowNames,c_sig,...
-    'fontsize',15,'TickFontSize',13);
+if isnan(color_range) == 1
+    h = heatmap_custom(c_num,column_names,T.Properties.RowNames,c_sig,...
+    'fontsize',15,'TickFontSize',12,'ShowAllTicks',1);
+else
+    h = heatmap_custom(c_num,column_names,T.Properties.RowNames,c_sig,...
+    'MinColorValue',color_range(1),'MaxColorValue',color_range(2),...
+    'fontsize',15,'TickFontSize',12,'ShowAllTicks',1);
+end
+
+colorbar
 
 if which_tbl == 6
-    set(gcf,'position',[325 313 1116 485]);
-        
+    set(gcf,'position',[10 313 1390 485]);
+elseif which_tbl == 4
+    set(gcf,'position',[10 313 1350 485]);    
+elseif which_tbl == 2
+    set(gcf,'position',[10 313 1300 485]);   
+elseif which_tbl == 5
+    set(gcf,'position',[10 313 600 485]);  
+elseif which_tbl == 3
+    set(gcf,'position',[10 313 600 485]);  
 end
+
+%set(gca,'LooseInset',get(gca,'TightInset'));
 
 % Save figure
 print(gcf,[tblFolder,sprintf('heatmap_%d',which_tbl)],'-depsc');

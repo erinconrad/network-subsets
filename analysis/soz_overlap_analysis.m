@@ -1,4 +1,4 @@
-function soz_overlap_analysis(soz_overlap,pt,example,only_ilae1)
+function soz_overlap_analysis(soz_overlap,pt,example,only_ilae1,do_resec)
 
 
 %{
@@ -27,7 +27,11 @@ else
     all_freq = {'high_gamma','beta'};
     all_sec = {'sec_neg10','sec_neg5','sec_0','sec_5','sec_10'};
 end
-all_contig = {'not_soz','soz'};
+if do_resec == 0
+    all_contig = {'not_soz','soz'};
+elseif do_resec == 1
+    all_contig = {'not_resec','resec'};
+end
 
 %% Locations
 [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
@@ -274,13 +278,17 @@ for metric = 1:n_metrics
     % Do a test to see if the percentage of SOZ-sparing agreements less
     % than SOZ-targeted agreements is significantly less than 50% (I would
     % expect, by chance, that half of the patients would have >50% and half
-    % would have <50%
+    % would have <50%. A positive t statistic means that SOZ-sparing
+    % agreements tend to be higher.
     [~,p_dist,~,stats_dist] = ttest(0.5-soz_test(metric).spare_lower_per);
+    %[p_dist,~,stats_dist] = signrank(0.5-soz_test(metric).spare_lower_per);
     soz_test(metric).stats_dist.p = p_dist;
     soz_test(metric).stats_dist.t = stats_dist.tstat;
+    %soz_test(metric).stats_dist.t = stats_dist.signedrank;
     soz_test(metric).stats_dist.df = stats_dist.df;
-    all_df_dist = [all_df_dist;stats_dist.df];
-    all_t_dist = [all_t_dist;stats_dist.tstat];
+    %soz_test(metric).stats_dist.df = nan;
+    all_df_dist = [all_df_dist;soz_test(metric).stats_dist.df];
+    all_t_dist = [all_t_dist;soz_test(metric).stats_dist.t];
     all_p_dist = [all_p_dist;p_dist];
     
     %if metric== 8, error('look\n'); end
