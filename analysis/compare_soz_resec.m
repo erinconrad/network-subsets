@@ -41,10 +41,12 @@ dist_names = {'from resection zone','from resection zone',...
 global_metric = [0 0 0 0 0 1 1 1 0 0 0];
 
 %% Locations
-[electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
-pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
-outFolder = [resultsFolder,'agreement_dist/'];
-addpath(genpath(scriptFolder));
+if example ~= 1
+    [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
+    pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+    outFolder = [resultsFolder,'agreement_dist/'];
+    addpath(genpath(scriptFolder));
+end
 
 %% Initialize cross time, freq, etc. comparisons
 t_all = nan(length(metrics_to_plot),length(all_sec),...

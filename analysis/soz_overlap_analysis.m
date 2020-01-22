@@ -34,11 +34,13 @@ elseif do_resec == 1
 end
 
 %% Locations
-[electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
-pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
-outFolder = [resultsFolder,'soz_overlap/'];
-if exist('outFolder','dir') == 0
-    mkdir(outFolder)
+if example ~= 1
+    [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
+    pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+    outFolder = [resultsFolder,'soz_overlap/'];
+    if exist('outFolder','dir') == 0
+        mkdir(outFolder)
+    end
 end
 
 %% Initialize cross time comparisons

@@ -22,10 +22,11 @@ global_name = 'Synchronizability';
 global_names_all = {'Synchronizability','Global efficiency','Transitivity'};
 
 %% Locations
-
-[electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
-pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
-outFolder = [resultsFolder,'cc_comparison/'];
+if example ~= 1
+    [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
+    pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+    outFolder = [resultsFolder,'cc_comparison/'];
+end
 
 figure  
 set(gcf,'Position',[100 0 900 1100]);

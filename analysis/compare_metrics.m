@@ -11,6 +11,11 @@ if example == 0
     which_contigs = [1 2];
     which_freqs = [1 2];
     which_secs = 1:5;
+    
+    [electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
+    pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
+    outFolder = [resultsFolder,'compare_metrics/'];
+    addpath(genpath(scriptFolder))
 else
     doPlots = 0;
     which_contigs = [1 2];
@@ -27,10 +32,7 @@ cols = [0 0.4470 0.7410;0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;...
 
 %% Locations
 
-[electrodeFolder,jsonfile,scriptFolder,resultsFolder,...
-pwfile,dataFolder,bctFolder,mainFolder] = resectFileLocs;
-outFolder = [resultsFolder,'compare_metrics/'];
-addpath(genpath(scriptFolder))
+
 
 
 %% Initialize arrays
